@@ -27,9 +27,21 @@
     </style>
 </head>
 <body>
-    <h1>Image Generator</h1>
-    <input type="text" id="positivePrompt" placeholder="Enter Positive Prompt" />
-    <button id="submitButton">Submit</button>
+    <h1>Generator obrazów</h1>
+    <label for="positivePrompt">Positive Prompt</label>
+    <input type="text" id="positivePrompt" placeholder="Elvish sword" />
+    <label for="negativePrompt">Negative Prompt</label>
+    <input type="text" id="negativePrompt" placeholder="Bad" />
+    <label for="samplerSelect">Sampler</label>
+    <select id="samplerSelect">
+        <option value="euler">euler</option>
+        <option value="euler_ancestral">euler_ancestral</option>
+    </select>
+    <label for="cfgInput">CFG</label>
+    <input type="number" id="cfgInput" min="1" max="20" step="0.1" value="4" />
+    <label for="stepsInput">Seed</label>
+    <input type="number" id="stepsInput" min="20" max="140" step="1" value="50" />
+    <button id="submitButton">Prześlij</button>
     <div id="output"></div>
 
     <script type="module">
@@ -42,6 +54,29 @@
 
         // Połączenie z serwerem ComfyUI
         client.connect();
+
+        function validateInputs() {
+            const positivePrompt = document.getElementById('positivePrompt').value.trim();
+            const cfgInput = parseFloat(document.getElementById('cfgInput').value);
+            const stepsInput = parseInt(document.getElementById('stepsInput').value);
+
+            if (!positivePrompt) {
+                alert('Positive Prompt jest wymagany.');
+                return;
+            }
+
+            if (isNaN(cfgInput) || cfgInput < 1.0 || cfgInput > 20.0) {
+                alert('CFG musi być liczbą pomiędzy 1.0 a 20.0.');
+                return;
+            }
+
+            if (isNaN(stepsInput) || stepsInput < 20 || stepsInput > 140 || !Number.isInteger(stepsInput)) {
+                alert('Steps musi być liczbą całkowitą pomiędzy 20 a 140.');
+                return;
+            }
+
+            generateImage();
+        }
 
         async function generateImage() {
             try {
@@ -140,7 +175,7 @@
             }
         }
 
-        document.getElementById('submitButton').addEventListener('click', generateImage);
+        document.getElementById('submitButton').addEventListener('click', validateInputs);
     </script>
 </body>
 </html>
