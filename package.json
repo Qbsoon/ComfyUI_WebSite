@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@stable-canvas/comfyui-client": "^1.4.1"
+  }
+}

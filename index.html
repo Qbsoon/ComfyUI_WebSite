@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Generator</h1>
+    <input type="text" id="positivePrompt" placeholder="Enter Positive Prompt" />
+    <button id="submitButton">Submit</button>
+    <div id="output"></div>
+
+    <script type="module">
+        import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-client@latest/dist/main.module.mjs";
+
+        // Inicjalizacja klienta
+        const client = new Client({
+            api_host: "127.0.0.1:8000", // Adres i port serwera ComfyUI
+        });
+
+        // Połączenie z serwerem ComfyUI
+        client.connect();
+
+        async function generateImage() {
+            try {
+                const prompt = document.getElementById('positivePrompt').value;
+            
+                // Workflow ComfyUI
+                const workflow = {
+                    "3": {
+                        "class_type": "KSampler",
+                        "inputs": {
+                            "cfg": 4,
+                            "denoise": 1,
+                            "latent_image": ["5", 0],
+                            "model": ["4", 0],
+                            "negative": ["7", 0],
+                            "positive": ["6", 0],
+                            "sampler_name": "euler",
+                            "scheduler": "normal",
+                            "seed": 8566257,
+                            "steps": 65
+                        }
+                    },
+                    "4": {
+                        "class_type": "CheckpointLoaderSimple",
+                        "inputs": {
+                            "ckpt_name": "sd3.5_large_fp8_scaled.safetensors"
+                        }
+                    },
+                    "5": {
+                        "class_type": "EmptyLatentImage",
+                        "inputs": {
+                            "batch_size": 1,
+                            "height": 1024,
+                            "width": 1024
+                        }
+                    },
+                    "6": {
+                        "class_type": "CLIPTextEncode",
+                        "inputs": {
+                            "clip": ["4", 1],
+                            "text": prompt
+                        }
+                    },
+                    "7": {
+                        "class_type": "CLIPTextEncode",
+                        "inputs": {
+                            "clip": ["4", 1],
+                            "text": "bad"
+                        }
+                    },
+                    "8": {
+                        "class_type": "VAEDecode",
+                        "inputs": {
+                            "samples": ["3", 0],
+                            "vae": ["4", 2]
+                        }
+                    },
+                    "9": {
+                        "class_type": "SaveImage",
+                        "inputs": {
+                            "filename_prefix": "ComfyUI",
+                            "images": ["8", 0]
+                        }
+                    }
+                };
+            
+                // Wysłanie zapytania do kolejki serwera ComfyUI
+                const result = await client.enqueue(workflow, {
+                    progress: ({max,value}) => console.log(`progress: ${value}/${max}`),
+                }
+                );
+            
+                // Sprawdzenie, czy odpowiedź zawiera dane obrazu
+                if (!result || !result.images || result.images.length === 0) {
+                    throw new Error('No image data returned from the server.');
+                }
+            
+                // Wydobycie adresu URL obrazu z odpowiedzi
+                const imageUrl = result.images[0].data;
+            
+                const img = document.createElement('img');
+                img.src = imageUrl;
+            
+                // Obsługa błędów
+                img.onerror = () => {
+                    alert('Failed to load the generated image. Please check the server response.');
+                };
+            
+                // Wyświetlenie nowego obrazu
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = '';
+                outputDiv.appendChild(img);
+            } catch (error) {
+                console.error('Error generating image:', error);
+                alert('Failed to generate image. Check the console for details.');
+            }
+        }
+
+        document.getElementById('submitButton').addEventListener('click', generateImage);
+    </script>
+</body>
+</html>
