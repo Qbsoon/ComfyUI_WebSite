@@ -63,7 +63,7 @@
 
         // Inicjalizacja klienta
         const client = new Client({
-            api_host: "100.125.102.128:8000", // Adres i port serwera ComfyUI
+            api_host: "192.168.1.84:8000", // Adres i port serwera ComfyUI
         });
 
         // Połączenie z serwerem ComfyUI
@@ -73,6 +73,12 @@
             const positivePrompt = document.getElementById('positivePrompt').value.trim();
             const cfgInput = parseFloat(document.getElementById('cfgInput').value);
             const stepsInput = parseInt(document.getElementById('stepsInput').value);
+            const stepsRefineInput = parseInt(document.getElementById('stepsRefineInput').value);
+            var stepsMaxLimit = 140
+
+            if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+                stepsMaxLimit = 10
+            }
 
             if (!positivePrompt) {
                 alert('Positive Prompt jest wymagany.');
@@ -84,8 +90,13 @@
                 return;
             }
 
-            if (isNaN(stepsInput) || stepsInput < 1 || stepsInput > 140 || !Number.isInteger(stepsInput)) {
-                alert('Steps musi być liczbą całkowitą pomiędzy 20 a 140.');
+            if (isNaN(stepsInput) || stepsInput < 1 || stepsInput > stepsMaxLimit || !Number.isInteger(stepsInput)) {
+                alert('Steps musi być liczbą całkowitą pomiędzy 1 a ' + stepsMaxLimit + '.');
+                return;
+            }
+
+            if (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput > 100 || !Number.isInteger(stepsRefineInput)) {
+                alert('Refiner Steps musi być liczbą całkowitą pomiędzy 1 a 100.');
                 return;
             }
 
@@ -273,7 +284,7 @@
                     "sampler_name": sampler,
                     "scheduler": "normal",
                     "start_at_step": 0,
-                    "end_at_step": stepsRefine,
+                    "end_at_step": steps,
                     "return_with_leftover_noise": "enable",
                     "model": [
                       "4",
@@ -302,7 +313,7 @@
                     "cfg": cfg,
                     "sampler_name": sampler,
                     "scheduler": "normal",
-                    "start_at_step": stepsRefine,
+                    "start_at_step": steps,
                     "end_at_step": 10000,
                     "return_with_leftover_noise": "disable",
                     "model": [
