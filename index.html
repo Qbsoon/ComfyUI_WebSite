@@ -33,6 +33,12 @@
 </head>
 <body>
     <h1>Generator obrazów</h1>
+    <label for="modelSelect">Model</label>
+    <select id="modelSelect">
+        <option value="sd3.5_large_fp8_scaled.safetensors">sd3.5_large_fp8_scaled.safetensors</option>
+        <option value="sd3.5_base_fp8.safetensors">sd_xl_base_1.0.safetensors</option>
+        <option value="sd_xl_base_1.0.safetensors">sd_xl_turbo_1.0_fp16.safetensors</option>
+    </select>
     <label for="positivePrompt">Positive Prompt</label>
     <input type="text" id="positivePrompt" placeholder="Elvish sword" />
     <label for="negativePrompt">Negative Prompt</label>
@@ -55,7 +61,7 @@
 
         // Inicjalizacja klienta
         const client = new Client({
-            api_host: "127.0.0.1:8000", // Adres i port serwera ComfyUI
+            api_host: "100.125.102.128:8000", // Adres i port serwera ComfyUI
         });
 
         // Połączenie z serwerem ComfyUI
@@ -90,25 +96,184 @@
             progressBar.value = percentage;
         }
 
+        function modelChange() {
+            if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
+
+            }
+        }
+
         async function generateImage() {
             try {
-                const prompt = document.getElementById('positivePrompt').value;
+                const promptP = document.getElementById('positivePrompt').value;
+                const promptN = document.getElementById('negativePrompt').value;
+                const cfg = parseFloat(document.getElementById('cfgInput').value);
+                const steps = parseInt(document.getElementById('stepsInput').value);
+                const sampler = document.getElementById('samplerSelect').value;
+
+                const workflowSDXL = {
+                    "4": {
+                      "inputs": {
+                        "ckpt_name": "sd_xl_base_1.0.safetensors"
+                      },
+                      "class_type": "CheckpointLoaderSimple",
+                      "_meta": {
+                        "title": "Load Checkpoint - BASE"
+                      }
+                    },
+                    "5": {
+                      "inputs": {
+                        "width": 1024,
+                        "height": 1024,
+                        "batch_size": 1
+                      },
+                      "class_type": "EmptyLatentImage"
+                    },
+                    "6": {
+                      "inputs": {
+                        "text": promptP,
+                        "clip": [
+                          "4",
+                          1
+                        ]
+                      },
+                      "class_type": "CLIPTextEncode"
+                    },
+                    "7": {
+                      "inputs": {
+                        "text": promptN,
+                        "clip": [
+                          "4",
+                          1
+                        ]
+                      },
+                      "class_type": "CLIPTextEncode"
+                    },
+                    "10": {
+                      "inputs": {
+                        "add_noise": "enable",
+                        "noise_seed": 721897303308196,
+                        "steps": steps,
+                        "cfg": cfg,
+                        "sampler_name": sampler,
+                        "scheduler": "normal",
+                        "start_at_step": 0,
+                        "end_at_step": 20,
+                        "return_with_leftover_noise": "enable",
+                        "model": [
+                          "4",
+                          0
+                        ],
+                        "positive": [
+                          "6",
+                          0
+                        ],
+                        "negative": [
+                          "7",
+                          0
+                        ],
+                        "latent_image": [
+                          "5",
+                          0
+                        ]
+                      },
+                      "class_type": "KSamplerAdvanced"
+                    },
+                    "11": {
+                      "inputs": {
+                        "add_noise": "disable",
+                        "noise_seed": 0,
+                        "steps": steps,
+                        "cfg": cfg,
+                        "sampler_name": sampler,
+                        "scheduler": "normal",
+                        "start_at_step": 20,
+                        "end_at_step": 10000,
+                        "return_with_leftover_noise": "disable",
+                        "model": [
+                          "12",
+                          0
+                        ],
+                        "positive": [
+                          "15",
+                          0
+                        ],
+                        "negative": [
+                          "16",
+                          0
+                        ],
+                        "latent_image": [
+                          "10",
+                          0
+                        ]
+                      },
+                      "class_type": "KSamplerAdvanced"
+                    },
+                    "12": {
+                      "inputs": {
+                        "ckpt_name": "sd_xl_refiner_1.0.safetensors"
+                      },
+                      "class_type": "CheckpointLoaderSimple"
+                    },
+                    "15": {
+                      "inputs": {
+                        "text": promptP,
+                        "clip": [
+                          "12",
+                          1
+                        ]
+                      },
+                      "class_type": "CLIPTextEncode"
+                    },
+                    "16": {
+                      "inputs": {
+                        "text": promptN,
+                        "clip": [
+                          "12",
+                          1
+                        ]
+                      },
+                      "class_type": "CLIPTextEncode"
+                    },
+                    "17": {
+                      "inputs": {
+                        "samples": [
+                          "11",
+                          0
+                        ],
+                        "vae": [
+                          "12",
+                          2
+                        ]
+                      },
+                      "class_type": "VAEDecode"
+                    },
+                    "19": {
+                      "inputs": {
+                        "filename_prefix": "ComfyUI",
+                        "images": [
+                          "17",
+                          0
+                        ]
+                      },
+                      "class_type": "SaveImage"
+                    }
+                }
             
-                // Workflow ComfyUI
-                const workflow = {
+                // Workflow ComfyUI SD3.5Large
+                const workflowSD35 = {
                     "3": {
                         "class_type": "KSampler",
                         "inputs": {
-                            "cfg": 4,
+                            "cfg": cfg,
                             "denoise": 1,
                             "latent_image": ["5", 0],
                             "model": ["4", 0],
                             "negative": ["7", 0],
                             "positive": ["6", 0],
-                            "sampler_name": "euler",
+                            "sampler_name": sampler,
                             "scheduler": "normal",
                             "seed": 8566257,
-                            "steps": 65
+                            "steps": steps
                         }
                     },
                     "4": {
@@ -129,14 +294,14 @@
                         "class_type": "CLIPTextEncode",
                         "inputs": {
                             "clip": ["4", 1],
-                            "text": prompt
+                            "text": promptP
                         }
                     },
                     "7": {
                         "class_type": "CLIPTextEncode",
                         "inputs": {
                             "clip": ["4", 1],
-                            "text": "bad"
+                            "text": promptN
                         }
                     },
                     "8": {
@@ -188,6 +353,7 @@
         }
 
         document.getElementById('submitButton').addEventListener('click', validateInputs);
+        document.getElementById('modelSelect').addEventListener('change', changeModel);
     </script>
 </body>
 </html>
