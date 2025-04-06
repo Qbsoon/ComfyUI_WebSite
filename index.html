@@ -33,6 +33,7 @@
 </head>
 <body>
     <h1>Generator obrazów</h1>
+    <input type="text" id="uid" placeholder="UID" />
     <label for="modelSelect">Model</label>
     <select id="modelSelect">
         <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
@@ -57,6 +58,8 @@
     <progress id="progressBar" value="0" max="100"></progress>
     <button id="submitButton">Prześlij</button>
     <div id="output"></div>
+	<button id="reloadGallery">Załaduj obrazy</button>
+	<div id="gallery"></div>
 
     <script type="module">
         import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-client@latest/dist/main.module.mjs";
@@ -68,11 +71,15 @@
 
         // Inicjalizacja klienta
         const client = new Client({
-            api_host: "192.168.1.84:8000", // Adres i port serwera ComfyUI
+            api_host: "localhost:8000", // Adres i port serwera ComfyUI
         });
 
-        // Połączenie z serwerem ComfyUI
-        client.connect();
+        try {
+			client.connect()
+   			console.log('Connected to ComfyUI server');
+		} catch (error) {
+    		console.error('Failed to connect to ComfyUI server:', error);
+		}
 
         function validateInputs() {
             const positivePrompt = document.getElementById('positivePrompt').value.trim();
@@ -132,6 +139,7 @@
             const steps = parseInt(document.getElementById('stepsInput').value);
             const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
             const sampler = document.getElementById('samplerSelect').value;
+            const uid = document.getElementById('uid').value.trim();
 
             const workflowSDXLTurbo = {
                 "5": {
@@ -235,7 +243,7 @@
                 },
                 "19": {
                   "inputs": {
-                    "filename_prefix": "ComfyUI",
+                    "filename_prefix": '${uid}\\sdxlturbo',
                     "images": [
                       "8",
                       0
@@ -381,7 +389,7 @@
                 },
                 "19": {
                   "inputs": {
-                    "filename_prefix": "ComfyUI",
+                    "filename_prefix": '${uid}\\sdxl',
                     "images": [
                       "17",
                       0
@@ -443,11 +451,14 @@
                     }
                 },
                 "9": {
-                    "class_type": "SaveImage",
-                    "inputs": {
-                        "filename_prefix": "ComfyUI",
-                        "images": ["8", 0]
-                    }
+                  "inputs": {
+                    "filename_prefix": '${uid}\\sd35',
+                    "images": [
+                      "8",
+                      0
+                    ]
+                  },
+                  "class_type": "SaveImage"
                 }
             }
             if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
@@ -463,10 +474,17 @@
         async function generateImage(workflow) {
             try {
                 // Wysłanie zapytania do kolejki serwera ComfyUI
-                const result = await client.enqueue(workflow, {
-                    progress: ({max,value}) => updateProgressBar(value, max),
-                }
-                );
+				console.log('Sending workflow to ComfyUI:', workflow);
+                const result = await Promise.race([
+    		        client.enqueue(workflow, {
+    		            progress: ({ max, value }) => updateProgressBar(value, max),
+    		        }),
+    		        new Promise((_, reject) =>
+    		            setTimeout(() => reject(new Error('Request timed out')), 10000) // 10-second timeout
+    		        ),
+    		    ]);
+
+				console.log('Result received from ComfyUI:', result);
             
                 // Sprawdzenie, czy odpowiedź zawiera dane obrazu
                 if (!result || !result.images || result.images.length === 0) {
@@ -475,6 +493,8 @@
                 console.log(result)
                 // Wydobycie adresu URL obrazu z odpowiedzi
                 const imageUrl = result.images[0].data;
+
+				console.log('Image URL:', imageUrl);
             
                 const img = document.createElement('img');
                 img.src = imageUrl;
@@ -494,8 +514,49 @@
             }
         }
 
-        document.getElementById('submitButton').addEventListener('click', validateInputs);
+        window.loadImages = async function(directory) {
+    	    try {
+    	        const response = await fetch(directory);
+    	        if (!response.ok) {
+    	            throw new Error(`Failed to load directory: ${response.statusText}`);
+    	        }
+			
+    	        const html = await response.text();
+    	        const parser = new DOMParser();
+    	        const doc = parser.parseFromString(html, 'text/html');
+			
+    	        // Znajdź wszystkie linki do plików w katalogu
+    	        const links = Array.from(doc.querySelectorAll('a'))
+    	            .map(link => link.getAttribute('href'))
+    	            .filter(href => /\.png$/i.test(href)); // Filtruj tylko obrazy
+			
+    	        const outputDiv = document.getElementById('gallery');
+    	        outputDiv.innerHTML = ''; // Wyczyść poprzednie obrazy
+			
+    	        links.forEach(file => {
+    	            const img = document.createElement('img');
+    	            img.src = `${directory}/${file}`;
+    	            img.alt = file;
+    	            img.style.margin = '10px';
+    	            img.style.maxWidth = '200px';
+    	            img.style.height = 'auto';
+    	            outputDiv.appendChild(img);
+    	        });
+    	    } catch (error) {
+    	        console.error('Error loading images:', error);
+    	        alert('Nie udało się załadować obrazów.');
+    	    }
+    	}
+
+        //document.getElementById('submitButton').addEventListener('click', validateInputs);
+		document.getElementById('submitButton').addEventListener('click', () => {
+    		validateInputs();
+		});
         document.getElementById('modelSelect').addEventListener('change', changeModel);
+		document.getElementById('reloadGallery').addEventListener('click', () => {
+			const uid = document.getElementById('uid').value.trim();
+			loadImages(`http://localhost/gallery/${uid}`);
+		});
     </script>
 </body>
 </html>
