@@ -29,6 +29,9 @@
             height: 80px;
             margin-top: 10px;
         }
+		#gallery {
+			width: 80%;
+		}
     </style>
 </head>
 <body>
@@ -67,8 +70,6 @@
     <script type="module">
         import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-client@latest/dist/main.module.mjs";
 
-        // Galeria posortowana po dacie (od najnowszych)
-		// Kontakt z ComfyUI powinien zacząć działać
 		// Zastanowić się nad WebSocket w przypadku problemów
         // Przenieść workflow do plików w podkatalogu
         // Stała struktura workflow. Wywołanie changeModel pobiera plik workflow, ustawia dany jako workflow i ustawia zmienne, które będą przekazywane do validateInputs przez argumenty (limity oraz które inputy walidować)
@@ -76,7 +77,7 @@
 
         // Inicjalizacja klienta
         const client = new Client({
-            api_host: "localhost:8000", // Adres i port serwera ComfyUI
+            api_host: "qbsoonw11:8000", // Adres i port serwera ComfyUI
         });
 
         try {
@@ -145,6 +146,7 @@
             const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
             const sampler = document.getElementById('samplerSelect').value;
             const uid = document.getElementById('uid').value.trim();
+			console.log('UID:', uid);
 
             const workflowSDXLTurbo = {
                 "5": {
@@ -248,7 +250,7 @@
                 },
                 "19": {
                   "inputs": {
-                    "filename_prefix": '${uid}\\sdxlturbo',
+                    "filename_prefix": `${uid}\\sdxlturbo`,
                     "images": [
                       "8",
                       0
@@ -394,7 +396,7 @@
                 },
                 "19": {
                   "inputs": {
-                    "filename_prefix": '${uid}\\sdxl',
+                    "filename_prefix": `${uid}\\sdxl`,
                     "images": [
                       "17",
                       0
@@ -457,7 +459,7 @@
                 },
                 "9": {
                   "inputs": {
-                    "filename_prefix": '${uid}\\sd35',
+                    "filename_prefix": `${uid}\\sd35`,
                     "images": [
                       "8",
                       0
@@ -480,14 +482,9 @@
             try {
                 // Wysłanie zapytania do kolejki serwera ComfyUI
 				console.log('Sending workflow to ComfyUI:', workflow);
-                const result = await Promise.race([
-    		        client.enqueue(workflow, {
-    		            progress: ({ max, value }) => updateProgressBar(value, max),
-    		        }),
-    		        new Promise((_, reject) =>
-    		            setTimeout(() => reject(new Error('Request timed out')), 10000) // 10-second timeout
-    		        ),
-    		    ]);
+                const result = await client.enqueue(workflow, {
+ 					progress: ({max,value}) => updateProgressBar(value, max),
+				});
 
 				console.log('Result received from ComfyUI:', result);
             
@@ -513,6 +510,7 @@
                 const outputDiv = document.getElementById('output');
                 outputDiv.innerHTML = '';
                 outputDiv.appendChild(img);
+				document.getElementById('reloadGallery').click();
             } catch (error) {
                 console.error('Error generating image:', error);
                 alert('Failed to generate image. Check the console for details.');
@@ -520,28 +518,42 @@
         }
 
         window.loadImages = async function(directory) {
-    	    try {
-    	        const response = await fetch(directory);
-    	        if (!response.ok) {
-    	            throw new Error(`Failed to load directory: ${response.statusText}`);
-    	        }
+		    try {
+		        const response = await fetch(directory);
+		        if (!response.ok) {
+		            throw new Error(`Failed to load directory: ${response.statusText}`);
+		        }
 			
-    	        const html = await response.text();
-    	        const parser = new DOMParser();
-    	        const doc = parser.parseFromString(html, 'text/html');
+		        const html = await response.text();
+		        const parser = new DOMParser();
+		        const doc = parser.parseFromString(html, 'text/html');
 			
-    	        // Znajdź wszystkie linki do plików w katalogu
-    	        const links = Array.from(doc.querySelectorAll('a'))
-    	            .map(link => link.getAttribute('href'))
-    	            .filter(href => /\.png$/i.test(href)); // Filtruj tylko obrazy
-			
-    	        const outputDiv = document.getElementById('gallery');
-    	        outputDiv.innerHTML = ''; // Wyczyść poprzednie obrazy
-			
-    	        links.forEach(file => {
+		        // Znajdź wszystkie linki do plików w katalogu
+		        const images_raw = Array.from(doc.querySelectorAll('tr'));
+		        const images = images_raw
+		            .map(image => {
+		                const link = image.querySelector('a');
+		                const imageDate = image.querySelector('td:nth-child(3)');
+		                if (link && imageDate) {
+		                    return {
+		                        name: link.getAttribute('href'),
+		                        date: new Date(imageDate.textContent.trim())
+		                    };
+		                }
+		                return null;
+		            })
+		            .filter(image => image && /\.(jpg|jpeg|png)$/i.test(image.name)); // Filtruj tylko obrazy
+				
+		        // Sort files by modification date (newest first)
+		        images.sort((a, b) => b.date - a.date);
+				
+		        const outputDiv = document.getElementById('gallery');
+		        outputDiv.innerHTML = ''; // Wyczyść poprzednie obrazy
+				
+		        images.forEach(image => {
     	            const img = document.createElement('img');
-    	            img.src = `${directory}/${file}`;
-    	            img.alt = file;
+    	            img.src = `${directory}/${image.name}`;
+    	            img.alt = image;
     	            img.style.margin = '10px';
     	            img.style.maxWidth = '200px';
     	            img.style.height = 'auto';
@@ -573,7 +585,7 @@
     	    }
     	}
 
-        //document.getElementById('submitButton').addEventListener('click', validateInputs);
+
 		document.getElementById('submitButton').addEventListener('click', () => {
     		validateInputs();
 		});
