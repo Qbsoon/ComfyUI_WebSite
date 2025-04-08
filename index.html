@@ -4,116 +4,274 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Generator</title>
-	<link rel="icon" href="gallery/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="gallery/favicon.ico" type="image/x-icon">
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
             padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        #header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
         }
-        input, button {
-            margin: 10px;
+
+        #tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        #tabs button {
+            background-color: white;
+            color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #tabs button.active {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        #mainContainer {
+            display: none;
+            grid-template-rows: auto auto;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 90%;
+            margin: 20px auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #galleryContainerTab {
+            display: none;
+            padding: 20px;
+            max-width: 90%;
+            margin: 20px auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, button {
+            margin: 5px 0;
             padding: 10px;
-            font-size: 16px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+			margin-bottom: 20px;
         }
-        img {
-            margin-top: 20px;
-            max-width: 100%;
+
+		label, input, select, button {
+			display: block;
+			width: 100%;
+		}
+
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #sixGallery img {
+            width: 100%;
             height: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
         }
-        #progressBar {
-            width: 10%;
-            height: 80px;
-            margin-top: 10px;
+
+        #sixGallery img:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
         }
-		#gallery {
-			width: 80%;
+
+		#output {
+			margin-bottom: 20px;
+			border: 1px solid #ccc;
+			height: 300px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		#sixGallery {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 10px;
+		}
+
+		#fullGallery {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 10px;
+		}
+
+		#imageModal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.8);
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+		}
+
+		#modalImage {
+			max-width: 90%;
+			max-height: 90%;
+			border: 2px solid white;
+			border-radius: 10px;
 		}
     </style>
 </head>
 <body>
-    <h1>Generator obrazów</h1>
-    <input type="text" id="uid" placeholder="UID" />
-    <label for="modelSelect">Model</label>
-    <select id="modelSelect">
-        <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
-        <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
-        <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo (fp16)</option>
-    </select>
-    <label for="positivePrompt">Positive Prompt</label>
-    <input type="text" id="positivePrompt" placeholder="Elvish sword" />
-    <label for="negativePrompt">Negative Prompt</label>
-    <input type="text" id="negativePrompt" placeholder="Bad" />
-    <label for="samplerSelect">Sampler</label>
-    <select id="samplerSelect">
-		<option value="euler">euler</option>
-		<option value="euler_cfg_pp">euler_cfg_pp</option>
-		<option value="euler_ancestral">euler_ancestral</option>
-		<option value="euler_ancestral_cfg_pp">euler_ancestral_cfg_pp</option>
-		<option value="heun">heun</option>
-		<option value="heunpp2">heunpp2</option>
-		<option value="dpm_2">dpm_2</option>
-		<option value="dpm_2_ancestral">dpm_2_ancestral</option>
-		<option value="lms">lms</option>
-		<option value="dpm_fast">dpm_fast</option>
-		<option value="dpm_adaptive">dpm_adaptive</option>
-		<option value="dpmpp_2s_ancestral">dpmpp_2s_ancestral</option>
-		<option value="dpmpp_2s_ancestral_cfg_pp">dpmpp_2s_ancestral_cfg_pp</option>
-		<option value="dpmpp_sde">dpmpp_sde</option>
-		<option value="dpmpp_sde_gpu">dpmpp_sde_gpu</option>
-		<option value="dpmpp_2m">dpmpp_2m</option>
-		<option value="dpmpp_2m_cfg_pp">dpmpp_2m_cfg_pp</option>
-		<option value="dpmpp_2m_sde">dpmpp_2m_sde</option>
-		<option value="dpmpp_2m_sde_gpu">dpmpp_2m_sde_gpu</option>
-		<option value="dpmpp_3m_sde">dpmpp_3m_sde</option>
-		<option value="dpmpp_3m_sde_gpu">dpmpp_3m_sde_gpu</option>
-		<option value="ddpm">ddpm</option>
-		<option value="lcm">lcm</option>
-		<option value="ipndm">ipndm</option>
-		<option value="ipndm_v">ipndm_v</option>
-		<option value="deis">deis</option>
-		<option value="res_multistep">res_multistep</option>
-		<option value="res_multistep_cfg_pp">res_multistep_cfg_pp</option>
-		<option value="res_multistep_ancestral">res_multistep_ancestral</option>
-		<option value="res_multistep_ancestral_cfg_pp">res_multistep_ancestral_cfg_pp</option>
-		<option value="gradient_estimation">gradient_estimation</option>
-		<option value="er_sde">er_sde</option>
-		<option value="ddim">ddim</option>
-		<option value="uni_pc">uni_pc</option>
-		<option value="uni_pc_bh2">uni_pc_bh2</option>
-	</select>
-	<label for="schedulerSelect">Scheduler</label>
-	<select id="schedulerSelect">
-		<option value="normal">normal</option>
-		<option value="kerras">kerras</option>
-		<option value="exponential">exponential</option>
-		<option value="sgm_uniform">sgm_uniform</option>
-		<option value="simple">simple</option>
-		<option value="ddim_uniform">ddim_uniform</option>
-		<option value="beta">beta</option>
-		<option value="linear_quadratic">linear_quadratic</option>
-		<option value="kl_optimal">kl_optimal</option>
-	</select>
-    <label for="cfgInput">CFG</label>
-    <input type="number" id="cfgInput" min="1" max="20" step="0.1" value="2" />
-    <label for="stepsInput">Steps</label>
-    <input type="number" id="stepsInput" min="20" max="70" step="1" value="50" />
-    <label id= "stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
-    <input type="number" id="stepsRefineInput" min="20" max="70" step="1" value="50" hidden="true" />
-	<label for="progressBar" id="progressName"></label>
-    <progress id="progressBar" value="0" max="100"></progress>
-    <button id="submitButton">Prześlij</button>
-    <div id="output"></div>
-	<button id="reloadGallery">Załaduj obrazy</button>
-	<div id="gallery"></div>
-	<div id="imageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; z-index: 1000;">
-		<img id="modalImage" style="max-width: 90%; max-height: 90%; border: 2px solid white; border-radius: 10px;" />
-	</div>
+    <!-- Header with Tabs -->
+    <div id="header">
+        <h1>Image Generator</h1>
+        <div id="tabs">
+            <button id="generatorTab" class="active" onclick="switchTab('generator')">Generator</button>
+            <button id="galleryTab" onclick="switchTab('gallery')">Gallery</button>
+        </div>
+    </div>
 
-    <script type="module" src="scripts/main.js"></script>
+    <!-- Generator Tab Content -->
+    <div id="mainContainer">
+        <!-- Parameters Section -->
+        <div id="parameters" class="container">
+            <h2>Parameters</h2>
+			<label for="uid">UID</label>
+            <input type="number" id="uid" default="0"/>
+            <label for="modelSelect">Model</label>
+            <select id="modelSelect">
+                <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
+                <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
+                <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo (fp16)</option>
+            </select>
+            <label for="positivePrompt">Positive Prompt</label>
+            <input type="text" id="positivePrompt" placeholder="Elvish sword" />
+            <label for="negativePrompt">Negative Prompt</label>
+            <input type="text" id="negativePrompt" placeholder="Bad" />
+            <label for="samplerSelect">Sampler</label>
+            <select id="samplerSelect">
+				<option value="euler">euler</option>
+				<option value="euler_cfg_pp">euler_cfg_pp</option>
+				<option value="euler_ancestral">euler_ancestral</option>
+				<option value="euler_ancestral_cfg_pp">euler_ancestral_cfg_pp</option>
+				<option value="heun">heun</option>
+				<option value="heunpp2">heunpp2</option>
+				<option value="dpm_2">dpm_2</option>
+				<option value="dpm_2_ancestral">dpm_2_ancestral</option>
+				<option value="lms">lms</option>
+				<option value="dpm_fast">dpm_fast</option>
+				<option value="dpm_adaptive">dpm_adaptive</option>
+				<option value="dpmpp_2s_ancestral">dpmpp_2s_ancestral</option>
+				<option value="dpmpp_2s_ancestral_cfg_pp">dpmpp_2s_ancestral_cfg_pp</option>
+				<option value="dpmpp_sde">dpmpp_sde</option>
+				<option value="dpmpp_sde_gpu">dpmpp_sde_gpu</option>
+				<option value="dpmpp_2m">dpmpp_2m</option>
+				<option value="dpmpp_2m_cfg_pp">dpmpp_2m_cfg_pp</option>
+				<option value="dpmpp_2m_sde">dpmpp_2m_sde</option>
+				<option value="dpmpp_2m_sde_gpu">dpmpp_2m_sde_gpu</option>
+				<option value="dpmpp_3m_sde">dpmpp_3m_sde</option>
+				<option value="dpmpp_3m_sde_gpu">dpmpp_3m_sde_gpu</option>
+				<option value="ddpm">ddpm</option>
+				<option value="lcm">lcm</option>
+				<option value="ipndm">ipndm</option>
+				<option value="ipndm_v">ipndm_v</option>
+				<option value="deis">deis</option>
+				<option value="res_multistep">res_multistep</option>
+				<option value="res_multistep_cfg_pp">res_multistep_cfg_pp</option>
+				<option value="res_multistep_ancestral">res_multistep_ancestral</option>
+				<option value="res_multistep_ancestral_cfg_pp">res_multistep_ancestral_cfg_pp</option>
+				<option value="gradient_estimation">gradient_estimation</option>
+				<option value="er_sde">er_sde</option>
+				<option value="ddim">ddim</option>
+				<option value="uni_pc">uni_pc</option>
+				<option value="uni_pc_bh2">uni_pc_bh2</option>
+			</select>
+            <label for="schedulerSelect">Scheduler</label>
+            <select id="schedulerSelect">
+				<option value="normal">normal</option>
+				<option value="kerras">kerras</option>
+				<option value="exponential">exponential</option>
+				<option value="sgm_uniform">sgm_uniform</option>
+				<option value="simple">simple</option>
+				<option value="ddim_uniform">ddim_uniform</option>
+				<option value="beta">beta</option>
+				<option value="linear_quadratic">linear_quadratic</option>
+				<option value="kl_optimal">kl_optimal</option>
+			</select>
+            <label for="cfgInput">CFG</label>
+            <input type="number" id="cfgInput" min="1" max="20" step="0.1" value="2" />
+            <label for="stepsInput">Steps</label>
+            <input type="number" id="stepsInput" min="20" max="70" step="1" value="50" />
+            <label id="stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
+            <input type="number" id="stepsRefineInput" min="20" max="70" step="1" value="50" hidden="true" />
+            <button id="submitButton">Prześlij</button>
+        </div>
+
+        <!-- Output Section -->
+        <div id="outputPreview" class="container">
+            <h2>Output Preview</h2>
+            <div id="output">
+                <!-- Output image will be displayed here -->
+                <p>No image generated yet.</p>
+            </div>
+            <label for="progressBar">Progress</label>
+            <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        </div>
+
+        <!-- Gallery Section -->
+        <div id="galleryContainer" class="container" style="grid-column: 1 / span 2;">
+            <h2>Gallery</h2>
+            <div id="sixGallery">
+                <!-- Thumbnails for last 6 images -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Tab Content -->
+    <div id="galleryContainerTab">
+        <h2>Full Gallery</h2>
+        <div id="fullGallery">
+            <!-- Full gallery images -->
+        </div>
+    </div>
+
+    <!-- Full Gallery Modal -->
+    <div id="imageModal">
+        <img id="modalImage"/>
+    </div>
+
+    <script type="module" src="scripts/main.js" onLoad="init()"></script>
 </body>
 </html>

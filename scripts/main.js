@@ -83,6 +83,25 @@ async function generateImage(workflow) {
     }
 }
 
+function switchTab(tab) {
+    const generatorTab = document.getElementById('generatorTab');
+    const galleryTab = document.getElementById('galleryTab');
+    const mainContainer = document.getElementById('mainContainer');
+    const galleryContainerTab = document.getElementById('galleryContainerTab');
+
+    if (tab === 'generator') {
+        generatorTab.classList.add('active');
+        galleryTab.classList.remove('active');
+        mainContainer.style.display = 'grid';
+        galleryContainerTab.style.display = 'none';
+    } else if (tab === 'gallery') {
+        generatorTab.classList.remove('active');
+        galleryTab.classList.add('active');
+        mainContainer.style.display = 'none';
+        galleryContainerTab.style.display = 'block';
+    }
+}
+
 window.loadImages = galleryLoad;
 
 document.getElementById('submitButton').addEventListener('click', async () => {
@@ -96,7 +115,15 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);
-document.getElementById('reloadGallery').addEventListener('click', () => {
-	const uid = document.getElementById('uid').value.trim();
-	loadImages(`${FTP}/gallery/${uid}`);
+document.getElementById('uid').addEventListener('change', () => {
+    const uid = document.getElementById('uid').value.trim();
+    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
 });
+
+export async function init() {
+    switchTab('generator');
+	const uid = document.getElementById('uid').value.trim();
+    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
+}
+
+window.init = init;

@@ -1,4 +1,4 @@
-export async function galleryLoad(directory) {
+export async function galleryLoad(directory, target, limit) {
     try {
         const response = await fetch(directory);
         if (!response.ok) {
@@ -28,10 +28,12 @@ export async function galleryLoad(directory) {
         // Sort files by modification date (newest first)
         images.sort((a, b) => b.date - a.date);
 		
-        const outputDiv = document.getElementById('gallery');
+        const outputDiv = document.getElementById(target);
         outputDiv.innerHTML = ''; // Wyczyść poprzednie obrazy
+
+        const finalImages = limit > 0 ? images.slice(0, limit) : images;
 		
-        images.forEach(image => {
+        finalImages.forEach(image => {
             const img = document.createElement('img');
             img.src = `${directory}/${image.name}`;
             img.alt = image;
