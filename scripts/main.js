@@ -1,0 +1,102 @@
+import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-client@latest/dist/main.module.mjs";
+import { galleryLoad } from './galleryLoader.js?cache-bust=1';
+import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
+
+const CUI = "qbsoonw11:8000"
+const FTP = "http://qbsoonw11:80"
+
+// TO-DO
+// Zastanowić się nad WebSocket w przypadku problemów
+// Zastanowić się nad większą ilością modeli/workflow
+// Wykonać FrontEnd jakiś ładny
+
+// Inicjalizacja klienta
+const client = new Client({
+    api_host: CUI, // Adres i port serwera ComfyUI
+});
+
+try {
+	client.connect()
+	console.log('Connected to server');
+} catch (error) {
+	console.error('Failed to connect to ComfyUI server:', error);
+}
+
+function updateProgressBar(value, max) {
+    const progressBar = document.getElementById('progressBar');
+	const progressName = document.getElementById('progressName');
+    const percentage = (value / max) * 100;
+    progressBar.value = percentage;
+	if (percentage > 0 && percentage < 100) {
+		progressName.innerText = `Postęp: ${Math.round(percentage)}%`;
+	} else if (percentage == 100) {
+		progressName.innerText = 'Generowanie zakończone';
+	} else {
+		progressName.innerText = '';
+	}
+}
+
+function changeModel() {
+    if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
+        document.getElementById('stepsRefineInput').hidden = false;
+        document.getElementById('stepsRefineLabel').hidden = false;
+    }
+    if (document.getElementById('modelSelect').value === 'sd3.5_large_fp8_scaled.safetensors' || document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+        document.getElementById('stepsRefineInput').hidden = true;
+        document.getElementById('stepsRefineLabel').hidden = true;
+    }
+}
+
+async function generateImage(workflow) {
+    try {
+        // Wysłanie zapytania do kolejki serwera ComfyUI
+		console.log('Sending workflow');
+        const result = await client.enqueue(workflow, {
+			progress: ({max,value}) => updateProgressBar(value, max),
+		});
+
+		console.log('Result received');
+    
+        // Sprawdzenie, czy odpowiedź zawiera dane obrazu
+        if (!result || !result.images || result.images.length === 0) {
+            throw new Error('No image data returned from the server.');
+        }
+        // Wydobycie adresu URL obrazu z odpowiedzi
+        const imageUrl = result.images[0].data;
+    
+        const img = document.createElement('img');
+        img.src = imageUrl;
+    
+        // Obsługa błędów
+        img.onerror = () => {
+            alert('Failed to load the generated image. Please check the server response.');
+        };
+    
+        // Wyświetlenie nowego obrazu
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = '';
+        outputDiv.appendChild(img);
+		document.getElementById('reloadGallery').click();
+    } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Failed to generate image. Check the console for details.');
+    }
+}
+
+window.loadImages = galleryLoad;
+
+document.getElementById('submitButton').addEventListener('click', async () => {
+    try {
+	    validateInputs();
+    } catch (error) {
+        console.error('Validation failed:', error);
+        return;
+    }
+    const workflow = await setWorkflow();
+    generateImage(workflow);
+});
+document.getElementById('modelSelect').addEventListener('change', changeModel);
+document.getElementById('reloadGallery').addEventListener('click', () => {
+	const uid = document.getElementById('uid').value.trim();
+	loadImages(`${FTP}/gallery/${uid}`);
+});
