@@ -70,6 +70,7 @@
     <script type="module">
         import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-client@latest/dist/main.module.mjs";
 
+		// TO-DO
 		// Zastanowić się nad WebSocket w przypadku problemów
         // Przenieść workflow do plików w podkatalogu
         // Stała struktura workflow. Wywołanie changeModel pobiera plik workflow, ustawia dany jako workflow i ustawia zmienne, które będą przekazywane do validateInputs przez argumenty (limity oraz które inputy walidować)
@@ -138,9 +139,26 @@
             }
         }
 
-        function setWorkflow() {
-            const promptP = document.getElementById('positivePrompt').value;
-            const promptN = document.getElementById('negativePrompt').value;
+		async function loadWorkflow(file) {
+		    try {
+		        const response = await fetch(`workflows/${file}`);
+		        if (!response.ok) {
+		            throw new Error(`Failed to load workflow JSON: ${response.statusText}`);
+		        }
+		        const workflow = await response.json();
+		        console.log('Loaded Workflow:', file);
+				// Wspólne ustawienia workflow
+				workflow["6"].inputs.text = document.getElementById('positivePrompt').value;
+				workflow["7"].inputs.text = document.getElementById('negativePrompt').value;
+		        return workflow;
+		    } catch (error) {
+		        console.error('Error loading workflow JSON:', error);
+		    }
+		}
+
+        async function setWorkflow() {
+			const promptP = document.getElementById('positivePrompt').value.trim();
+			const promptN = document.getElementById('negativePrompt').value.trim();
             const cfg = parseFloat(document.getElementById('cfgInput').value);
             const steps = parseInt(document.getElementById('stepsInput').value);
             const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
@@ -148,340 +166,40 @@
             const uid = document.getElementById('uid').value.trim();
 			console.log('UID:', uid);
 
-            const workflowSDXLTurbo = {
-                "5": {
-                  "inputs": {
-                    "width": 512,
-                    "height": 512,
-                    "batch_size": 1
-                  },
-                  "class_type": "EmptyLatentImage"
-                },
-                "6": {
-                  "inputs": {
-                    "text": promptP,
-                    "clip": [
-                      "20",
-                      1
-                    ]
-                  },
-                  "class_type": "CLIPTextEncode",
-                  "_meta": {
-                    "title": "CLIP Text Encode (Prompt)"
-                  }
-                },
-                "7": {
-                  "inputs": {
-                    "text": promptN,
-                    "clip": [
-                      "20",
-                      1
-                    ]
-                  },
-                  "class_type": "CLIPTextEncode"
-                },
-                "8": {
-                  "inputs": {
-                    "samples": [
-                      "13",
-                      0
-                    ],
-                    "vae": [
-                      "20",
-                      2
-                    ]
-                  },
-                  "class_type": "VAEDecode"
-                },
-                "13": {
-                  "inputs": {
-                    "add_noise": true,
-                    "noise_seed": 0,
-                    "cfg": cfg,
-                    "model": [
-                      "20",
-                      0
-                    ],
-                    "positive": [
-                      "6",
-                      0
-                    ],
-                    "negative": [
-                      "7",
-                      0
-                    ],
-                    "sampler": [
-                      "14",
-                      0
-                    ],
-                    "sigmas": [
-                      "22",
-                      0
-                    ],
-                    "latent_image": [
-                      "5",
-                      0
-                    ]
-                  },
-                  "class_type": "SamplerCustom"
-                },
-                "14": {
-                  "inputs": {
-                    "sampler_name": sampler
-                  },
-                  "class_type": "KSamplerSelect",
-                },
-                "20": {
-                  "inputs": {
-                    "ckpt_name": "sd_xl_turbo_1.0_fp16.safetensors"
-                  },
-                  "class_type": "CheckpointLoaderSimple"
-                },
-                "22": {
-                  "inputs": {
-                    "steps": steps,
-                    "denoise": 1,
-                    "model": [
-                      "20",
-                      0
-                    ]
-                  },
-                  "class_type": "SDTurboScheduler"
-                },
-                "19": {
-                  "inputs": {
-                    "filename_prefix": `${uid}\\sdxlturbo`,
-                    "images": [
-                      "8",
-                      0
-                    ]
-                  },
-                  "class_type": "SaveImage"
-                }
-            }
+			let workflow;
 
-            const workflowSDXL = {
-                "4": {
-                  "inputs": {
-                    "ckpt_name": "sd_xl_base_1.0.safetensors"
-                  },
-                  "class_type": "CheckpointLoaderSimple"
-                },
-                "5": {
-                  "inputs": {
-                    "width": 1024,
-                    "height": 1024,
-                    "batch_size": 1
-                  },
-                  "class_type": "EmptyLatentImage"
-                },
-                "6": {
-                  "inputs": {
-                    "text": promptP,
-                    "clip": [
-                      "4",
-                      1
-                    ]
-                  },
-                  "class_type": "CLIPTextEncode"
-                },
-                "7": {
-                  "inputs": {
-                    "text": promptN,
-                    "clip": [
-                      "4",
-                      1
-                    ]
-                  },
-                  "class_type": "CLIPTextEncode"
-                },
-                "10": {
-                  "inputs": {
-                    "add_noise": "enable",
-                    "noise_seed": 721897303308196,
-                    "steps": stepsRefine+steps,
-                    "cfg": cfg,
-                    "sampler_name": sampler,
-                    "scheduler": "normal",
-                    "start_at_step": 0,
-                    "end_at_step": steps,
-                    "return_with_leftover_noise": "enable",
-                    "model": [
-                      "4",
-                      0
-                    ],
-                    "positive": [
-                      "6",
-                      0
-                    ],
-                    "negative": [
-                      "7",
-                      0
-                    ],
-                    "latent_image": [
-                      "5",
-                      0
-                    ]
-                  },
-                  "class_type": "KSamplerAdvanced"
-                },
-                "11": {
-                  "inputs": {
-                    "add_noise": "disable",
-                    "noise_seed": 0,
-                    "steps": stepsRefine+steps,
-                    "cfg": cfg,
-                    "sampler_name": sampler,
-                    "scheduler": "normal",
-                    "start_at_step": steps,
-                    "end_at_step": 10000,
-                    "return_with_leftover_noise": "disable",
-                    "model": [
-                      "12",
-                      0
-                    ],
-                    "positive": [
-                      "15",
-                      0
-                    ],
-                    "negative": [
-                      "16",
-                      0
-                    ],
-                    "latent_image": [
-                      "10",
-                      0
-                    ]
-                  },
-                  "class_type": "KSamplerAdvanced"
-                },
-                "12": {
-                  "inputs": {
-                    "ckpt_name": "sd_xl_refiner_1.0.safetensors"
-                  },
-                  "class_type": "CheckpointLoaderSimple"
-                },
-                "15": {
-                  "inputs": {
-                    "text": promptP,
-                    "clip": [
-                      "12",
-                      1
-                    ]
-                  },
-                  "class_type": "CLIPTextEncode"
-                },
-                "16": {
-                  "inputs": {
-                    "text": promptN,
-                    "clip": [
-                      "12",
-                      1
-                    ]
-                  },
-                  "class_type": "CLIPTextEncode"
-                },
-                "17": {
-                  "inputs": {
-                    "samples": [
-                      "11",
-                      0
-                    ],
-                    "vae": [
-                      "12",
-                      2
-                    ]
-                  },
-                  "class_type": "VAEDecode"
-                },
-                "19": {
-                  "inputs": {
-                    "filename_prefix": `${uid}\\sdxl`,
-                    "images": [
-                      "17",
-                      0
-                    ]
-                  },
-                  "class_type": "SaveImage"
-                }
-            }
-        
-            const workflowSD35 = {
-                "3": {
-                    "class_type": "KSampler",
-                    "inputs": {
-                        "cfg": cfg,
-                        "denoise": 1,
-                        "latent_image": ["5", 0],
-                        "model": ["4", 0],
-                        "negative": ["7", 0],
-                        "positive": ["6", 0],
-                        "sampler_name": sampler,
-                        "scheduler": "normal",
-                        "seed": 8566257,
-                        "steps": steps
-                    }
-                },
-                "4": {
-                    "class_type": "CheckpointLoaderSimple",
-                    "inputs": {
-                        "ckpt_name": "sd3.5_large_fp8_scaled.safetensors"
-                    }
-                },
-                "5": {
-                    "class_type": "EmptyLatentImage",
-                    "inputs": {
-                        "batch_size": 1,
-                        "height": 1024,
-                        "width": 1024
-                    }
-                },
-                "6": {
-                    "class_type": "CLIPTextEncode",
-                    "inputs": {
-                        "clip": ["4", 1],
-                        "text": promptP
-                    }
-                },
-                "7": {
-                    "class_type": "CLIPTextEncode",
-                    "inputs": {
-                        "clip": ["4", 1],
-                        "text": promptN
-                    }
-                },
-                "8": {
-                    "class_type": "VAEDecode",
-                    "inputs": {
-                        "samples": ["3", 0],
-                        "vae": ["4", 2]
-                    }
-                },
-                "9": {
-                  "inputs": {
-                    "filename_prefix": `${uid}\\sd35`,
-                    "images": [
-                      "8",
-                      0
-                    ]
-                  },
-                  "class_type": "SaveImage"
-                }
-            }
             if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
-                generateImage(workflowSDXL);
+                workflow = await loadWorkflow('SDXL.json');
+				workflow["10"].inputs.steps = stepsRefine+steps;
+				workflow["10"].inputs.cfg = cfg;
+				workflow["10"].inputs.sampler_name = sampler;
+				workflow["10"].inputs.end_at_step = steps;
+				workflow["11"].inputs.steps = stepsRefine+steps;
+				workflow["11"].inputs.cfg = cfg;
+				workflow["11"].inputs.sampler_name = sampler;
+				workflow["11"].inputs.start_at_step = steps;
+				workflow["15"].inputs.text = promptP;
+				workflow["16"].inputs.text = promptN;
+				workflow["19"].inputs.filename_prefix = `${uid}\\sdxl`;
+			} else if (document.getElementById('modelSelect').value === 'sd3.5_large_fp8_scaled.safetensors') {
+                workflow = await loadWorkflow('SD35.json');
+				workflow["3"].inputs.cfg = cfg;
+				workflow["3"].inputs.sampler_name = sampler;
+				workflow["3"].inputs.steps = steps;
+				workflow["9"].inputs.filename_prefix = `${uid}\\sd35`;
+            } else if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+                workflow = await loadWorkflow('SDXLTurbo.json');
+				workflow["13"].inputs.cfg = cfg;
+				workflow["14"].inputs.sampler_name = sampler;
+				workflow["22"].inputs.steps = steps;
+				workflow["19"].inputs.filename_prefix = `${uid}\\sdxlturbo`;
             }
-            if (document.getElementById('modelSelect').value === 'sd3.5_large_fp8_scaled.safetensors') {
-                generateImage(workflowSD35);
-            }
-            if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
-                generateImage(workflowSDXLTurbo);
-            }
+			generateImage(workflow);
         }
         async function generateImage(workflow) {
             try {
                 // Wysłanie zapytania do kolejki serwera ComfyUI
-				console.log('Sending workflow to ComfyUI:', workflow);
+				console.log('Sending workflow to ComfyUI');
                 const result = await client.enqueue(workflow, {
  					progress: ({max,value}) => updateProgressBar(value, max),
 				});
