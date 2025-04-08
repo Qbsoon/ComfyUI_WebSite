@@ -49,15 +49,61 @@
     <input type="text" id="negativePrompt" placeholder="Bad" />
     <label for="samplerSelect">Sampler</label>
     <select id="samplerSelect">
-        <option value="euler">euler</option>
-        <option value="euler_ancestral">euler_ancestral</option>
-    </select>
+		<option value="euler">euler</option>
+		<option value="euler_cfg_pp">euler_cfg_pp</option>
+		<option value="euler_ancestral">euler_ancestral</option>
+		<option value="euler_ancestral_cfg_pp">euler_ancestral_cfg_pp</option>
+		<option value="heun">heun</option>
+		<option value="heunpp2">heunpp2</option>
+		<option value="dpm_2">dpm_2</option>
+		<option value="dpm_2_ancestral">dpm_2_ancestral</option>
+		<option value="lms">lms</option>
+		<option value="dpm_fast">dpm_fast</option>
+		<option value="dpm_adaptive">dpm_adaptive</option>
+		<option value="dpmpp_2s_ancestral">dpmpp_2s_ancestral</option>
+		<option value="dpmpp_2s_ancestral_cfg_pp">dpmpp_2s_ancestral_cfg_pp</option>
+		<option value="dpmpp_sde">dpmpp_sde</option>
+		<option value="dpmpp_sde_gpu">dpmpp_sde_gpu</option>
+		<option value="dpmpp_2m">dpmpp_2m</option>
+		<option value="dpmpp_2m_cfg_pp">dpmpp_2m_cfg_pp</option>
+		<option value="dpmpp_2m_sde">dpmpp_2m_sde</option>
+		<option value="dpmpp_2m_sde_gpu">dpmpp_2m_sde_gpu</option>
+		<option value="dpmpp_3m_sde">dpmpp_3m_sde</option>
+		<option value="dpmpp_3m_sde_gpu">dpmpp_3m_sde_gpu</option>
+		<option value="ddpm">ddpm</option>
+		<option value="lcm">lcm</option>
+		<option value="ipndm">ipndm</option>
+		<option value="ipndm_v">ipndm_v</option>
+		<option value="deis">deis</option>
+		<option value="res_multistep">res_multistep</option>
+		<option value="res_multistep_cfg_pp">res_multistep_cfg_pp</option>
+		<option value="res_multistep_ancestral">res_multistep_ancestral</option>
+		<option value="res_multistep_ancestral_cfg_pp">res_multistep_ancestral_cfg_pp</option>
+		<option value="gradient_estimation">gradient_estimation</option>
+		<option value="er_sde">er_sde</option>
+		<option value="ddim">ddim</option>
+		<option value="uni_pc">uni_pc</option>
+		<option value="uni_pc_bh2">uni_pc_bh2</option>
+	</select>
+	<label for="schedulerSelect">Scheduler</label>
+	<select id="schedulerSelect">
+		<option value="normal">normal</option>
+		<option value="kerras">kerras</option>
+		<option value="exponential">exponential</option>
+		<option value="sgm_uniform">sgm_uniform</option>
+		<option value="simple">simple</option>
+		<option value="ddim_uniform">ddim_uniform</option>
+		<option value="beta">beta</option>
+		<option value="linear_quadratic">linear_quadratic</option>
+		<option value="kl_optimal">kl_optimal</option>
+	</select>
     <label for="cfgInput">CFG</label>
-    <input type="number" id="cfgInput" min="1" max="20" step="0.1" value="4" />
+    <input type="number" id="cfgInput" min="1" max="20" step="0.1" value="2" />
     <label for="stepsInput">Steps</label>
     <input type="number" id="stepsInput" min="20" max="70" step="1" value="50" />
     <label id= "stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
     <input type="number" id="stepsRefineInput" min="20" max="70" step="1" value="50" hidden="true" />
+	<label for="progressBar" id="progressName"></label>
     <progress id="progressBar" value="0" max="100"></progress>
     <button id="submitButton">Prześlij</button>
     <div id="output"></div>
@@ -72,8 +118,8 @@
 
 		// TO-DO
 		// Zastanowić się nad WebSocket w przypadku problemów
-        // Przenieść workflow do plików w podkatalogu
-        // Stała struktura workflow. Wywołanie changeModel pobiera plik workflow, ustawia dany jako workflow i ustawia zmienne, które będą przekazywane do validateInputs przez argumenty (limity oraz które inputy walidować)
+		// Zastanowić się nad większą ilością modeli/workflow
+		// Zastanowić się nad przeniesieniem javascript do osobnego pliku
 		// Wykonać FrontEnd jakiś ładny
 
         // Inicjalizacja klienta
@@ -124,9 +170,17 @@
 
         function updateProgressBar(value, max) {
             const progressBar = document.getElementById('progressBar');
+			const progressName = document.getElementById('progressName');
             const percentage = (value / max) * 100;
             progressBar.value = percentage;
-        }
+			if (percentage > 0 && percentage < 100) {
+				progressName.innerText = `Postęp: ${Math.round(percentage)}%`;
+			} else if (percentage == 100) {
+				progressName.innerText = 'Generowanie zakończone';
+			} else {
+				progressName.innerText = '';
+			}
+		}
 
         function changeModel() {
             if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
@@ -163,6 +217,7 @@
             const steps = parseInt(document.getElementById('stepsInput').value);
             const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
             const sampler = document.getElementById('samplerSelect').value;
+			const scheduler = document.getElementById('schedulerSelect').value;
             const uid = document.getElementById('uid').value.trim();
 			console.log('UID:', uid);
 
@@ -174,10 +229,12 @@
 				workflow["10"].inputs.cfg = cfg;
 				workflow["10"].inputs.sampler_name = sampler;
 				workflow["10"].inputs.end_at_step = steps;
+				workflow["10"].inputs.scheduler = scheduler;
 				workflow["11"].inputs.steps = stepsRefine+steps;
 				workflow["11"].inputs.cfg = cfg;
 				workflow["11"].inputs.sampler_name = sampler;
 				workflow["11"].inputs.start_at_step = steps;
+				workflow["11"].inputs.scheduler = scheduler;
 				workflow["15"].inputs.text = promptP;
 				workflow["16"].inputs.text = promptN;
 				workflow["19"].inputs.filename_prefix = `${uid}\\sdxl`;
@@ -186,6 +243,7 @@
 				workflow["3"].inputs.cfg = cfg;
 				workflow["3"].inputs.sampler_name = sampler;
 				workflow["3"].inputs.steps = steps;
+				workflow["3"].inputs.scheduler = scheduler;
 				workflow["9"].inputs.filename_prefix = `${uid}\\sd35`;
             } else if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
                 workflow = await loadWorkflow('SDXLTurbo.json');

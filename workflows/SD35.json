@@ -9,7 +9,7 @@
             "negative": ["7", 0],
             "positive": ["6", 0],
             "sampler_name": "",
-            "scheduler": "normal",
+            "scheduler": "",
             "seed": 8566257,
             "steps": 0
         }
