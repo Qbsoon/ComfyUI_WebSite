@@ -83,7 +83,7 @@ async function generateImage(workflow) {
     }
 }
 
-function switchTab(tab) {
+export function switchTab(tab) {
     const generatorTab = document.getElementById('generatorTab');
     const galleryTab = document.getElementById('galleryTab');
     const mainContainer = document.getElementById('mainContainer');
@@ -119,11 +119,21 @@ document.getElementById('uid').addEventListener('change', () => {
     const uid = document.getElementById('uid').value.trim();
     loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
 });
+document.getElementById('galleryTab').addEventListener('click', () => {
+    switchTab('gallery');
+    const uid = document.getElementById('uid').value.trim();
+    loadImages(`${FTP}/gallery/${uid}`, 'fullGallery', 6);
+});
+document.getElementById('generatorTab').addEventListener('click', () => {
+    switchTab('generator');
+    const uid = document.getElementById('uid').value.trim();
+    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
+});
 
 export async function init() {
     switchTab('generator');
 	const uid = document.getElementById('uid').value.trim();
-    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
+    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 0);
 }
 
 window.init = init;
