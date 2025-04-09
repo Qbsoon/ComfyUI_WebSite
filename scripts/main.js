@@ -5,6 +5,8 @@ import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 const CUI = "qbsoonw11:8000"
 const FTP = "http://qbsoonw11:80"
 const uid = 0
+var queue = 0
+const queueLimit = 5
 
 function updateGridVariables() {
     
@@ -22,6 +24,7 @@ window.addEventListener('resize', updateGridVariables);
 
 // TO-DO
 // Zastanowić się nad większą ilością modeli/workflow
+// Dodać limit kolejki
 
 // Inicjalizacja klienta
 const client = new Client({
@@ -96,6 +99,8 @@ async function generateImage(workflow) {
         console.error('Error generating image:', error);
         alert('Failed to generate image. Check the console for details.');
     }
+    queue = queue - 1;
+    console.log(queue)
 }
 
 export function switchTab(tab) {
@@ -123,13 +128,20 @@ export function switchTab(tab) {
 window.loadImages = galleryLoad;
 
 document.getElementById('submitButton').addEventListener('click', async () => {
+    if (queue >= queueLimit) {
+        alert('Queue limit reached. Please wait for the current tasks to finish.');
+        return;
+    }
     try {
 	    validateInputs();
     } catch (error) {
         console.error('Validation failed:', error);
+        queue = 0;
         return;
     }
     const workflow = await setWorkflow();
+    queue = queue + 1;
+    console.log(queue)
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);

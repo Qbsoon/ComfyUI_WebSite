@@ -35,12 +35,22 @@ body {
 }
 
 #header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
+    position: relative; // Allow absolute positioning of child elements
+    text-align: center; // Center the <h1> horizontally
+    padding: 20px 20px;
     background-color: @primary-color;
     color: @text-color;
+
+    h1 {
+        margin: 0; // Remove default margin
+    }
+
+    #tabs {
+        position: absolute;
+        right: 20px; // Align tabs to the right
+        top: 50%;
+        transform: translateY(-50%); // Vertically center the tabs
+    }
 }
 
 #tabs {

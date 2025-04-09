@@ -19,7 +19,6 @@ async function loadWorkflow(file) {
 export async function setWorkflow() {
 	const promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 	const promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
-	console.log(promptP, promptN)
     const cfg = parseFloat(document.getElementById('cfgInput').value);
     const steps = parseInt(document.getElementById('stepsInput').value);
     const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
