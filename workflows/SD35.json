@@ -21,7 +21,7 @@
         }
     },
     "5": {
-        "class_type": "EmptyLatentImage",
+        "class_type": "EmptySD3LatentImage",
         "inputs": {
             "batch_size": 1,
             "height": 1024,

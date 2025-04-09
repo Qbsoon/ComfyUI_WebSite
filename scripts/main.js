@@ -4,11 +4,24 @@ import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 
 const CUI = "qbsoonw11:8000"
 const FTP = "http://qbsoonw11:80"
+const uid = 0
+
+function updateGridVariables() {
+    
+    const lastNum = Math.round(window.innerWidth / 320);
+    const fullGallery = document.getElementById('fullGallery');
+    const lastGallery = document.getElementById('lastGallery');
+    fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+    lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+
+    loadImages(`${FTP}/gallery/${uid}`, 'lastGallery', lastNum);
+    loadImages(`${FTP}/gallery/${uid}`, 'fullGallery', 0);
+}
+
+window.addEventListener('resize', updateGridVariables);
 
 // TO-DO
-// Zastanowić się nad WebSocket w przypadku problemów
 // Zastanowić się nad większą ilością modeli/workflow
-// Wykonać FrontEnd jakiś ładny
 
 // Inicjalizacja klienta
 const client = new Client({
@@ -28,9 +41,9 @@ function updateProgressBar(value, max) {
     const percentage = (value / max) * 100;
     progressBar.value = percentage;
 	if (percentage > 0 && percentage < 100) {
-		progressName.innerText = `Postęp: ${Math.round(percentage)}%`;
+		progressName.innerText = `Progress: ${Math.round(percentage)}%`;
 	} else if (percentage == 100) {
-		progressName.innerText = 'Generowanie zakończone';
+		progressName.innerText = 'Image generated';
 	} else {
 		progressName.innerText = '';
 	}
@@ -49,6 +62,8 @@ function changeModel() {
 
 async function generateImage(workflow) {
     try {
+	    const progressName = document.getElementById('progressName');
+        progressName.innerText = 'Processing...';
         // Wysłanie zapytania do kolejki serwera ComfyUI
 		console.log('Sending workflow');
         const result = await client.enqueue(workflow, {
@@ -76,7 +91,7 @@ async function generateImage(workflow) {
         const outputDiv = document.getElementById('output');
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
-		document.getElementById('reloadGallery').click();
+		updateGridVariables();
     } catch (error) {
         console.error('Error generating image:', error);
         alert('Failed to generate image. Check the console for details.');
@@ -93,12 +108,15 @@ export function switchTab(tab) {
         generatorTab.classList.add('active');
         galleryTab.classList.remove('active');
         mainContainer.style.display = 'grid';
+        mainContainer.style.gridTemplateColumns = `1fr 1fr`;
         galleryContainerTab.style.display = 'none';
+        updateGridVariables();
     } else if (tab === 'gallery') {
         generatorTab.classList.remove('active');
         galleryTab.classList.add('active');
         mainContainer.style.display = 'none';
-        galleryContainerTab.style.display = 'block';
+        galleryContainerTab.style.display = 'grid';
+        updateGridVariables();
     }
 }
 
@@ -115,25 +133,16 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);
-document.getElementById('uid').addEventListener('change', () => {
-    const uid = document.getElementById('uid').value.trim();
-    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
-});
 document.getElementById('galleryTab').addEventListener('click', () => {
     switchTab('gallery');
-    const uid = document.getElementById('uid').value.trim();
-    loadImages(`${FTP}/gallery/${uid}`, 'fullGallery', 6);
 });
 document.getElementById('generatorTab').addEventListener('click', () => {
     switchTab('generator');
-    const uid = document.getElementById('uid').value.trim();
-    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 6);
 });
 
 export async function init() {
     switchTab('generator');
-	const uid = document.getElementById('uid').value.trim();
-    loadImages(`${FTP}/gallery/${uid}`, 'sixGallery', 0);
+    updateGridVariables();
 }
 
 window.init = init;

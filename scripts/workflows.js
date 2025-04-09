@@ -19,12 +19,13 @@ async function loadWorkflow(file) {
 export async function setWorkflow() {
 	const promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 	const promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
+	console.log(promptP, promptN)
     const cfg = parseFloat(document.getElementById('cfgInput').value);
     const steps = parseInt(document.getElementById('stepsInput').value);
     const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
     const sampler = document.getElementById('samplerSelect').value;
 	const scheduler = document.getElementById('schedulerSelect').value;
-    const uid = document.getElementById('uid').value.trim();
+    const uid = 0
 
 	let workflow;
 

@@ -1,0 +1,203 @@
+// Zmienne
+@primary-color: #007bff;
+@secondary-color: #0056b3;
+@background-color: #f9f9f9;
+@border-color: #ddd;
+@text-color: white;
+@border-radius: 5px;
+@box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+@container-padding: 20px;
+@grid-gap: 10px;
+
+[hidden] {
+    display: none !important;
+}
+
+.border-radius(@radius: @border-radius) {
+    border-radius: @radius;
+}
+
+.box-shadow(@shadow: @box-shadow) {
+    box-shadow: @shadow;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: @background-color;
+}
+
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: @primary-color;
+    color: @text-color;
+}
+
+#tabs {
+    display: flex;
+    gap: 10px;
+
+    button {
+        background-color: white;
+        color: @primary-color;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        .border-radius();
+
+        &.active {
+            background-color: @secondary-color;
+            color: @text-color;
+        }
+    }
+}
+
+#mainContainer, #galleryContainerTab {
+    display: none;
+    padding: @container-padding;
+    max-width: 90%;
+    margin: 20px auto;
+    background: #fff;
+    border: 1px solid @border-color;
+    .border-radius();
+    .box-shadow();
+}
+
+.container {
+    background: @background-color;
+    border: 1px solid @border-color;
+    .border-radius();
+    padding: @container-padding;
+    .box-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+#parameters {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-right: 20px;
+
+    .row {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        padding-right: 20px;
+
+        label {
+            width: 100px; // Szerokość etykiety
+            text-align: right;
+            margin-right: 10px;
+        }
+
+        input, select {
+            flex: 1; // Dopasowanie szerokości do dostępnej przestrzeni
+        }
+    }
+
+    .textarea-row {
+        display: flex;
+        flex-direction: column;
+        padding-right: 20px;
+
+        label {
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px; // Większa wysokość dla zawijanego tekstu
+            resize: none; // Umożliwienie zmiany wysokości
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    }
+}
+
+input, select, button {
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    .border-radius();
+    margin-bottom: 20px;
+    display: block;
+    width: 100%;
+}
+
+button {
+    background-color: @primary-color;
+    color: @text-color;
+    cursor: pointer;
+
+    &:hover {
+        background-color: @secondary-color;
+    }
+}
+
+#lastGallery, #fullGallery {
+    display: grid;
+    gap: @grid-gap;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+
+    img {
+        width: 100%;
+        height: auto;
+        border: 1px solid #ccc;
+        .border-radius();
+        cursor: pointer;
+
+        &:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
+        }
+    }
+}
+
+#imageModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+
+    #modalImage {
+        max-width: 90%;
+        max-height: 90%;
+        border: 2px solid @text-color;
+        .border-radius(10px);
+    }
+}
+
+#output {
+    margin-bottom: 20px;
+    .flex-center();
+    height: auto;
+    width: auto;
+    min-width: 80%;
+    min-height: 80%;
+
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+}
