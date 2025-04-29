@@ -22,6 +22,7 @@ export async function setWorkflow() {
     const sampler = document.getElementById('samplerSelect').value;
 	const scheduler = document.getElementById('schedulerSelect').value;
     const uid = 0
+	const seed = Math.floor(Math.random() * 999999999999999)
 
 	let workflow;
 
@@ -34,6 +35,7 @@ export async function setWorkflow() {
 		workflow["10"].inputs.sampler_name = sampler;
 		workflow["10"].inputs.end_at_step = steps;
 		workflow["10"].inputs.scheduler = scheduler;
+		workflow["10"].inputs.noise_seed = seed;
 		workflow["11"].inputs.steps = stepsRefine+steps;
 		workflow["11"].inputs.cfg = cfg;
 		workflow["11"].inputs.sampler_name = sampler;
@@ -50,6 +52,7 @@ export async function setWorkflow() {
 		workflow["3"].inputs.sampler_name = sampler;
 		workflow["3"].inputs.steps = steps;
 		workflow["3"].inputs.scheduler = scheduler;
+		workflow["3"].inputs.seed = seed;
 		workflow["9"].inputs.filename_prefix = `${uid}\\sd35`;
     } else if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
         workflow = await loadWorkflow('SDXLTurbo.json');
@@ -62,6 +65,7 @@ export async function setWorkflow() {
     } else if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
 		workflow = await loadWorkflow('flux.json')
 		workflow["11"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+		workflow["13"].inputs.noise_seed = seed;
 		workflow["14"].inputs.sampler_name = sampler;
 		workflow["15"].inputs.scheduler = scheduler;
 		workflow["15"].inputs.steps = steps;
@@ -72,6 +76,7 @@ export async function setWorkflow() {
 		workflow["4"].inputs.cfg = cfg;
 		workflow["4"].inputs.sampler_name = sampler;
 		workflow["4"].inputs.scheduler = scheduler;
+		workflow["4"].inputs.seed = seed;
 		workflow["5"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 		workflow["6"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
 		workflow["10"].inputs.filename_prefix = `${uid}\\pixart`;

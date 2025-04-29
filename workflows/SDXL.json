@@ -36,7 +36,7 @@
     "10": {
       "inputs": {
         "add_noise": "enable",
-        "noise_seed": 721897303308196,
+        "noise_seed": 0,
         "steps": 0,
         "cfg": 0,
         "sampler_name": "",

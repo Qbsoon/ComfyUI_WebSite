@@ -29,7 +29,7 @@
 	},
 	"4": {
     	"inputs": {
-    		"seed": 419820739523286,
+    		"seed": 0,
     		"steps": 0,
     		"cfg": 0,
     		"sampler_name": "",
