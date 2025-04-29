@@ -60,17 +60,31 @@ function changeModel() {
         document.getElementById('negativePromptBox').hidden = true;
         document.getElementById('cfgInput').hidden = true;
         document.getElementById('cfgLabel').hidden = true;
+        document.getElementById('guidanceInput').hidden = false;
+        document.getElementById('guidanceLabel').hidden = false;
     } else {
         document.getElementById('negativePromptBox').hidden = false;
         document.getElementById('cfgInput').hidden = false;
         document.getElementById('cfgLabel').hidden = false;
-    }
-    if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
-        document.getElementById('guidanceInput').hidden = false;
-        document.getElementById('guidanceLabel').hidden = false;
-    } else {
         document.getElementById('guidanceInput').hidden = true;
         document.getElementById('guidanceLabel').hidden = true;
+    }
+    if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+        document.getElementById('ratioLabel').hidden = false;
+        document.getElementById('ratioInput').hidden = false;
+        document.getElementById('widthInput').hidden = true;
+        document.getElementById('widthLabel').hidden = true;
+        document.getElementById('heightInput').hidden = true;
+        document.getElementById('heightLabel').hidden = true;
+        document.getElementById('ratioOutput').hidden = true;
+    } else {
+        document.getElementById('ratioLabel').hidden = true;
+        document.getElementById('ratioInput').hidden = true;
+        document.getElementById('widthInput').hidden = false;
+        document.getElementById('widthLabel').hidden = false;
+        document.getElementById('heightInput').hidden = false;
+        document.getElementById('heightLabel').hidden = false;
+        document.getElementById('ratioOutput').hidden = false;
     }
 }
 
@@ -138,7 +152,30 @@ export function switchTab(tab) {
     }
 }
 
+// Greatest common divider
+function gcd(a, b) {
+    if (b === 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+export function updateResRatio() {
+    const widthInput = parseInt(document.getElementById('widthInput').value);
+    const heightInput = parseInt(document.getElementById('heightInput').value);
+    if (!isNaN(widthInput) && !isNaN(heightInput) && widthInput > 0 && heightInput > 0) {
+        const divisor = gcd(widthInput, heightInput);
+        const ratioX = widthInput / divisor;
+        const ratioY = heightInput / divisor;
+        document.getElementById('ratioOutput').innerText = `Ratio: ${ratioX}:${ratioY}`;
+    } else {
+        document.getElementById('ratioOutput').innerText = 'Wrong resolution values';
+    }
+}
+
 window.loadImages = galleryLoad;
+
+// EventListenery
 
 document.getElementById('submitButton').addEventListener('click', async () => {
     if (queue >= queueLimit) {
@@ -165,10 +202,14 @@ document.getElementById('galleryTab').addEventListener('click', () => {
 document.getElementById('generatorTab').addEventListener('click', () => {
     switchTab('generator');
 });
+document.getElementById('widthInput').addEventListener('input', updateResRatio);
+document.getElementById('heightInput').addEventListener('input', updateResRatio);
+
 
 export async function init() {
     switchTab('generator');
     updateGridVariables();
+    updateResRatio();
 }
 
 window.init = init;

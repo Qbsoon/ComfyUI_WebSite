@@ -10,6 +10,9 @@ export function validateInputs() {
     const stepsInput = parseInt(document.getElementById('stepsInput').value);
     const stepsRefineInput = parseInt(document.getElementById('stepsRefineInput').value);
     const guidanceInput = parseFloat(document.getElementById('guidanceInput').value);
+    const widthInput = parseInt(document.getElementById('widthInput').value);
+    const heightInput = parseInt(document.getElementById('heightInput').value);
+    const ratioInput = parseFloat(document.getElementById('ratioInput').value);
     var stepsMaxLimit = 140
 
     if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
@@ -39,5 +42,18 @@ export function validateInputs() {
     if (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput > 100 || !Number.isInteger(stepsRefineInput)) {
         alert('Refiner Steps musi być liczbą całkowitą pomiędzy 1 a 100.');
         throw new Error('Validation failed on stepsRefineInput')
+    }
+
+    if (isNaN(widthInput) || widthInput < 64 || widthInput > 2048 || !Number.isInteger(widthInput)) {
+        alert('Width musi być liczbą całkowitą pomiędzy 64 a 2048.');
+        throw new Error('Validation failed on widthInput')
+    }
+    if (isNaN(heightInput) || heightInput < 64 || heightInput > 2048 || !Number.isInteger(heightInput)) {
+        alert('Height musi być liczbą całkowitą pomiędzy 64 a 2048.');
+        throw new Error('Validation failed on heightInput')
+    }
+    if (isNaN(ratioInput) || ratioInput < 0.25 || ratioInput > 4.0) {
+        alert('Ratio musi być liczbą pomiędzy 0.25 a 4.0.');
+        throw new Error('Validation failed on ratioInput')
     }
 }

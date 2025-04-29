@@ -25,14 +25,16 @@
     <div id="mainContainer">
         <!-- Parameters Section -->
         <div id="parameters" class="container">
-            <label for="modelSelect">Model</label>
-            <select id="modelSelect">
-                <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
-                <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
-                <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo (fp16)</option>
-                <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev (Q8)</option>
-                <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option>
-            </select>
+            <div class="model-row">
+                <label for="modelSelect">Model</label>
+                <select id="modelSelect">
+                    <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
+                    <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
+                    <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo (fp16)</option>
+                    <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev (Q8)</option>
+                    <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option>
+                </select>
+            </div>
             <div class="textarea-row">
                 <label for="positivePrompt">Positive Prompt</label>
                 <textarea id="positivePrompt" placeholder="Elvish sword"></textarea>
@@ -102,6 +104,56 @@
                 <input type="number" id="stepsInput" min="20" max="70" step="1" value="50" />
                 <label id="stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
                 <input type="number" id="stepsRefineInput" min="20" max="70" step="1" value="50" hidden="true" />
+            </div>
+            <div class="row">
+                <label for="widthInput" id="widthLabel">Width</label>
+                <input type="number" id="widthInput" min="64" max="2048" step="1" value="1024" />
+                <label for="heightInput" id="heightLabel">Height</label>
+                <input type="number" id="heightInput" min="64" max="2048" step="1" value="1024" />
+                <label id="ratioOutput" style="width:150px">Ratio: 1:1</label>
+                <label for="ratioInput" id="ratioLabel" hidden="true">Ratio</label>
+                <select id="ratioInput" hidden="true">
+                    <option value="0.25">512x2048 (1:4)</option>
+                    <option value="0.26">535x2050 (13:50)</option>
+                    <option value="0.27">554x2048 (10:37)</option>
+                    <option value="0.28">582x2030 (2:7)</option>
+                    <option value="0.32">655x2048 (8:25)</option>
+                    <option value="0.33">682x2048 (1:3)</option>
+                    <option value="0.35">717x2048 (7:20)</option>
+                    <option value="0.40">819x2048 (2:5)</option>
+                    <option value="0.42">860x2048 (5:12)</option>
+                    <option value="0.48">983x2048 (10:21)</option>
+                    <option value="0.50">1024x2048 (1:2)</option>
+                    <option value="0.52">1065x2048 (13:25)</option>
+                    <option value="0.57">1167x2048 (4:7)</option>
+                    <option value="0.60">1228x2048 (3:5)</option>
+                    <option value="0.68">1393x2048 (17:25)</option>
+                    <option value="0.72">1474x2048 (18:25)</option>
+                    <option value="0.78">1597x2048 (7:9)</option>
+                    <option value="0.82">1678x2048 (9:11)</option>
+                    <option value="0.88">1801x2048 (22:25)</option>
+                    <option value="0.94">1924x2048 (15:16)</option>
+                    <option value="1.00" selected>2048x2048 (1:1)</option>
+                    <option value="1.07">2193x2048 (16:15)</option>
+                    <option value="1.13">2315x2048 (25:22)</option>
+                    <option value="1.21">2478x2048 (11:9)</option>
+                    <option value="1.29">2641x2048 (9:7)</option>
+                    <option value="1.38">2828x2048 (25:18)</option>
+                    <option value="1.46">2991x2048 (25:17)</option>
+                    <option value="1.67">3413x2048 (5:3)</option>
+                    <option value="1.75">3584x2048 (7:4)</option>
+                    <option value="2.00">4096x2048 (2:1)</option>
+                    <option value="2.09">4276x2048 (21:10)</option>
+                    <option value="2.40">4915x2048 (12:5)</option>
+                    <option value="2.50">5120x2048 (5:2)</option>
+                    <option value="2.89">5910x2048 (20:7)</option>
+                    <option value="3.00">6144x2048 (3:1)</option>
+                    <option value="3.11">6368x2048 (25:8)</option>
+                    <option value="3.62">7402x2048 (7:2)</option>
+                    <option value="3.75">7680x2048 (15:4)</option>
+                    <option value="3.88">7934x2048 (31:8)</option>
+                    <option value="4.00">8192x2048 (4:1)</option>
+                </select>
             </div>
             <button id="submitButton">Submit</button>
         </div>
