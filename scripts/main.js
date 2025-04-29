@@ -22,10 +22,6 @@ function updateGridVariables() {
 
 window.addEventListener('resize', updateGridVariables);
 
-// TO-DO
-// Zastanowić się nad większą ilością modeli/workflow
-// Dodać limit kolejki
-
 // Inicjalizacja klienta
 const client = new Client({
     api_host: CUI, // Adres i port serwera ComfyUI
