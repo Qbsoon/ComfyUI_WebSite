@@ -53,13 +53,22 @@ function updateProgressBar(value, max) {
 }
 
 function changeModel() {
+    console.log(document.getElementById('modelSelect').value);
     if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
         document.getElementById('stepsRefineInput').hidden = false;
         document.getElementById('stepsRefineLabel').hidden = false;
-    }
-    if (document.getElementById('modelSelect').value === 'sd3.5_large_fp8_scaled.safetensors' || document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+    } else {
         document.getElementById('stepsRefineInput').hidden = true;
         document.getElementById('stepsRefineLabel').hidden = true;
+    }
+    if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
+        document.getElementById('negativePromptBox').hidden = true;
+        document.getElementById('cfgInput').hidden = true;
+        document.getElementById('cfgLabel').hidden = true;
+    } else {
+        document.getElementById('negativePromptBox').hidden = false;
+        document.getElementById('cfgInput').hidden = false;
+        document.getElementById('cfgLabel').hidden = false;
     }
 }
 

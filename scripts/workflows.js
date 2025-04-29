@@ -7,9 +7,6 @@ async function loadWorkflow(file) {
             throw new Error(`Failed to load workflow JSON: ${response.statusText}`);
         }
         const workflow = await response.json();
-		// Wspólne ustawienia workflow
-		workflow["6"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
-		workflow["7"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
         return workflow;
     } catch (error) {
         console.error('Error loading workflow JSON:', error);
@@ -30,6 +27,8 @@ export async function setWorkflow() {
 
     if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
         workflow = await loadWorkflow('SDXL.json');
+		workflow["6"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+		workflow["7"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
 		workflow["10"].inputs.steps = stepsRefine+steps;
 		workflow["10"].inputs.cfg = cfg;
 		workflow["10"].inputs.sampler_name = sampler;
@@ -38,13 +37,15 @@ export async function setWorkflow() {
 		workflow["11"].inputs.steps = stepsRefine+steps;
 		workflow["11"].inputs.cfg = cfg;
 		workflow["11"].inputs.sampler_name = sampler;
-		workflow["11"].inputs.start_at_step = steps;
+		workflow["11"].inputs.start_at_step = steps; 
 		workflow["11"].inputs.scheduler = scheduler;
 		workflow["15"].inputs.text = promptP;
 		workflow["16"].inputs.text = promptN;
 		workflow["19"].inputs.filename_prefix = `${uid}\\sdxl`;
 	} else if (document.getElementById('modelSelect').value === 'sd3.5_large_fp8_scaled.safetensors') {
         workflow = await loadWorkflow('SD35.json');
+		workflow["6"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+		workflow["7"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
 		workflow["3"].inputs.cfg = cfg;
 		workflow["3"].inputs.sampler_name = sampler;
 		workflow["3"].inputs.steps = steps;
@@ -52,11 +53,20 @@ export async function setWorkflow() {
 		workflow["9"].inputs.filename_prefix = `${uid}\\sd35`;
     } else if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
         workflow = await loadWorkflow('SDXLTurbo.json');
+		workflow["6"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+		workflow["7"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
 		workflow["13"].inputs.cfg = cfg;
 		workflow["14"].inputs.sampler_name = sampler;
 		workflow["22"].inputs.steps = steps;
 		workflow["19"].inputs.filename_prefix = `${uid}\\sdxlturbo`;
-    }
+    } else if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
+		workflow = await loadWorkflow('flux.json')
+		workflow["11"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+		workflow["14"].inputs.sampler_name = sampler;
+		workflow["15"].inputs.scheduler = scheduler;
+		workflow["15"].inputs.steps = steps;
+		workflow["18"].inputs.filename_prefix = `${uid}\\flux`;
+	}
 	return workflow
 }
 

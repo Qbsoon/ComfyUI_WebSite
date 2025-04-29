@@ -27,12 +27,13 @@
                 <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
                 <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
                 <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo (fp16)</option>
+                <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev (Q8)</option>
             </select>
             <div class="textarea-row">
                 <label for="positivePrompt">Positive Prompt</label>
                 <textarea id="positivePrompt" placeholder="Elvish sword"></textarea>
             </div>
-            <div class="textarea-row">
+            <div class="textarea-row" id="negativePromptBox">
                 <label for="negativePrompt">Negative Prompt</label>
                 <textarea id="negativePrompt" placeholder="Bad"></textarea>
             </div>
@@ -89,7 +90,7 @@
 			    </select>
             </div>
             <div class="row">
-                <label for="cfgInput">CFG</label>
+                <label for="cfgInput" id="cfgLabel">CFG</label>
                 <input type="number" id="cfgInput" min="1" max="20" step="0.1" value="2" />
                 <label for="stepsInput">Steps</label>
                 <input type="number" id="stepsInput" min="20" max="70" step="1" value="50" />
