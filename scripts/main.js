@@ -69,6 +69,13 @@ function changeModel() {
         document.getElementById('cfgInput').hidden = false;
         document.getElementById('cfgLabel').hidden = false;
     }
+    if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
+        document.getElementById('guidanceInput').hidden = false;
+        document.getElementById('guidanceLabel').hidden = false;
+    } else {
+        document.getElementById('guidanceInput').hidden = true;
+        document.getElementById('guidanceLabel').hidden = true;
+    }
 }
 
 async function generateImage(workflow) {

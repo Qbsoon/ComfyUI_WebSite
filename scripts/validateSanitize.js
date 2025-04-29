@@ -9,6 +9,7 @@ export function validateInputs() {
     const cfgInput = parseFloat(document.getElementById('cfgInput').value);
     const stepsInput = parseInt(document.getElementById('stepsInput').value);
     const stepsRefineInput = parseInt(document.getElementById('stepsRefineInput').value);
+    const guidanceInput = parseFloat(document.getElementById('guidanceInput').value);
     var stepsMaxLimit = 140
 
     if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
@@ -23,6 +24,11 @@ export function validateInputs() {
     if (isNaN(cfgInput) || cfgInput < 1.0 || cfgInput > 20.0) {
         alert('CFG musi być liczbą pomiędzy 1.0 a 20.0.');
         throw new Error('Validation failed on cfgInput')
+    }
+
+    if (isNaN(guidanceInput) || guidanceInput < 1.0 || guidanceInput > 20.0) {
+        alert('Guidance musi być liczbą pomiędzy 1.0 a 10.0.');
+        throw new Error('Validation failed on guidanceInput')
     }
 
     if (isNaN(stepsInput) || stepsInput < 1 || stepsInput > stepsMaxLimit || !Number.isInteger(stepsInput)) {

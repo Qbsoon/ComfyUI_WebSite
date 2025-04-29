@@ -21,6 +21,7 @@ export async function setWorkflow() {
     const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
     const sampler = document.getElementById('samplerSelect').value;
 	const scheduler = document.getElementById('schedulerSelect').value;
+	const guidance = parseFloat(document.getElementById('guidanceInput').value);
     const uid = 0
 	const seed = Math.floor(Math.random() * 999999999999999)
 
@@ -64,6 +65,7 @@ export async function setWorkflow() {
 		workflow["19"].inputs.filename_prefix = `${uid}\\sdxlturbo`;
     } else if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
 		workflow = await loadWorkflow('flux.json')
+		workflow["9"].inputs.guidance = guidance;
 		workflow["11"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 		workflow["13"].inputs.noise_seed = seed;
 		workflow["14"].inputs.sampler_name = sampler;
