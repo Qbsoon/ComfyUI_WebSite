@@ -53,7 +53,6 @@ function updateProgressBar(value, max) {
 }
 
 function changeModel() {
-    console.log(document.getElementById('modelSelect').value);
     if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
         document.getElementById('stepsRefineInput').hidden = false;
         document.getElementById('stepsRefineLabel').hidden = false;
@@ -150,7 +149,7 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     }
     const workflow = await setWorkflow();
     queue = queue + 1;
-    console.log(queue)
+    console.log("Queue: "+queue)
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);

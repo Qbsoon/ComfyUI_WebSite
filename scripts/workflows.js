@@ -66,6 +66,15 @@ export async function setWorkflow() {
 		workflow["15"].inputs.scheduler = scheduler;
 		workflow["15"].inputs.steps = steps;
 		workflow["18"].inputs.filename_prefix = `${uid}\\flux`;
+	} else if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+		workflow = await loadWorkflow('pixart.json')
+		workflow["4"].inputs.steps = steps;
+		workflow["4"].inputs.cfg = cfg;
+		workflow["4"].inputs.sampler_name = sampler;
+		workflow["4"].inputs.scheduler = scheduler;
+		workflow["5"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+		workflow["6"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
+		workflow["10"].inputs.filename_prefix = `${uid}\\pixart`;
 	}
 	return workflow
 }

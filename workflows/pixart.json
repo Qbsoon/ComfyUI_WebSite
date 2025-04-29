@@ -1,0 +1,116 @@
+{
+	"1": {
+		"inputs": {
+			"ckpt_name": "PixArt-Sigma-XL-2-2K-MS.pth",
+			"model": "PixArtMS_Sigma_XL_2_2K"
+		},
+    	"class_type": "PixArtCheckpointLoader"
+	},
+	"2": {
+    	"inputs": {
+    		"model": "PixArtMS_Sigma_XL_2_2K",
+    		"ratio": "0.68"
+    	},
+    	"class_type": "PixArtResolutionSelect"
+	},
+	"3": {
+    	"inputs": {
+    		"width": [
+        		"2",
+        		0
+    		],
+    		"height": [
+        		"2",
+        		1
+    		],
+    		"batch_size": 1
+    	},
+    	"class_type": "EmptyLatentImage"
+	},
+	"4": {
+    	"inputs": {
+    		"seed": 419820739523286,
+    		"steps": 0,
+    		"cfg": 0,
+    		"sampler_name": "",
+    		"scheduler": "",
+    		"denoise": 1,
+    		"model": [
+        		"1",
+        		0
+    		],
+    		"positive": [
+        		"5",
+        		0
+    		],
+    		"negative": [
+        		"6",
+        		0
+    		],
+    		"latent_image": [
+        		"3",
+        		0
+    		]
+    	},
+    	"class_type": "KSampler"
+	},
+	"5": {
+    	"inputs": {
+    		"text": "",
+    		"T5": [
+        		"7",
+        		0
+    		]
+    	},
+    	"class_type": "T5TextEncode"
+	},
+	"6": {
+    	"inputs": {
+    		"text": "",
+    		"T5": [
+        		"7",
+        		0
+    		]
+    	},
+    	"class_type": "T5TextEncode"
+	},
+	"7": {
+    	"inputs": {
+    		"t5v11_name": "model-00001-of-00002.safetensors",
+    		"t5v11_ver": "xxl",
+    		"path_type": "folder",
+    		"device": "cpu",
+    		"dtype": "default"
+    	},
+    	"class_type": "T5v11Loader"
+	},
+	"8": {
+    	"inputs": {
+    	"vae_name": "pixart-vae.safetensors"
+    	},
+    	"class_type": "VAELoader"
+	},
+	"9": {
+    	"inputs": {
+    		"samples": [
+        		"4",
+        		0
+    		],
+    		"vae": [
+        		"8",
+        		0
+    		]
+    	},
+    	"class_type": "VAEDecode"
+	},
+	"10": {
+    	"inputs": {
+			"filename_prefix": "",
+    		"images": [
+        		"9",
+        		0
+      		]
+    	},
+    	"class_type": "SaveImage"
+	}
+}
