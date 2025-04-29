@@ -108,7 +108,8 @@ async function generateImage(workflow) {
         alert('Failed to generate image. Check the console for details.');
     }
     queue = queue - 1;
-    console.log(queue)
+    console.log(`Queue: ${queue}`)
+    document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
 }
 
 export function switchTab(tab) {
@@ -123,6 +124,7 @@ export function switchTab(tab) {
         mainContainer.style.display = 'grid';
         mainContainer.style.gridTemplateColumns = `1fr 1fr`;
         galleryContainerTab.style.display = 'none';
+        document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
         updateGridVariables();
     } else if (tab === 'gallery') {
         generatorTab.classList.remove('active');
@@ -149,7 +151,8 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     }
     const workflow = await setWorkflow();
     queue = queue + 1;
-    console.log("Queue: "+queue)
+    document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
+    console.log(`Queue: ${queue}`);
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);
