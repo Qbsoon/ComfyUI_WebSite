@@ -24,7 +24,8 @@ export async function setWorkflow() {
 	const guidance = parseFloat(document.getElementById('guidanceInput').value);
 	const width = parseInt(document.getElementById('widthInput').value);
 	const height = parseInt(document.getElementById('heightInput').value);
-	const ratio = parseFloat(document.getElementById('ratioInput').value);
+	const ratio = document.getElementById('ratioInput').value;
+    console.log(ratio);
     const uid = 0
 	const seed = Math.floor(Math.random() * 999999999999999)
 
