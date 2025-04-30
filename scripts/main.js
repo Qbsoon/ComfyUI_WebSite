@@ -15,8 +15,8 @@ function updateGridVariables() {
     fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
     lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
 
-    loadImages(`${FTP}/gallery/${uid}`, 'lastGallery', lastNum);
-    loadImages(`${FTP}/gallery/${uid}`, 'fullGallery', 0);
+    loadImages('lastGallery', uid,  lastNum);
+    loadImages('fullGallery', uid);
 }
 
 window.addEventListener('resize', updateGridVariables);
@@ -213,4 +213,42 @@ export async function init() {
     updateResRatio();
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM fully loaded and parsed. Running init...");
+    init();
+});
+
 window.init = init;
+
+// Lightbox
+const lightbox = document.getElementById('simpleLightbox');
+const lightboxImage = document.getElementById('lightboxImage');
+const closeBtn = document.querySelector('.lightbox-close');
+
+function openLightbox(imageUrl) {
+  if (lightbox && lightboxImage) {
+    lightboxImage.src = imageUrl;
+    lightbox.style.display = 'flex';
+  }
+}
+
+function closeLightbox() {
+  if (lightbox) {
+    lightbox.style.display = 'none';
+    lightboxImage.src = '';
+  }
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener('click', closeLightbox);
+}
+
+if (lightbox) {
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) {
+      closeLightbox();
+    }
+  });
+}
+
+window.openLightbox = openLightbox;

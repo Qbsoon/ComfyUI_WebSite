@@ -1,69 +1,69 @@
-export async function galleryLoad(directory, target, limit) {
+export async function galleryLoad(target, uid, limit = null) {
+    const outputDiv = document.getElementById(target);
+    if (!outputDiv) {
+        console.error(`Error loading gallery for target #${target}: Element not found.`);
+        return;
+    }
+
+    // URL do endpointu generującego manifest
+    let manifestUrl = `${window.location.origin}/api/iiif-manifest?uid=${uid}`;
+    if (limit !== null && limit > 0) {
+        manifestUrl += `&limit=${limit}`;
+    }
+
+    console.log(`Fetching IIIF manifest for target #${target} from: ${manifestUrl}`);
+
     try {
-        const response = await fetch(directory);
+        const response = await fetch(manifestUrl);
         if (!response.ok) {
-            throw new Error(`Failed to load directory: ${response.statusText}`);
+            throw new Error(`Failed to fetch IIIF manifest: ${response.statusText}`);
         }
-	
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-	
-        // Znajdź wszystkie linki do plików w katalogu
-        const images_raw = Array.from(doc.querySelectorAll('tr'));
-        const images = images_raw
-            .map(image => {
-                const link = image.querySelector('a');
-                const imageDate = image.querySelector('td:nth-child(3)');
-                if (link && imageDate) {
-                    return {
-                        name: link.getAttribute('href'),
-                        date: new Date(imageDate.textContent.trim())
-                    };
-                }
-                return null;
-            })
-            .filter(image => image && /\.(jpg|jpeg|png)$/i.test(image.name)); // Filtruj tylko obrazy
-		
-        // Sort files by modification date (newest first)
-        images.sort((a, b) => b.date - a.date);
-		
-        const outputDiv = document.getElementById(target);
-        outputDiv.innerHTML = ''; // Wyczyść poprzednie obrazy
+        const manifest = await response.json();
 
-        const finalImages = limit > 0 ? images.slice(0, limit) : images;
-		
-        finalImages.forEach(image => {
-            const img = document.createElement('img');
-            img.src = `${directory}/${image.name}`;
-            img.alt = image;
-            img.style.margin = '10px';
-            img.style.maxWidth = '200px';
-            img.style.height = 'auto';
+        outputDiv.innerHTML = '';
 
-			// Add click event to open the modal
-			img.addEventListener('click', () => {
-				const modal = document.getElementById('imageModal');
-				const modalImage = document.getElementById('modalImage');
-				modalImage.src = img.src; // Set the modal image source to the clicked image
-				modal.style.display = 'flex'; // Show the modal
-			});
+        if (!manifest.sequences || manifest.sequences.length === 0 || !manifest.sequences[0].canvases) {
+            console.warn(`Manifest for ${target} is empty or has unexpected structure.`);
+            outputDiv.innerHTML = 'No images found.';
+            return;
+        }
 
-			// Close modal when clicking outside the image
-			document.getElementById('imageModal').addEventListener('click', (event) => {
-			    const modal = document.getElementById('imageModal');
-			    const modalImage = document.getElementById('modalImage');
-			
-			    // Close the modal only if the click is outside the image
-			    if (event.target !== modalImage) {
-			        modal.style.display = 'none';
-			    }
-			});
+        const canvases = manifest.sequences[0].canvases;
 
-            outputDiv.appendChild(img);
+        canvases.forEach(canvas => {
+            let imageUrl = null;
+            if (canvas.images && canvas.images.length > 0 && canvas.images[0].resource) {
+                imageUrl = canvas.images[0].resource['@id'] || canvas.images[0].resource.id;
+            }
+
+            if (imageUrl) {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = canvas.label || 'Gallery image';
+                img.style.width = '200px';
+                img.style.height = 'auto';
+                img.style.margin = '5px';
+                img.style.cursor = 'pointer';
+
+                img.addEventListener('click', () => {
+                    if (typeof window.openLightbox === 'function') {
+                        window.openLightbox(imageUrl);
+                    } else {
+                        console.error('openLightbox function not found.');
+                        window.open(imageUrl, '_blank');
+                    }
+                });
+
+                outputDiv.appendChild(img);
+            } else {
+                console.warn('Canvas found without a valid image URL:', canvas);
+            }
         });
+
     } catch (error) {
-        console.error('Error loading images:', error);
-        alert('Nie udało się załadować obrazów.');
+        console.error(`Error processing manifest for target #${target}:`, error);
+        if (outputDiv) {
+            outputDiv.innerHTML = 'Error loading images.';
+        }
     }
 }

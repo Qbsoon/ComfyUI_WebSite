@@ -1,13 +1,16 @@
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.routing import BaseConverter
-from flask import Flask, send_from_directory, render_template_string, redirect
+import json
+from urllib.parse import quote
+from PIL import Image
+from flask import Flask, send_from_directory, render_template_string, redirect, request, jsonify, url_for
 from flask_cors import CORS
 import os
 import datetime
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 class RegexConverter(BaseConverter):
     def __init__(self, url_map, *items):
@@ -16,6 +19,107 @@ class RegexConverter(BaseConverter):
 
 
 app.url_map.converters['regex'] = RegexConverter
+
+GALLERY_BASE_DIR = "gallery"
+
+# --- Helper function dla Manifestu ---
+def get_image_files(directory):
+    """Zwraca posortowaną listę plików obrazów w danym katalogu."""
+    images = []
+    if not os.path.isdir(directory):
+        return images
+    for filename in sorted(os.listdir(directory)):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+            images.append(filename)
+    return images
+
+# --- Endpoint generujący manifest IIIF ---
+@app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
+def generate_iiif_manifest():
+    uid = request.args.get('uid')
+    limit_str = request.args.get('limit')
+    limit = None
+    if limit_str:
+        try:
+            limit = int(limit_str)
+            if limit <= 0:
+                limit = None
+        except ValueError:
+            limit = None
+
+    if not uid:
+        return jsonify({"error": "Missing 'uid' parameter"}), 400
+
+    user_gallery_path = os.path.join(GALLERY_BASE_DIR, str(uid))
+    image_files = get_image_files(user_gallery_path)
+
+    if limit is not None and len(image_files) > limit:
+        image_files = image_files[:limit]
+
+    if not image_files:
+        return jsonify({"error": f"No images found or directory not accessible for uid {uid}"}), 404
+    
+    base_url_dynamic = request.host_url.rstrip('/')
+
+    manifest_id = url_for('generate_iiif_manifest', uid=uid, _external=True)
+
+    # --- Budowanie struktury manifestu IIIF ---
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": manifest_id,
+        "@type": "sc:Manifest",
+        "label": f"Gallery for User {uid}" + (f" (Last {limit})" if limit else ""),
+        "sequences": [
+            {
+                "@id": f"{manifest_id}/sequence/normal",
+                "@type": "sc:Sequence",
+                "label": "Default order",
+                "canvases": []
+            }
+        ]
+    }
+
+    canvas_base_id = f"{manifest_id}/canvas/"
+    image_base_url = f"{base_url_dynamic}/gallery/{uid}/"
+
+    for i, filename in enumerate(image_files):
+        img_width, img_height = 100, 100
+        try:
+            with Image.open(os.path.join(user_gallery_path, filename)) as img:
+                img_width, img_height = img.size
+        except Exception as e:
+            app.logger.warning(f"Could not read dimensions for {filename} (UID: {uid}): {e}")
+
+        canvas_id = f"{canvas_base_id}canvas-{i}"
+        image_url = f"{image_base_url}{quote(filename)}"
+
+        image_resource = {
+            "@id": image_url,
+            "@type": "dctypes:Image",
+            "format": f"image/{filename.split('.')[-1].lower()}",
+            "width": img_width,
+            "height": img_height,
+        }
+
+        canvas = {
+            "@id": canvas_id,
+            "@type": "sc:Canvas",
+            "label": filename,
+            "width": img_width,
+            "height": img_height,
+            "images": [
+                {
+                    "@id": f"{canvas_id}/image-{i}",
+                    "@type": "oa:Annotation",
+                    "motivation": "sc:painting",
+                    "resource": image_resource,
+                    "on": canvas_id
+                }
+            ]
+        }
+        manifest["sequences"][0]["canvases"].append(canvas)
+
+    return jsonify(manifest)
 
 # Route to serve the main HTML file
 @app.route("/")
