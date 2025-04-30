@@ -24,14 +24,24 @@ GALLERY_BASE_DIR = "gallery"
 
 # --- Helper function dla Manifestu ---
 def get_image_files(directory):
-    """Zwraca posortowaną listę plików obrazów w danym katalogu."""
-    images = []
+    """Zwraca listę plików obrazów posortowaną wg daty modyfikacji (malejąco)."""
+    images_with_mtime = []
     if not os.path.isdir(directory):
-        return images
-    for filename in sorted(os.listdir(directory)):
+        return []
+
+    for filename in os.listdir(directory):
         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
-            images.append(filename)
-    return images
+            try:
+                filepath = os.path.join(directory, filename)
+                mtime = os.path.getmtime(filepath)
+                images_with_mtime.append((filename, mtime))
+            except OSError as e:
+                app.logger.warning(f"Could not get modification time for {filename}: {e}")
+
+    images_with_mtime.sort(key=lambda item: item[1], reverse=True)
+
+    sorted_filenames = [item[0] for item in images_with_mtime]
+    return sorted_filenames
 
 # --- Endpoint generujący manifest IIIF ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
