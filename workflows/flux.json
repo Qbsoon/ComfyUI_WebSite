@@ -9,7 +9,7 @@
   },
   "2": {
     "inputs": {
-      "unet_name": "FLUX1\\flux1-dev-Q8_0.gguf"
+      "unet_name": "FLUX1/flux1-dev-Q8_0.gguf"
     },
     "class_type": "UnetLoaderGGUF"
   },

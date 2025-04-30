@@ -1,5 +1,6 @@
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import Flask, send_from_directory, render_template_string
+from werkzeug.routing import BaseConverter
+from flask import Flask, send_from_directory, render_template_string, redirect
 from flask_cors import CORS
 import os
 import datetime
@@ -8,13 +9,38 @@ app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)  # Enable CORS for all routes
 
+class RegexConverter(BaseConverter):
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
+
+
+app.url_map.converters['regex'] = RegexConverter
+
 # Route to serve the main HTML file
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")  # Serve index.html from the current directory
 
 # Gallery-specific route: Apache-style directory listings and file serving
-@app.route("/gallery/<path:subpath>/")
+@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>')
+def handle_gallery_file(subpath):
+    full_path = os.path.join("gallery", subpath)
+
+    if os.path.isfile(full_path):
+        # Serve the requested file
+        directory, filename = os.path.split(full_path)
+        return send_from_directory(directory, filename)
+
+    elif os.path.isdir(full_path):
+        return redirect("/gallery/"+subpath+"/")
+
+    else:
+        # Path does not exist
+        return f"<h1>Path {subpath} not found</h1>", 404
+
+#@app.route('/gallery/<path:subpath>/')
+@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>/')
 def handle_gallery(subpath):
     full_path = os.path.join("gallery", subpath)
 
@@ -77,9 +103,7 @@ def handle_gallery(subpath):
         return render_template_string(html_content, subpath=subpath)
 
     elif os.path.isfile(full_path):
-        # Serve the requested file
-        directory, filename = os.path.split(full_path)
-        return send_from_directory(directory, filename)
+        return redirect("/gallery/"+subpath)
 
     else:
         # Path does not exist

@@ -25,6 +25,7 @@ window.addEventListener('resize', updateGridVariables);
 const client = new Client({
 	api_host: window.location.hostname,
 	ssl: window.location.protocol === 'https:',
+	api_base: '/cui/',
 });
 
 try {

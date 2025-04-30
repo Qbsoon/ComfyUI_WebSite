@@ -49,7 +49,7 @@ export async function setWorkflow() {
 		workflow["11"].inputs.scheduler = scheduler;
 		workflow["15"].inputs.text = promptP;
 		workflow["16"].inputs.text = promptN;
-		workflow["19"].inputs.filename_prefix = `${uid}\\sdxl`;
+		workflow["19"].inputs.filename_prefix = `${uid}/sdxl`;
 	} else if (document.getElementById('modelSelect').value === 'sd3.5_large_fp8_scaled.safetensors') {
         workflow = await loadWorkflow('SD35.json');
 		workflow["3"].inputs.cfg = cfg;
@@ -61,7 +61,7 @@ export async function setWorkflow() {
 		workflow["5"].inputs.height = height;
 		workflow["6"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 		workflow["7"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
-		workflow["9"].inputs.filename_prefix = `${uid}\\sd35`;
+		workflow["9"].inputs.filename_prefix = `${uid}/sd35`;
     } else if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
         workflow = await loadWorkflow('SDXLTurbo.json');
 		workflow["5"].inputs.width = width;
@@ -71,7 +71,7 @@ export async function setWorkflow() {
 		workflow["13"].inputs.cfg = cfg;
 		workflow["14"].inputs.sampler_name = sampler;
 		workflow["22"].inputs.steps = steps;
-		workflow["19"].inputs.filename_prefix = `${uid}\\sdxlturbo`;
+		workflow["19"].inputs.filename_prefix = `${uid}/sdxlturbo`;
     } else if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
 		workflow = await loadWorkflow('flux.json')
 		workflow["9"].inputs.guidance = guidance;
@@ -82,7 +82,7 @@ export async function setWorkflow() {
 		workflow["14"].inputs.sampler_name = sampler;
 		workflow["15"].inputs.scheduler = scheduler;
 		workflow["15"].inputs.steps = steps;
-		workflow["18"].inputs.filename_prefix = `${uid}\\flux`;
+		workflow["18"].inputs.filename_prefix = `${uid}/flux`;
 	} else if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
 		workflow = await loadWorkflow('pixart.json')
 		workflow["2"].inputs.ratio = ratio;
@@ -93,7 +93,7 @@ export async function setWorkflow() {
 		workflow["4"].inputs.seed = seed;
 		workflow["5"].inputs.text = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 		workflow["6"].inputs.text = sanitizeInput(document.getElementById('negativePrompt').value.trim());
-		workflow["10"].inputs.filename_prefix = `${uid}\\pixart`;
+		workflow["10"].inputs.filename_prefix = `${uid}/pixart`;
 	}
 	return workflow
 }
