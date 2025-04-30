@@ -2,8 +2,7 @@ import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-clie
 import { galleryLoad } from './galleryLoader.js?cache-bust=1';
 import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 
-const CUI = "qbsoonw11:8000"
-const FTP = "http://qbsoonw11:80"
+const FTP = window.location.origin
 const uid = 0
 var queue = 0
 const queueLimit = 5
@@ -24,7 +23,8 @@ window.addEventListener('resize', updateGridVariables);
 
 // Inicjalizacja klienta
 const client = new Client({
-    api_host: CUI, // Adres i port serwera ComfyUI
+	api_host: window.location.hostname,
+	ssl: window.location.protocol === 'https:',
 });
 
 try {

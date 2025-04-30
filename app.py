@@ -1,9 +1,11 @@
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, send_from_directory, render_template_string
 from flask_cors import CORS
 import os
 import datetime
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)  # Enable CORS for all routes
 
 # Route to serve the main HTML file
@@ -94,4 +96,4 @@ def serve_file(directory, filename):
 
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    app.run(host='192.168.236.84',port=5173)
