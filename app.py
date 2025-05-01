@@ -39,11 +39,11 @@ app.config['LDAP_BASE_DN'] = 'dc=kpi,dc=kul,dc=pl'
 
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'temporary_secret_key')
 
-#cert_path = '/etc/ssl/certs/ca-certificates.crt'
-#ca_cert_path = os.environ.get('LDAP_CA_CERTS_FILE', cert_path)
-#app.config['LDAP_TLS_CA_CERTS_FILE'] = ca_cert_path
+cert_path = '/etc/ssl/certs/ca-certificates.crt'
+ca_cert_path = os.environ.get('LDAP_CA_CERTS_FILE', cert_path)
+app.config['LDAP_TLS_CA_CERTS_FILE'] = ca_cert_path
 
-app.config['LDAP_TLS_REQUIRE_CERT'] = ssl.CERT_NONE
+app.config['LDAP_TLS_REQUIRE_CERT'] = ssl.CERT_REQUIRED
 
 #app.config['LDAP_USER_DN'] = os.environ.get('LDAP_USER_DN', 'ou=Users,dc=kpi,dc=kul,dc=pl')
 app.config['LDAP_USER_DN'] = 'ou=Users,dc=kpi,dc=kul,dc=pl'
