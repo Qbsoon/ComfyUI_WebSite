@@ -2,10 +2,16 @@ import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-clie
 import { galleryLoad } from './galleryLoader.js?cache-bust=1';
 import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 
-const FTP = window.location.origin
-const uid = 0
-var queue = 0
-const queueLimit = 5
+const FTP = window.location.origin;
+const uid = document.body.dataset.username;
+var queue = 0;
+const queueLimit = 5;
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM fully loaded and parsed. Running init...");
+    console.log("Current User UID:", uid);
+    init();
+});
 
 function updateGridVariables() {
     
@@ -190,7 +196,7 @@ document.getElementById('submitButton').addEventListener('click', async () => {
         queue = 0;
         return;
     }
-    const workflow = await setWorkflow();
+    const workflow = await setWorkflow(uid);
     queue = queue + 1;
     document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
     console.log(`Queue: ${queue}`);

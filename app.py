@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 import json
 from urllib.parse import quote, unquote
 from PIL import Image
-from flask import Flask, send_from_directory, render_template_string, redirect, request, jsonify, url_for
+from flask import Flask, send_from_directory, render_template_string, redirect, request, jsonify, url_for, render_template
 from flask_cors import CORS
 import os
 import datetime
@@ -18,7 +18,7 @@ import logging
 
 logging.getLogger('ldap3').setLevel(logging.DEBUG)
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)
 app.logger.setLevel(logging.DEBUG)
@@ -194,11 +194,14 @@ def login():
                 user=user_dn,
                 password=password,
                 authentication=ldap3.SIMPLE,
-                auto_bind=True
+                auto_bind=False
             )
-            app.logger.debug("Manual Auth: Connection object created with auto_bind=True.")
+            app.logger.debug("Manual Auth: Connection object created with auto_bind=False. Attempting bind...")
 
-            if conn.bound:
+            bind_successful = conn.bind()
+            app.logger.debug(f"Manual Auth: Explicit bind result: {bind_successful}")
+
+            if bind_successful:
                 app.logger.info(f"Manual Auth: Bind SUCCESSFUL for DN: {user_dn}")
 
                 search_base = app.config['LDAP_USER_DN']
@@ -221,6 +224,12 @@ def login():
                         user = User(dn=entry.entry_dn, username=username, data=user_data)
                         login_user(user)
                         app.logger.info(f"User {username} object created and logged in via Flask-Login.")
+                        try:
+                            user_gallery_path = os.path.join(GALLERY_BASE_DIR, username)
+                            os.makedirs(user_gallery_path, exist_ok=True)
+                            app.logger.info(f"Ensured gallery directory exists for user {username} at {user_gallery_path}")
+                        except OSError as e:
+                            app.logger.error(f"Failed to create gallery directory for user {username} at {user_gallery_path}: {e}")
                         return redirect(url_for('home'))
                     else:
                         app.logger.error(f"Manual Auth: Search returned {len(conn.entries)} entries for filter '{search_filter}'. Expected 1.")
@@ -231,7 +240,10 @@ def login():
 
             else:
                 app.logger.warning(f"Manual Auth: Bind FAILED for DN: {user_dn}. Result: {conn.result}")
-                return render_template_string(LOGIN_TEMPLATE, error="Invalid username or password")
+                if conn.result and conn.result.get('result') == 49:
+                    return render_template_string(LOGIN_TEMPLATE, error="Invalid username or password")
+                else:
+                    return render_template_string(LOGIN_TEMPLATE, error="LDAP bind failed (not invalid credentials).")
 
         except ldap3.core.exceptions.LDAPException as e:
             app.logger.error(f"Manual Auth: LDAPException during manual authentication: {e}", exc_info=True)
@@ -384,11 +396,11 @@ def generate_iiif_manifest():
 
     return jsonify(manifest)
 
-# Route to serve the main HTML file
+# Route to render the main HTML file
 @app.route("/")
 @login_required
 def home():
-    return send_from_directory(".", "index.html")  # Serve index.html from the current directory
+   return render_template("index.html", username=current_user.username)
 
 
 #@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>')

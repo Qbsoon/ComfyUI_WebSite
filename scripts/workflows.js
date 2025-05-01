@@ -13,7 +13,7 @@ async function loadWorkflow(file) {
     }
 }
 
-export async function setWorkflow() {
+export async function setWorkflow(uid) {
 	const promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 	const promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
     const cfg = parseFloat(document.getElementById('cfgInput').value);
@@ -26,7 +26,6 @@ export async function setWorkflow() {
 	const height = parseInt(document.getElementById('heightInput').value);
 	const ratio = document.getElementById('ratioInput').value;
     console.log(ratio);
-    const uid = 0
 	const seed = Math.floor(Math.random() * 999999999999999)
 
 	let workflow;
