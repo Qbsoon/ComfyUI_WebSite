@@ -5,25 +5,24 @@ export async function galleryLoad(target, uid, limit = null) {
         return;
     }
 
-    // URL do endpointu generującego manifest
     let manifestUrl = `${window.location.origin}/api/iiif-manifest?uid=${uid}`;
     if (limit !== null && limit > 0) {
         manifestUrl += `&limit=${limit}`;
     }
 
-    console.log(`Fetching IIIF manifest for target #${target} from: ${manifestUrl}`);
+    console.log(`Fetching data for target #${target} from: ${manifestUrl}`);
 
     try {
         const response = await fetch(manifestUrl);
         if (!response.ok) {
-            throw new Error(`Failed to fetch IIIF manifest: ${response.statusText}`);
+            throw new Error(`Failed to fetch data: ${response.statusText}`);
         }
-        const manifest = await response.json();
+        const manifest = await response.json(); // Nadal używamy struktury manifestu jako źródła danych
 
-        outputDiv.innerHTML = '';
+        outputDiv.innerHTML = ''; // Wyczyść poprzednią zawartość
 
         if (!manifest.sequences || manifest.sequences.length === 0 || !manifest.sequences[0].canvases) {
-            console.warn(`Manifest for ${target} is empty or has unexpected structure.`);
+            console.warn(`Data for ${target} is empty or has unexpected structure.`);
             outputDiv.innerHTML = 'No images found.';
             return;
         }
@@ -31,37 +30,61 @@ export async function galleryLoad(target, uid, limit = null) {
         const canvases = manifest.sequences[0].canvases;
 
         canvases.forEach(canvas => {
-            let imageUrl = null;
-            if (canvas.images && canvas.images.length > 0 && canvas.images[0].resource) {
-                imageUrl = canvas.images[0].resource['@id'] || canvas.images[0].resource.id;
+            // --- ZMIANY TUTAJ ---
+            let thumbnailUrl = null;
+            let fullImageUrl = null;
+
+            // Pobierz URL miniatury
+            if (canvas.thumbnail && canvas.thumbnail['@id']) {
+                thumbnailUrl = canvas.thumbnail['@id'];
+            } else if (canvas.thumbnail && typeof canvas.thumbnail === 'string') {
+                thumbnailUrl = canvas.thumbnail; // Starsza wersja IIIF?
             }
 
-            if (imageUrl) {
+            // Pobierz URL pełnego obrazu
+            if (canvas.images && canvas.images.length > 0 && canvas.images[0].resource) {
+                fullImageUrl = canvas.images[0].resource['@id'] || canvas.images[0].resource.id;
+            }
+
+            // Jeśli nie ma miniatury, użyj pełnego obrazu jako fallback (nieidealne)
+            if (!thumbnailUrl) {
+                thumbnailUrl = fullImageUrl;
+            }
+            // --------------------
+
+            if (thumbnailUrl && fullImageUrl) { // Potrzebujemy obu URLi
                 const img = document.createElement('img');
-                img.src = imageUrl;
+                img.src = thumbnailUrl; // Użyj miniatury dla siatki
                 img.alt = canvas.label || 'Gallery image';
-                img.style.width = '200px';
+                // Ustaw data-* atrybut z pełnym URLem
+                img.dataset.fullSrc = fullImageUrl;
+
+                // Zachowaj style dla siatki (można przenieść do CSS)
+                img.style.width = '200px'; // Lepiej kontrolować przez CSS siatki
                 img.style.height = 'auto';
                 img.style.margin = '5px';
                 img.style.cursor = 'pointer';
 
                 img.addEventListener('click', () => {
-                    if (typeof window.openLightbox === 'function') {
-                        window.openLightbox(imageUrl);
+                    // Odczytaj pełny URL z data-atrybutu
+                    const fullSrc = img.dataset.fullSrc;
+                    if (fullSrc && typeof window.openLightbox === 'function') {
+                        window.openLightbox(fullSrc); // Otwórz pełny obraz w lightboxie
                     } else {
-                        console.error('openLightbox function not found.');
-                        window.open(imageUrl, '_blank');
+                        console.error('openLightbox function not found or full image URL missing.');
+                        // Fallback: otwórz pełny obraz w nowej karcie
+                        if (fullSrc) window.open(fullSrc, '_blank');
                     }
                 });
 
                 outputDiv.appendChild(img);
             } else {
-                console.warn('Canvas found without a valid image URL:', canvas);
+                console.warn('Canvas found without a valid thumbnail or full image URL:', canvas);
             }
         });
 
     } catch (error) {
-        console.error(`Error processing manifest for target #${target}:`, error);
+        console.error(`Error processing data for target #${target}:`, error);
         if (outputDiv) {
             outputDiv.innerHTML = 'Error loading images.';
         }

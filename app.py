@@ -1,12 +1,14 @@
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.routing import BaseConverter
+from werkzeug.utils import secure_filename
 import json
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 from PIL import Image
 from flask import Flask, send_from_directory, render_template_string, redirect, request, jsonify, url_for
 from flask_cors import CORS
 import os
 import datetime
+import io
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
@@ -21,6 +23,10 @@ class RegexConverter(BaseConverter):
 app.url_map.converters['regex'] = RegexConverter
 
 GALLERY_BASE_DIR = "gallery"
+THUMBNAIL_SUBDIR = "thumbnails"
+THUMBNAIL_WIDTH = 200
+THUMBNAIL_FORMAT = "JPEG"
+THUMBNAIL_QUALITY = 85
 
 # --- Helper function dla Manifestu ---
 def get_image_files(directory):
@@ -73,6 +79,9 @@ def generate_iiif_manifest():
 
     manifest_id = url_for('generate_iiif_manifest', uid=uid, _external=True)
 
+    gallery_base_url = f"{base_url_dynamic}/gallery/"
+    thumbnail_base_url = f"{base_url_dynamic}/thumbnails/"
+
     # --- Budowanie struktury manifestu IIIF ---
     manifest = {
         "@context": "http://iiif.io/api/presentation/2/context.json",
@@ -89,22 +98,28 @@ def generate_iiif_manifest():
         ]
     }
 
-    canvas_base_id = f"{manifest_id}/canvas/"
-    image_base_url = f"{base_url_dynamic}/gallery/{uid}/"
-
     for i, filename in enumerate(image_files):
         img_width, img_height = 100, 100
+        thumb_width, thumb_height = THUMBNAIL_WIDTH, THUMBNAIL_WIDTH
         try:
-            with Image.open(os.path.join(user_gallery_path, filename)) as img:
-                img_width, img_height = img.size
+             original_image_path = os.path.join(user_gallery_path, filename)
+             with Image.open(original_image_path) as img:
+                 img_width, img_height = img.size
+                 if img_width > 0:
+                     thumb_height = int(img_height * (THUMBNAIL_WIDTH / img_width))
+                 else:
+                     thumb_height = THUMBNAIL_WIDTH
         except Exception as e:
             app.logger.warning(f"Could not read dimensions for {filename} (UID: {uid}): {e}")
 
-        canvas_id = f"{canvas_base_id}canvas-{i}"
-        image_url = f"{image_base_url}{quote(filename)}"
+        canvas_id = f"{manifest_id}/canvas/canvas-{i}"
+        quoted_filename = quote(filename)
+
+        full_image_url = f"{gallery_base_url}{uid}/{quoted_filename}"
+        thumb_image_url = f"{thumbnail_base_url}{uid}/{quoted_filename}"
 
         image_resource = {
-            "@id": image_url,
+            "@id": full_image_url,
             "@type": "dctypes:Image",
             "format": f"image/{filename.split('.')[-1].lower()}",
             "width": img_width,
@@ -125,7 +140,13 @@ def generate_iiif_manifest():
                     "resource": image_resource,
                     "on": canvas_id
                 }
-            ]
+            ],
+            "thumbnail": {
+                 "@id": thumb_image_url,
+                 "@type": "dctypes:Image",
+                 "width": thumb_width,
+                 "height": thumb_height
+            }
         }
         manifest["sequences"][0]["canvases"].append(canvas)
 
@@ -136,22 +157,82 @@ def generate_iiif_manifest():
 def home():
     return send_from_directory(".", "index.html")  # Serve index.html from the current directory
 
-# Gallery-specific route: Apache-style directory listings and file serving
-@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>')
+
+#@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>')
+@app.route('/gallery/<path:subpath>')
 def handle_gallery_file(subpath):
-    full_path = os.path.join("gallery", subpath)
+    app.logger.debug(f"--- Handling gallery ORIGINAL file request ---")
+    decoded_subpath = unquote(subpath) # np. "0/plik.png"
+    app.logger.debug(f"Decoded subpath for original: {decoded_subpath}")
 
-    if os.path.isfile(full_path):
-        # Serve the requested file
-        directory, filename = os.path.split(full_path)
+    # Zbuduj ścieżkę do oryginalnego pliku
+    original_path = os.path.join(GALLERY_BASE_DIR, decoded_subpath)
+
+    if os.path.isfile(original_path):
+        directory, filename = os.path.split(original_path)
+        app.logger.debug(f"Serving original file: {original_path}")
         return send_from_directory(directory, filename)
-
-    elif os.path.isdir(full_path):
-        return redirect("/gallery/"+subpath+"/")
-
     else:
-        # Path does not exist
-        return f"<h1>Path {subpath} not found</h1>", 404
+        app.logger.warning(f"Original file not found at: {original_path}")
+        return "File not found", 404
+
+# --- Trasa dla MINIATUR (używa regex) ---
+# Regex pasujący tylko do "uid/thumbnails/filename"
+#@app.route('/gallery/<regex("^([0-9]+/thumbnails/[^/]+)$"):subpath>')
+@app.route('/thumbnails/<path:subpath>')
+#@app.route('/thumbnails/<regex("([0-9]+(\/[^\/])*)?[^\/$"):subpath>')
+def handle_thumbnail(subpath):
+    app.logger.debug(f"--- Handling THUMBNAIL request ---")
+    decoded_subpath = unquote(subpath) # np. "0/thumbnails/plik.png"
+    app.logger.debug(f"Decoded subpath for thumbnail: {decoded_subpath}")
+
+    # Wyodrębnij UID, nazwę pliku i zbuduj ścieżki
+    parts = decoded_subpath.split('/')
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+         app.logger.error(f"Invalid thumbnail path structure received by handle_thumbnail: {decoded_subpath}")
+         return "Invalid path structure", 400 # Powinno być obsłużone przez regex, ale dla pewności
+
+    uid = parts[0]
+    filename = parts[1]
+    thumbnail_dir = os.path.join(GALLERY_BASE_DIR, uid, THUMBNAIL_SUBDIR)
+    thumbnail_path = os.path.join(thumbnail_dir, filename)
+    original_path = os.path.join(GALLERY_BASE_DIR, uid, filename) # Ścieżka do oryginału
+
+    app.logger.debug(f"Thumbnail check. UID: {uid}, Filename: {filename}")
+    app.logger.debug(f"Expected thumbnail path: {thumbnail_path}")
+    app.logger.debug(f"Original path for generation: {original_path}")
+
+
+    # 1. Sprawdź, czy miniatura już istnieje
+    if os.path.isfile(thumbnail_path):
+        app.logger.debug(f"Serving existing thumbnail: {thumbnail_path}")
+        return send_from_directory(thumbnail_dir, filename)
+
+    # 2. Miniatura nie istnieje - wygeneruj ją
+    app.logger.info(f"Thumbnail not found, attempting generation: {thumbnail_path}")
+    if not os.path.isfile(original_path):
+        app.logger.error(f"Original image NOT FOUND for thumbnail generation at: {original_path}")
+        return "Original image not found", 404
+
+    try:
+        # ... (Logika generowania miniatury - bez zmian) ...
+        with Image.open(original_path) as img:
+            if img.mode in ("RGBA", "P") and THUMBNAIL_FORMAT == "JPEG":
+                img = img.convert("RGB")
+            width_percent = (THUMBNAIL_WIDTH / float(img.size[0]))
+            new_height = int((float(img.size[1]) * float(width_percent)))
+            img.thumbnail((THUMBNAIL_WIDTH, new_height))
+            os.makedirs(thumbnail_dir, exist_ok=True)
+            save_options = {}
+            if THUMBNAIL_FORMAT == "JPEG":
+                save_options['quality'] = THUMBNAIL_QUALITY
+                save_options['optimize'] = True
+            img.save(thumbnail_path, THUMBNAIL_FORMAT, **save_options)
+            app.logger.info(f"Successfully generated and saved thumbnail: {thumbnail_path}")
+        return send_from_directory(thumbnail_dir, filename)
+    except Exception as e:
+        app.logger.error(f"Error during thumbnail generation for {original_path}: {e}")
+        return "Error generating thumbnail", 500
 
 #@app.route('/gallery/<path:subpath>/')
 @app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>/')
@@ -234,4 +315,4 @@ def serve_file(directory, filename):
 
 
 if __name__ == "__main__":
-    app.run(host='192.168.236.84',port=5173)
+    app.run(host='192.168.236.84',port=5173,debug=True)
