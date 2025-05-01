@@ -18,7 +18,7 @@ import logging
 
 logging.getLogger('ldap3').setLevel(logging.DEBUG)
 
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__, template_folder='pages')
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)
 app.logger.setLevel(logging.DEBUG)
@@ -140,24 +140,6 @@ def load_user(user_id):
             conn.unbind()
         app.logger.debug(f"--- user_loader finished for user_id: {user_id} ---")
 
-LOGIN_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head><title>Login</title></head>
-<body>
-    <h2>Login</h2>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-    <form method="post">
-        Username: <input type="text" name="username" required><br>
-        Password: <input type="password" name="password" required><br>
-        <button type="submit">Login</button>
-    </form>
-</body>
-</html>
-"""
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -170,7 +152,7 @@ def login():
 
         if not username or not password:
             app.logger.warning("Login attempt with missing username or password.")
-            return render_template_string(LOGIN_TEMPLATE, error="Missing username or password")
+            return render_template("auth.html", error="Missing username or password")
 
         conn = None
         try:
@@ -233,30 +215,30 @@ def login():
                         return redirect(url_for('home'))
                     else:
                         app.logger.error(f"Manual Auth: Search returned {len(conn.entries)} entries for filter '{search_filter}'. Expected 1.")
-                        return render_template_string(LOGIN_TEMPLATE, error="Login failed: Could not uniquely identify user.")
+                        return render_template("auth.html", error="Login failed: Could not uniquely identify user.")
                 else:
                     app.logger.error(f"Manual Auth: Search failed after successful bind. Filter='{search_filter}'. Result: {conn.result}")
-                    return render_template_string(LOGIN_TEMPLATE, error="Login failed: Could not retrieve user data.")
+                    return render_template("auth.html", error="Login failed: Could not retrieve user data.")
 
             else:
                 app.logger.warning(f"Manual Auth: Bind FAILED for DN: {user_dn}. Result: {conn.result}")
                 if conn.result and conn.result.get('result') == 49:
-                    return render_template_string(LOGIN_TEMPLATE, error="Invalid username or password")
+                    return render_template("auth.html", error="Invalid username or password")
                 else:
-                    return render_template_string(LOGIN_TEMPLATE, error="LDAP bind failed (not invalid credentials).")
+                    return render_template("auth.html", error="LDAP bind failed (not invalid credentials).")
 
         except ldap3.core.exceptions.LDAPException as e:
             app.logger.error(f"Manual Auth: LDAPException during manual authentication: {e}", exc_info=True)
-            return render_template_string(LOGIN_TEMPLATE, error="An LDAP error occurred during login.")
+            return render_template("auth.html", error="An LDAP error occurred during login.")
         except Exception as e:
              app.logger.error(f"Manual Auth: Non-LDAP Exception during manual authentication: {e}", exc_info=True)
-             return render_template_string(LOGIN_TEMPLATE, error="An unexpected error occurred during login.")
+             return render_template("auth.html", error="An unexpected error occurred during login.")
         finally:
             if conn and conn.bound:
                 conn.unbind()
             app.logger.debug("--- Finished Manual LDAP Authentication ---")
 
-    return render_template_string(LOGIN_TEMPLATE)
+    return render_template("auth.html")
 
 @app.route('/logout')
 @login_required
@@ -400,7 +382,7 @@ def generate_iiif_manifest():
 
     else:
         app.logger.info(f"No images found for manifest (UID: {uid}). Returning empty manifest.")
-        
+
     return jsonify(manifest)
 
 # Route to render the main HTML file
