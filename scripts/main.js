@@ -4,14 +4,8 @@ import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 
 const FTP = window.location.origin;
 const uid = document.body.dataset.username;
-var queue = 0;
+let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
 const queueLimit = 5;
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded and parsed. Running init...");
-    console.log("Current User UID:", uid);
-    init();
-});
 
 function updateGridVariables() {
     
@@ -132,6 +126,7 @@ async function generateImage(workflow) {
         alert('Failed to generate image. Check the console for details.');
     }
     queue = queue - 1;
+    sessionStorage.setItem('comfyQueueCount', queue.toString());
     console.log(`Queue: ${queue}`)
     document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
 }
@@ -193,11 +188,11 @@ document.getElementById('submitButton').addEventListener('click', async () => {
 	    validateInputs();
     } catch (error) {
         console.error('Validation failed:', error);
-        queue = 0;
         return;
     }
     const workflow = await setWorkflow(uid);
     queue = queue + 1;
+    sessionStorage.setItem('comfyQueueCount', queue.toString());
     document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
     console.log(`Queue: ${queue}`);
     generateImage(workflow);
