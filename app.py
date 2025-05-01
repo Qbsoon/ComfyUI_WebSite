@@ -176,46 +176,35 @@ def handle_gallery_file(subpath):
         app.logger.warning(f"Original file not found at: {original_path}")
         return "File not found", 404
 
-# --- Trasa dla MINIATUR (używa regex) ---
+# Trasa dla MINIATUR
 # Regex pasujący tylko do "uid/thumbnails/filename"
 #@app.route('/gallery/<regex("^([0-9]+/thumbnails/[^/]+)$"):subpath>')
 @app.route('/thumbnails/<path:subpath>')
 #@app.route('/thumbnails/<regex("([0-9]+(\/[^\/])*)?[^\/$"):subpath>')
 def handle_thumbnail(subpath):
-    app.logger.debug(f"--- Handling THUMBNAIL request ---")
-    decoded_subpath = unquote(subpath) # np. "0/thumbnails/plik.png"
-    app.logger.debug(f"Decoded subpath for thumbnail: {decoded_subpath}")
+    decoded_subpath = unquote(subpath)
 
-    # Wyodrębnij UID, nazwę pliku i zbuduj ścieżki
     parts = decoded_subpath.split('/')
     if len(parts) != 2 or not parts[0] or not parts[1]:
          app.logger.error(f"Invalid thumbnail path structure received by handle_thumbnail: {decoded_subpath}")
-         return "Invalid path structure", 400 # Powinno być obsłużone przez regex, ale dla pewności
+         return "Invalid path structure", 400
 
     uid = parts[0]
     filename = parts[1]
     thumbnail_dir = os.path.join(GALLERY_BASE_DIR, uid, THUMBNAIL_SUBDIR)
     thumbnail_path = os.path.join(thumbnail_dir, filename)
-    original_path = os.path.join(GALLERY_BASE_DIR, uid, filename) # Ścieżka do oryginału
+    original_path = os.path.join(GALLERY_BASE_DIR, uid, filename)
 
-    app.logger.debug(f"Thumbnail check. UID: {uid}, Filename: {filename}")
-    app.logger.debug(f"Expected thumbnail path: {thumbnail_path}")
-    app.logger.debug(f"Original path for generation: {original_path}")
-
-
-    # 1. Sprawdź, czy miniatura już istnieje
     if os.path.isfile(thumbnail_path):
         app.logger.debug(f"Serving existing thumbnail: {thumbnail_path}")
         return send_from_directory(thumbnail_dir, filename)
 
-    # 2. Miniatura nie istnieje - wygeneruj ją
     app.logger.info(f"Thumbnail not found, attempting generation: {thumbnail_path}")
     if not os.path.isfile(original_path):
         app.logger.error(f"Original image NOT FOUND for thumbnail generation at: {original_path}")
         return "Original image not found", 404
 
     try:
-        # ... (Logika generowania miniatury - bez zmian) ...
         with Image.open(original_path) as img:
             if img.mode in ("RGBA", "P") and THUMBNAIL_FORMAT == "JPEG":
                 img = img.convert("RGB")

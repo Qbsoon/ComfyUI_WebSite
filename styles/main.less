@@ -187,22 +187,20 @@ button {
 #lastGallery, #fullGallery {
     display: grid;
     gap: @grid-gap;
-    // Użyj auto-fit i minmax dla responsywnej siatki
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); // Dostosuj minmax wg potrzeb
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 
     img {
-        width: 100%; // Wypełnij komórkę siatki
-        aspect-ratio: 1 / 1; // Utrzymaj kwadratowy stosunek (opcjonalnie)
-        object-fit: cover; // Przytnij obraz, aby wypełnił obszar bez zniekształceń (opcjonalnie)
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
         border: 1px solid #ccc;
         .border-radius();
         cursor: pointer;
-        display: block; // Usuń ewentualne dodatkowe marginesy pod obrazem
+        display: block;
 
         &:hover {
             transform: scale(1.05);
             transition: transform 0.2s;
-            // Można dodać cień lub inną wizualną wskazówkę
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
     }
