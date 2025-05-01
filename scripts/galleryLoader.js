@@ -11,19 +11,37 @@ export async function galleryLoad(target, uid, limit = null) {
     }
 
     console.log(`Fetching data for target #${target} from: ${manifestUrl}`);
+    outputDiv.innerHTML = '<p>Loading gallery...</p>';
 
     try {
         const response = await fetch(manifestUrl);
         if (!response.ok) {
-            throw new Error(`Failed to fetch data: ${response.statusText}`);
+            let errorBody = await response.text();
+            console.error(`Manifest fetch failed for #${target}. Status: ${response.status}. Body: ${errorBody}`);
+            if (errorBody.includes("No images found")) {
+                console.info(`Gallery for target #${target} is empty.`);
+                const emptyMessage = document.createElement('p');
+                emptyMessage.textContent = 'Gallery empty';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.marginTop = '20px';
+                outputDiv.innerHTML = "";
+                outputDiv.appendChild(emptyMessage);
+                return;
+            } else {
+                throw new Error(`Failed to fetch manifest: ${response.status} ${response.statusText}`);
+            }
         }
         const manifest = await response.json();
 
         outputDiv.innerHTML = '';
 
-        if (!manifest.sequences || manifest.sequences.length === 0 || !manifest.sequences[0].canvases) {
-            console.warn(`Data for ${target} is empty or has unexpected structure.`);
-            outputDiv.innerHTML = 'No images found.';
+        if (!manifest.sequences || manifest.sequences.length === 0 || !manifest.sequences[0].canvases || manifest.sequences[0].canvases.length === 0) {
+            console.info(`Gallery for target #${target} is empty.`);
+            const emptyMessage = document.createElement('p');
+            emptyMessage.textContent = 'Gallery empty';
+            emptyMessage.style.textAlign = 'center';
+            emptyMessage.style.marginTop = '20px';
+            outputDiv.appendChild(emptyMessage);
             return;
         }
 
@@ -46,7 +64,6 @@ export async function galleryLoad(target, uid, limit = null) {
             if (!thumbnailUrl) {
                 thumbnailUrl = fullImageUrl;
             }
-            // --------------------
 
             if (thumbnailUrl && fullImageUrl) {
                 const img = document.createElement('img');
@@ -79,7 +96,7 @@ export async function galleryLoad(target, uid, limit = null) {
     } catch (error) {
         console.error(`Error processing data for target #${target}:`, error);
         if (outputDiv) {
-            outputDiv.innerHTML = 'Error loading images.';
+            outputDiv.innerHTML = 'Error loading gallery.';
         }
     }
 }

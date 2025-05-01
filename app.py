@@ -341,59 +341,66 @@ def generate_iiif_manifest():
             }
         ]
     }
+    if image_files:
+        app.logger.debug(f"Found {len(image_files)} images for manifest (UID: {uid}).")
+        if limit is not None and len(image_files) > limit:
+            image_files = image_files[:limit]
 
-    for i, filename in enumerate(image_files):
-        img_width, img_height = 100, 100
-        thumb_width, thumb_height = THUMBNAIL_WIDTH, THUMBNAIL_WIDTH
-        try:
-             original_image_path = os.path.join(user_gallery_path, filename)
-             with Image.open(original_image_path) as img:
-                 img_width, img_height = img.size
-                 if img_width > 0:
-                     thumb_height = int(img_height * (THUMBNAIL_WIDTH / img_width))
-                 else:
-                     thumb_height = THUMBNAIL_WIDTH
-        except Exception as e:
-            app.logger.warning(f"Could not read dimensions for {filename} (UID: {uid}): {e}")
+        for i, filename in enumerate(image_files):
+            img_width, img_height = 100, 100
+            thumb_width, thumb_height = THUMBNAIL_WIDTH, THUMBNAIL_WIDTH
+            try:
+                 original_image_path = os.path.join(user_gallery_path, filename)
+                 with Image.open(original_image_path) as img:
+                     img_width, img_height = img.size
+                     if img_width > 0:
+                         thumb_height = int(img_height * (THUMBNAIL_WIDTH / img_width))
+                     else:
+                         thumb_height = THUMBNAIL_WIDTH
+            except Exception as e:
+                app.logger.warning(f"Could not read dimensions for {filename} (UID: {uid}): {e}")
 
-        canvas_id = f"{manifest_id}/canvas/canvas-{i}"
-        quoted_filename = quote(filename)
+            canvas_id = f"{manifest_id}/canvas/canvas-{i}"
+            quoted_filename = quote(filename)
 
-        full_image_url = f"{gallery_base_url}{uid}/{quoted_filename}"
-        thumb_image_url = f"{thumbnail_base_url}{uid}/{quoted_filename}"
+            full_image_url = f"{gallery_base_url}{uid}/{quoted_filename}"
+            thumb_image_url = f"{thumbnail_base_url}{uid}/{quoted_filename}"
 
-        image_resource = {
-            "@id": full_image_url,
-            "@type": "dctypes:Image",
-            "format": f"image/{filename.split('.')[-1].lower()}",
-            "width": img_width,
-            "height": img_height,
-        }
-
-        canvas = {
-            "@id": canvas_id,
-            "@type": "sc:Canvas",
-            "label": filename,
-            "width": img_width,
-            "height": img_height,
-            "images": [
-                {
-                    "@id": f"{canvas_id}/image-{i}",
-                    "@type": "oa:Annotation",
-                    "motivation": "sc:painting",
-                    "resource": image_resource,
-                    "on": canvas_id
-                }
-            ],
-            "thumbnail": {
-                 "@id": thumb_image_url,
-                 "@type": "dctypes:Image",
-                 "width": thumb_width,
-                 "height": thumb_height
+            image_resource = {
+                "@id": full_image_url,
+                "@type": "dctypes:Image",
+                "format": f"image/{filename.split('.')[-1].lower()}",
+                "width": img_width,
+                "height": img_height,
             }
-        }
-        manifest["sequences"][0]["canvases"].append(canvas)
 
+            canvas = {
+                "@id": canvas_id,
+                "@type": "sc:Canvas",
+                "label": filename,
+                "width": img_width,
+                "height": img_height,
+                "images": [
+                    {
+                        "@id": f"{canvas_id}/image-{i}",
+                        "@type": "oa:Annotation",
+                        "motivation": "sc:painting",
+                        "resource": image_resource,
+                        "on": canvas_id
+                    }
+                ],
+                "thumbnail": {
+                     "@id": thumb_image_url,
+                     "@type": "dctypes:Image",
+                     "width": thumb_width,
+                     "height": thumb_height
+                }
+            }
+            manifest["sequences"][0]["canvases"].append(canvas)
+
+    else:
+        app.logger.info(f"No images found for manifest (UID: {uid}). Returning empty manifest.")
+        
     return jsonify(manifest)
 
 # Route to render the main HTML file
