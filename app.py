@@ -9,10 +9,19 @@ from flask_cors import CORS
 import os
 import datetime
 import io
+import ldap3
+from ldap3.utils.log import set_library_log_detail_level, BASIC
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_ldap3_login import LDAP3LoginManager
+import ssl
+import logging
+
+logging.getLogger('ldap3').setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)
+app.logger.setLevel(logging.DEBUG)
 
 class RegexConverter(BaseConverter):
     def __init__(self, url_map, *items):
@@ -21,6 +30,228 @@ class RegexConverter(BaseConverter):
 
 
 app.url_map.converters['regex'] = RegexConverter
+
+# --- Konfiguracja LDAP ---
+app.config['LDAP_HOST'] = 'kpi.kul.pl'
+app.config['LDAP_PORT'] = 636
+app.config['LDAP_USE_SSL'] = True
+app.config['LDAP_BASE_DN'] = 'dc=kpi,dc=kul,dc=pl'
+
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'temporary_secret_key')
+
+#cert_path = '/etc/ssl/certs/ca-certificates.crt'
+#ca_cert_path = os.environ.get('LDAP_CA_CERTS_FILE', cert_path)
+#app.config['LDAP_TLS_CA_CERTS_FILE'] = ca_cert_path
+
+app.config['LDAP_TLS_REQUIRE_CERT'] = ssl.CERT_NONE
+
+#app.config['LDAP_USER_DN'] = os.environ.get('LDAP_USER_DN', 'ou=Users,dc=kpi,dc=kul,dc=pl')
+app.config['LDAP_USER_DN'] = 'ou=Users,dc=kpi,dc=kul,dc=pl'
+app.config['LDAP_USER_RDN_ATTR'] = 'uid'
+app.config['LDAP_USER_LOGIN_ATTR'] = 'uid'
+app.config['LDAP_USER_FULLNAME_ATTR'] = os.environ.get('LDAP_USER_FULLNAME_ATTR', 'cn')
+#app.config['LDAP_BIND_USER_DN'] = os.environ.get('LDAP_BIND_USER_DN', None)
+#app.config['LDAP_BIND_USER_PASSWORD'] = os.environ.get('LDAP_BIND_USER_PASSWORD', None)
+#app.config['LDAP_USER_SEARCH_FILTER'] = '(uid=%s)'
+#app.config['LDAP_GET_USER_ATTRIBUTES'] = ['dn']
+#app.config['LDAP_AUTHENTICATION_METHOD'] = 'SIMPLE'
+#app.config['LDAP_SEARCH_SCOPE'] = 'SUBTREE'
+
+#app.config['LDAP_GROUP_OBJECT_FILTER'] = '(objectClass=posixGroup)'
+#app.config['LDAP_GROUP_MEMBER_ATTR'] = 'memberUid'
+#app.config['LDAP_GROUP_DN'] = os.environ.get('LDAP_GROUP_DN', 'ou=Groups,dc=kpi,dc=kul,dc=pl')
+#app.config['LDAP_GROUP_DN'] = 'ou=Groups,dc=kpi,dc=kul,dc=pl'
+
+ldap_manager = LDAP3LoginManager(app)
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+class User(UserMixin):
+    def __init__(self, dn, username, data):
+        self.dn = dn
+        self.username = username
+        self.data = data
+
+    def get_id(self):
+        return self.dn
+
+    def get_fullname(self):
+        return self.data.get(app.config['LDAP_USER_FULLNAME_ATTR'], [self.username])[0]
+
+# --- Funkcje obsługi użytkownika ---
+@login_manager.user_loader
+def load_user(user_id):
+    """Ładuje użytkownika na podstawie DN zapisanego w sesji."""
+    app.logger.debug(f"--- user_loader called with user_id (DN): {user_id} ---")
+    conn = None
+    try:
+        tls_config = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1_2)
+
+        server = ldap3.Server(
+            app.config['LDAP_HOST'],
+            port=app.config['LDAP_PORT'],
+            use_ssl=app.config['LDAP_USE_SSL'],
+            tls=tls_config
+        )
+
+        conn = ldap3.Connection(server, auto_bind=True)
+        app.logger.debug(f"user_loader: Connected to LDAP anonymously (or with default bind). Bound: {conn.bound}")
+
+        search_base = app.config['LDAP_BASE_DN']
+        search_filter = f"(objectClass=*)"
+        attributes_to_get = [app.config['LDAP_USER_FULLNAME_ATTR'], app.config['LDAP_USER_LOGIN_ATTR']]
+
+        if conn.search(search_base=user_id,
+                       search_filter=search_filter,
+                       search_scope=ldap3.BASE,
+                       attributes=attributes_to_get):
+
+            if len(conn.entries) == 1:
+                entry = conn.entries[0]
+                app.logger.debug(f"user_loader: User entry found: {entry.entry_dn}")
+                app.logger.debug(f"user_loader: User attributes: {entry.entry_attributes_as_dict}")
+
+                user_data = {k: v[0] for k, v in entry.entry_attributes_as_dict.items() if v}
+
+                username = user_data.get(app.config['LDAP_USER_LOGIN_ATTR'], None)
+                if username:
+                    user = User(dn=entry.entry_dn, username=username, data=user_data)
+                    app.logger.info(f"user_loader: Successfully loaded user {username}")
+                    return user
+                else:
+                     app.logger.error(f"user_loader: Login attribute '{app.config['LDAP_USER_LOGIN_ATTR']}' not found in LDAP entry for DN {user_id}")
+                     return None
+            else:
+                app.logger.warning(f"user_loader: Search returned {len(conn.entries)} entries for DN '{user_id}'. Expected 1.")
+                return None
+        else:
+            app.logger.error(f"user_loader: Search failed for DN '{user_id}'. Result: {conn.result}")
+            return None
+
+    except ldap3.core.exceptions.LDAPException as e:
+        app.logger.error(f"user_loader: LDAPException loading user {user_id}: {e}", exc_info=True)
+        return None
+    except Exception as e:
+         app.logger.error(f"user_loader: Non-LDAP Exception loading user {user_id}: {e}", exc_info=True)
+         return None
+    finally:
+        if conn and conn.bound:
+            conn.unbind()
+        app.logger.debug(f"--- user_loader finished for user_id: {user_id} ---")
+
+LOGIN_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head><title>Login</title></head>
+<body>
+    <h2>Login</h2>
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+"""
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        app.logger.info(f"Attempting login for user: {username}")
+
+        if not username or not password:
+            app.logger.warning("Login attempt with missing username or password.")
+            return render_template_string(LOGIN_TEMPLATE, error="Missing username or password")
+
+        conn = None
+        try:
+            app.logger.debug("--- Manual LDAP Authentication ---")
+
+            user_dn = f"{app.config['LDAP_USER_LOGIN_ATTR']}={username},{app.config['LDAP_USER_DN']}"
+            app.logger.debug(f"Manual Auth: Constructed User DN: {user_dn}")
+
+            tls_config = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1_2)
+
+            server = ldap3.Server(
+                app.config['LDAP_HOST'],
+                port=app.config['LDAP_PORT'],
+                use_ssl=app.config['LDAP_USE_SSL'],
+                tls=tls_config
+            )
+            app.logger.debug(f"Manual Auth: Connecting to server: {server.host}:{server.port} SSL={server.ssl}")
+
+            conn = ldap3.Connection(
+                server,
+                user=user_dn,
+                password=password,
+                authentication=ldap3.SIMPLE,
+                auto_bind=True
+            )
+            app.logger.debug("Manual Auth: Connection object created with auto_bind=True.")
+
+            if conn.bound:
+                app.logger.info(f"Manual Auth: Bind SUCCESSFUL for DN: {user_dn}")
+
+                search_base = app.config['LDAP_USER_DN']
+                search_filter = f"({app.config['LDAP_USER_LOGIN_ATTR']}={username})"
+                attributes_to_get = [app.config['LDAP_USER_FULLNAME_ATTR'], app.config['LDAP_USER_LOGIN_ATTR']]
+                app.logger.debug(f"Manual Auth: Searching for user attributes. Base='{search_base}', Filter='{search_filter}', Attrs={attributes_to_get}")
+
+                if conn.search(search_base=search_base,
+                               search_filter=search_filter,
+                               search_scope=ldap3.SUBTREE,
+                               attributes=attributes_to_get):
+
+                    if len(conn.entries) == 1:
+                        entry = conn.entries[0]
+                        app.logger.debug(f"Manual Auth: User entry found: {entry.entry_dn}")
+                        app.logger.debug(f"Manual Auth: User attributes: {entry.entry_attributes_as_dict}")
+
+                        user_data = {k: v[0] for k, v in entry.entry_attributes_as_dict.items() if v}
+
+                        user = User(dn=entry.entry_dn, username=username, data=user_data)
+                        login_user(user)
+                        app.logger.info(f"User {username} object created and logged in via Flask-Login.")
+                        return redirect(url_for('home'))
+                    else:
+                        app.logger.error(f"Manual Auth: Search returned {len(conn.entries)} entries for filter '{search_filter}'. Expected 1.")
+                        return render_template_string(LOGIN_TEMPLATE, error="Login failed: Could not uniquely identify user.")
+                else:
+                    app.logger.error(f"Manual Auth: Search failed after successful bind. Filter='{search_filter}'. Result: {conn.result}")
+                    return render_template_string(LOGIN_TEMPLATE, error="Login failed: Could not retrieve user data.")
+
+            else:
+                app.logger.warning(f"Manual Auth: Bind FAILED for DN: {user_dn}. Result: {conn.result}")
+                return render_template_string(LOGIN_TEMPLATE, error="Invalid username or password")
+
+        except ldap3.core.exceptions.LDAPException as e:
+            app.logger.error(f"Manual Auth: LDAPException during manual authentication: {e}", exc_info=True)
+            return render_template_string(LOGIN_TEMPLATE, error="An LDAP error occurred during login.")
+        except Exception as e:
+             app.logger.error(f"Manual Auth: Non-LDAP Exception during manual authentication: {e}", exc_info=True)
+             return render_template_string(LOGIN_TEMPLATE, error="An unexpected error occurred during login.")
+        finally:
+            if conn and conn.bound:
+                conn.unbind()
+            app.logger.debug("--- Finished Manual LDAP Authentication ---")
+
+    return render_template_string(LOGIN_TEMPLATE)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    app.logger.info("User logged out.")
+    return redirect(url_for('login'))
 
 GALLERY_BASE_DIR = "gallery"
 THUMBNAIL_SUBDIR = "thumbnails"
@@ -51,6 +282,7 @@ def get_image_files(directory):
 
 # --- Endpoint generujący manifest IIIF ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
+@login_required
 def generate_iiif_manifest():
     uid = request.args.get('uid')
     limit_str = request.args.get('limit')
@@ -154,12 +386,14 @@ def generate_iiif_manifest():
 
 # Route to serve the main HTML file
 @app.route("/")
+@login_required
 def home():
     return send_from_directory(".", "index.html")  # Serve index.html from the current directory
 
 
 #@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>')
 @app.route('/gallery/<path:subpath>')
+@login_required
 def handle_gallery_file(subpath):
     app.logger.debug(f"--- Handling gallery ORIGINAL file request ---")
     decoded_subpath = unquote(subpath) # np. "0/plik.png"
@@ -181,6 +415,7 @@ def handle_gallery_file(subpath):
 #@app.route('/gallery/<regex("^([0-9]+/thumbnails/[^/]+)$"):subpath>')
 @app.route('/thumbnails/<path:subpath>')
 #@app.route('/thumbnails/<regex("([0-9]+(\/[^\/])*)?[^\/$"):subpath>')
+@login_required
 def handle_thumbnail(subpath):
     decoded_subpath = unquote(subpath)
 
@@ -225,6 +460,7 @@ def handle_thumbnail(subpath):
 
 #@app.route('/gallery/<path:subpath>/')
 @app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>/')
+@login_required
 def handle_gallery(subpath):
     full_path = os.path.join("gallery", subpath)
 
@@ -295,6 +531,7 @@ def handle_gallery(subpath):
 
 # General route to serve files in all other directories
 @app.route("/<path:directory>/<filename>")
+@login_required
 def serve_file(directory, filename):
     directory_path = os.path.join(".", directory)
     if not os.path.exists(directory_path):
