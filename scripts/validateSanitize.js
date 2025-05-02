@@ -13,7 +13,7 @@ export function validateInputs() {
     const widthInput = parseInt(document.getElementById('widthInput').value);
     const heightInput = parseInt(document.getElementById('heightInput').value);
     const ratioInput = parseFloat(document.getElementById('ratioInput').value);
-    var stepsMaxLimit = 140
+    var stepsMaxLimit = 70
 
     if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
         stepsMaxLimit = 10
@@ -24,12 +24,12 @@ export function validateInputs() {
         throw new Error('Validation failed on positivePrompt')
     }
 
-    if (isNaN(cfgInput) || cfgInput < 1.0 || cfgInput > 20.0) {
+    if (isNaN(cfgInput) || cfgInput < 1.0 || cfgInput > 10.0) {
         alert('CFG musi być liczbą pomiędzy 1.0 a 20.0.');
         throw new Error('Validation failed on cfgInput')
     }
 
-    if (isNaN(guidanceInput) || guidanceInput < 1.0 || guidanceInput > 20.0) {
+    if (isNaN(guidanceInput) || guidanceInput < 1.0 || guidanceInput > 10.0) {
         alert('Guidance musi być liczbą pomiędzy 1.0 a 10.0.');
         throw new Error('Validation failed on guidanceInput')
     }
@@ -39,7 +39,7 @@ export function validateInputs() {
         throw new Error('Validation failed on stepsInput')
     }
 
-    if (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput > 100 || !Number.isInteger(stepsRefineInput)) {
+    if (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput+stepsInput > stepsMaxLimit || !Number.isInteger(stepsRefineInput)) {
         alert('Refiner Steps musi być liczbą całkowitą pomiędzy 1 a 100.');
         throw new Error('Validation failed on stepsRefineInput')
     }
