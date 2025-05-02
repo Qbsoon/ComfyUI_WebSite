@@ -25,7 +25,7 @@ export function validateInputs() {
     }
 
     if (isNaN(cfgInput) || cfgInput < 1.0 || cfgInput > 10.0) {
-        alert('CFG musi być liczbą pomiędzy 1.0 a 20.0.');
+        alert('CFG musi być liczbą pomiędzy 1.0 a 10.0.');
         throw new Error('Validation failed on cfgInput')
     }
 
@@ -40,7 +40,7 @@ export function validateInputs() {
     }
 
     if (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput+stepsInput > stepsMaxLimit || !Number.isInteger(stepsRefineInput)) {
-        alert('Refiner Steps musi być liczbą całkowitą pomiędzy 1 a 100.');
+        alert('Suma Steps i Refiner Steps  musi być liczbą całkowitą pomiędzy 1 a' + stepsMaxLimit +'.');
         throw new Error('Validation failed on stepsRefineInput')
     }
 
