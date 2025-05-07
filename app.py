@@ -37,7 +37,7 @@ app.config['LDAP_PORT'] = 636
 app.config['LDAP_USE_SSL'] = True
 app.config['LDAP_BASE_DN'] = 'dc=kpi,dc=kul,dc=pl'
 
-app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'temporary_secret_key')
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
 
 cert_path = '/etc/ssl/certs/ca-certificates.crt'
 ca_cert_path = os.environ.get('LDAP_CA_CERTS_FILE', cert_path)

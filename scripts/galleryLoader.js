@@ -10,7 +10,6 @@ export async function galleryLoad(target, uid, limit = null) {
         manifestUrl += `&limit=${limit}`;
     }
 
-    console.log(`Fetching data for target #${target} from: ${manifestUrl}`);
     outputDiv.innerHTML = '<p>Loading gallery...</p>';
 
     try {
