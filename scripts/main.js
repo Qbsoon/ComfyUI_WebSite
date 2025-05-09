@@ -31,6 +31,14 @@ const client = new Client({
 try {
 	client.connect()
 	console.log('Connected to server');
+    client.getQueue().then((queue) => {
+        console.log('Current queue:', queue['Running'].length);
+    }
+    ).catch((error) => {
+        console.error('Error fetching queue:', error);
+        alert('Failed to fetch queue information. Please check the server connection.');
+    }
+    );
 } catch (error) {
 	console.error('Failed to connect to ComfyUI server:', error);
 }
@@ -47,6 +55,9 @@ function updateProgressBar(value, max) {
 	} else {
 		progressName.innerText = '';
 	}
+    client.getQueue().then((queue) => {
+        console.log('Current queue:', queue['Running']);
+    })
 }
 
 function changeModel() {
@@ -91,6 +102,14 @@ function changeModel() {
 
 async function generateImage(workflow) {
     try {
+        client.getQueue().then((queue) => {
+            console.log('Current queue:', queue);
+        }
+        ).catch((error) => {
+            console.error('Error fetching queue:', error);
+            alert('Failed to fetch queue information. Please check the server connection.');
+        }
+        );
 	    const progressName = document.getElementById('progressName');
         progressName.innerText = 'Processing...';
         // Wysłanie zapytania do kolejki serwera ComfyUI
@@ -98,6 +117,9 @@ async function generateImage(workflow) {
         const result = await client.enqueue(workflow, {
 			progress: ({max,value}) => updateProgressBar(value, max),
 		});
+        client.getQueue().then((queue) => {
+            console.log('Current queue:', queue);
+        })
 
 		console.log('Result received');
     
@@ -129,6 +151,9 @@ async function generateImage(workflow) {
     sessionStorage.setItem('comfyQueueCount', queue.toString());
     console.log(`Queue: ${queue}`)
     document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
+    client.getQueue().then((queue) => {
+        console.log('Current queue:', queue);
+    })
 }
 
 export function switchTab(tab) {
@@ -206,7 +231,10 @@ document.getElementById('generatorTab').addEventListener('click', () => {
 });
 document.getElementById('widthInput').addEventListener('input', updateResRatio);
 document.getElementById('heightInput').addEventListener('input', updateResRatio);
-
+document.getElementById('logoutButton').addEventListener('click', () => {
+    sessionStorage.removeItem('comfyQueueCount');
+    window.location.href = '/logout';
+});
 
 export async function init() {
     switchTab('generator');

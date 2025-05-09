@@ -15,6 +15,113 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_ldap3_login import LDAP3LoginManager
 import ssl
 import logging
+import threading
+import time
+import requests
+
+# --- Configuration for Queue Monitoring and Freeing ---
+MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174" # Or get from app.config if preferred
+MONITOR_CHECK_INTERVAL_SECONDS = 0.25
+MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
+MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
+# --- End Configuration ---
+
+# --- Monitoring Script Functions (adapted for Flask logger) ---
+def monitor_get_total_queue_count(base_url):
+    queue_url = f"{base_url}/queue"
+    try:
+        response = requests.get(queue_url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        running_count = len(data.get("queue_running", []))
+        pending_count = len(data.get("queue_pending", []))
+        return running_count + pending_count
+    except requests.exceptions.HTTPError as http_err:
+        app.logger.error(f"BGTask: HTTP error fetching queue: {http_err} (URL: {queue_url})")
+    except requests.exceptions.ConnectionError as conn_err:
+        app.logger.error(f"BGTask: Connection error fetching queue: {conn_err} (URL: {queue_url})")
+    except requests.exceptions.Timeout as timeout_err:
+        app.logger.error(f"BGTask: Timeout error fetching queue: {timeout_err} (URL: {queue_url})")
+    except requests.exceptions.RequestException as req_err:
+        app.logger.error(f"BGTask: RequestException fetching queue: {req_err} (URL: {queue_url})")
+    except json.JSONDecodeError:
+        app.logger.error(f"BGTask: JSONDecodeError from {queue_url}.")
+        if 'response' in locals() and hasattr(response, 'text'):
+            app.logger.error(f"BGTask: Response Text: {response.text[:100]}...")
+    return -1
+
+def monitor_free_server_resources(base_url, payload):
+    free_url = f"{base_url}/free"
+    headers = {"Content-Type": "application/json"}
+    try:
+        app.logger.info(f"BGTask: Attempting to free resources at {free_url} with payload: {payload}")
+        response = requests.post(free_url, data=json.dumps(payload), headers=headers, timeout=30)
+        response.raise_for_status()
+        app.logger.info(f"BGTask: Successfully called free resources. Status: {response.status_code}")
+        return True
+    except requests.exceptions.HTTPError as http_err:
+        app.logger.error(f"BGTask: HTTP error freeing resources: {http_err} (URL: {free_url})")
+    except requests.exceptions.ConnectionError as conn_err:
+        app.logger.error(f"BGTask: Connection error freeing resources: {conn_err} (URL: {free_url})")
+    except requests.exceptions.Timeout as timeout_err:
+        app.logger.error(f"BGTask: Timeout error freeing resources: {timeout_err} (URL: {free_url})")
+    except requests.exceptions.RequestException as req_err:
+        app.logger.error(f"BGTask: RequestException freeing resources: {req_err} (URL: {free_url})")
+    return False
+
+def background_queue_monitor_logic():
+    """ The main loop for monitoring the queue, from your script. """
+    app.logger.info(f"BGTask: Monitoring queue at {MONITOR_SERVER_BASE_URL}/queue.")
+    app.logger.info(f"BGTask: Will check every {MONITOR_CHECK_INTERVAL_SECONDS} seconds.")
+    app.logger.info(f"BGTask: If queue is >0, then becomes 0 and stays 0 for {MONITOR_IDLE_DURATION_TO_FREE_SECONDS} seconds, resources will be freed.")
+
+    was_active_before_becoming_zero = False
+    idle_since_timestamp = None
+    freed_during_this_idle_period = False
+
+    while True:
+        try:
+            current_time_display = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            current_queue_count = monitor_get_total_queue_count(MONITOR_SERVER_BASE_URL)
+
+            if current_queue_count == -1:
+                app.logger.warning(f"BGTask: {current_time_display} - Failed to get queue count. Resetting state.")
+                was_active_before_becoming_zero = False
+                idle_since_timestamp = None
+                freed_during_this_idle_period = False
+            elif current_queue_count > 0:
+                if not was_active_before_becoming_zero or idle_since_timestamp is not None:
+                    app.logger.info(f"BGTask: {current_time_display} - Queue is now active ({current_queue_count} items).")
+                was_active_before_becoming_zero = True
+                idle_since_timestamp = None
+                freed_during_this_idle_period = False
+            elif current_queue_count == 0:
+                if was_active_before_becoming_zero:
+                    if idle_since_timestamp is None:
+                        idle_since_timestamp = time.time()
+                        freed_during_this_idle_period = False
+                        app.logger.info(f"BGTask: {current_time_display} - Queue transitioned from active to 0. Starting {MONITOR_IDLE_DURATION_TO_FREE_SECONDS}s countdown.")
+                    else:
+                        current_idle_duration = time.time() - idle_since_timestamp
+                        if int(current_idle_duration) % 5 == 0 and current_idle_duration > 0.3 and not freed_during_this_idle_period:
+                            app.logger.info(f"BGTask: {current_time_display} - Queue remains 0 (was active). Idle for {current_idle_duration:.2f}s.")
+
+                        if current_idle_duration >= MONITOR_IDLE_DURATION_TO_FREE_SECONDS and not freed_during_this_idle_period:
+                            app.logger.info(f"BGTask: {current_time_display} - Queue has been 0 for {current_idle_duration:.2f}s after being active. Triggering free resources.")
+                            if monitor_free_server_resources(MONITOR_SERVER_BASE_URL, MONITOR_FREE_PAYLOAD):
+                                freed_during_this_idle_period = True
+                                was_active_before_becoming_zero = False
+                                app.logger.info(f"BGTask: {current_time_display} - Resources freed. State reset for 'was_active'.")
+                else:
+                    if idle_since_timestamp is None:
+                        app.logger.debug(f"BGTask: {current_time_display} - Queue is 0 (was not recently active). No countdown initiated.")
+                        idle_since_timestamp = time.time()
+
+            time.sleep(MONITOR_CHECK_INTERVAL_SECONDS)
+        except Exception as e:
+            app.logger.error(f"BGTask: Unexpected error in monitor loop: {e}", exc_info=True)
+            time.sleep(5)
+# --- End Monitoring Script Functions ---
 
 logging.getLogger('ldap3').setLevel(logging.DEBUG)
 
@@ -542,4 +649,6 @@ def serve_file(directory, filename):
 
 
 if __name__ == "__main__":
+    monitor_thread = threading.Thread(target=background_queue_monitor_logic, daemon=True)
+    monitor_thread.start()
     app.run(host='192.168.236.84',port=5173,debug=True)
