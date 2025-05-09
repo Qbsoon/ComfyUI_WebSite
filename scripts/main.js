@@ -356,7 +356,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
-            } else if (workflowData.checkpointName === 'flux1-dev-Q8_0.gguf') {
+            } else if (workflowData.checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
                 parameters.innerHTML += `<strong>Model:</strong> FLUX 1. Dev (Q8)`;
                 prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
                 parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
