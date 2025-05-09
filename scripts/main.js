@@ -271,7 +271,7 @@ function openLightbox(imageUrl, workflowData) {
         const prompts = document.getElementById('lightboxPrompts');
         const parameters = document.getElementById('lightboxParameters');
         if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
-            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            parameters.innerHTML = `<strong>Model:</strong> Stable Diffusion XL`;
             prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
             prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
             parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
@@ -282,7 +282,7 @@ function openLightbox(imageUrl, workflowData) {
             parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
             parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
         } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
-            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            parameters.innerHTML = `<strong>Model:</strong> Stable Diffusion 3.5 Large (fp8)`;
             prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
             prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
             parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
@@ -292,7 +292,7 @@ function openLightbox(imageUrl, workflowData) {
             parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
             parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
         } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
-            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            parameters.innerHTML = `<strong>Model:</strong> Stable Diffusion XL Turbo (fp16)`;
             prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
             prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
             parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
@@ -301,7 +301,7 @@ function openLightbox(imageUrl, workflowData) {
             parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
             parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
         } else if (workflowData.checkpointName === 'flux1-dev-Q8_0.gguf') {
-            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            parameters.innerHTML = `<strong>Model:</strong> FLUX 1. Dev (Q8)`;
             prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
             parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
             parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
@@ -310,7 +310,7 @@ function openLightbox(imageUrl, workflowData) {
             parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
             parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
         } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            parameters.innerHTML = `<strong>Model:</strong> PixArt Sigma XL 2K`;
             prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
             prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
             parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
