@@ -17,7 +17,8 @@
         <h1>Image Generation KUL Tool</h1>
         <div id="tabs">
             <button id="generatorTab" class="active">Generator</button>
-            <button id="galleryTab">Gallery</button>
+            <button id="galleryTab">Private Gallery</button>
+            <button id="publicGalleryTab">Public Gallery</button>
             <button id="logoutButton" class="logout-button">Logout</button>
         </div>
     </div>
@@ -185,6 +186,7 @@
 
         <div id="lightboxMainContent">
             <div id="lightboxButtonContainer">
+                <button id="lightboxTogglePublicButton" class="lightbox-action-button public">Show in public</button>
                 <button id="lightboxCloseButton" class="lightbox-action-button">Close</button>
                 <button id="lightboxDeleteButton" class="lightbox-action-button delete">Delete</button>
             </div>
@@ -218,6 +220,12 @@
     <!-- Full Gallery Modal -->
     <div id="imageModal">
         <img id="modalImage"/>
+    </div>
+
+    <!-- Public Gallery Tab Content -->
+    <div id="publicGalleryContainerTab" class="container" style="display:none;">
+        <h2>Public Gallery</h2>
+        <div id="publicGallery"></div>
     </div>
 
     <script type="module" src="scripts/main.js"></script>

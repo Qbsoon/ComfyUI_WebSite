@@ -12,11 +12,21 @@ function updateGridVariables() {
     const lastNum = Math.round(window.innerWidth / 320);
     const fullGallery = document.getElementById('fullGallery');
     const lastGallery = document.getElementById('lastGallery');
+    const publicGallery = document.getElementById('publicGallery');
     fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
     lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+    publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+    const mainContainer = document.getElementById('mainContainer');
+    const galleryContainerTab = document.getElementById('galleryContainerTab');
+    const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
 
-    loadImages('lastGallery', uid,  lastNum);
-    loadImages('fullGallery', uid);
+    if (mainContainer.style.display === 'grid') {
+        loadImages('lastGallery', uid, lastNum);
+    } else if (galleryContainerTab.style.display === 'grid') {
+        loadImages('fullGallery', uid);
+    } else if (publicGalleryContainerTab.style.display === 'grid') {
+        loadImages('publicGallery', null, null, '/api/public-iiif-manifest');
+    }
 }
 
 window.addEventListener('resize', updateGridVariables);
@@ -166,22 +176,32 @@ async function generateImage(workflow) {
 export function switchTab(tab) {
     const generatorTab = document.getElementById('generatorTab');
     const galleryTab = document.getElementById('galleryTab');
+    const publicGalleryTab = document.getElementById('publicGalleryTab');
     const mainContainer = document.getElementById('mainContainer');
     const galleryContainerTab = document.getElementById('galleryContainerTab');
+    const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+
+    
+    galleryTab.classList.remove('active');
+    generatorTab.classList.remove('active');
+    publicGalleryTab.classList.remove('active');
+    mainContainer.style.display = 'none';
+    galleryContainerTab.style.display = 'none';
+    publicGalleryContainerTab.style.display = 'none';
 
     if (tab === 'generator') {
         generatorTab.classList.add('active');
-        galleryTab.classList.remove('active');
         mainContainer.style.display = 'grid';
         mainContainer.style.gridTemplateColumns = `1fr 1fr`;
-        galleryContainerTab.style.display = 'none';
         document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
         updateGridVariables();
     } else if (tab === 'gallery') {
-        generatorTab.classList.remove('active');
         galleryTab.classList.add('active');
-        mainContainer.style.display = 'none';
         galleryContainerTab.style.display = 'grid';
+        updateGridVariables();
+    } else if (tab === 'publicGallery') {
+        publicGalleryTab.classList.add('active');
+        publicGalleryContainerTab.style.display = 'grid';
         updateGridVariables();
     }
 }
@@ -236,6 +256,9 @@ document.getElementById('galleryTab').addEventListener('click', () => {
 document.getElementById('generatorTab').addEventListener('click', () => {
     switchTab('generator');
 });
+document.getElementById('publicGalleryTab').addEventListener('click', () => {
+    switchTab('publicGallery');
+});
 document.getElementById('widthInput').addEventListener('input', updateResRatio);
 document.getElementById('heightInput').addEventListener('input', updateResRatio);
 document.getElementById('logoutButton').addEventListener('click', () => {
@@ -261,71 +284,150 @@ const lightbox = document.getElementById('simpleLightbox');
 const lightboxImage = document.getElementById('lightboxImage');
 const closeBtn = document.getElementById('lightboxCloseButton');
 const deleteBtn = document.getElementById('lightboxDeleteButton');
+const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
 let currentImageToDeleteUrl = null;
+let currentLightboxImageOwnerUid = null;
+let currentLightboxImageFilename = null;
 
-function openLightbox(imageUrl, workflowData) {
-  if (lightbox && lightboxImage) {
-    lightboxImage.src = imageUrl;
-    lightbox.style.display = 'flex';
-    deleteBtn.dataset.imageUrl = imageUrl;
-  }
-  if (workflowData) {
-    try {
-        const prompts = document.getElementById('lightboxPrompts');
-        const parameters = document.getElementById('lightboxParameters');
-        if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
-            parameters.innerHTML = `<strong>Model:</strong> Stable Diffusion XL`;
-            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
-            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
-            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
-            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
-            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
-            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-            parameters.innerHTML += `<br><strong>Refiner Steps:</strong> ${workflowData.stepsRefiner}`;
-            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
-            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
-        } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
-            parameters.innerHTML = `<strong>Model:</strong> Stable Diffusion 3.5 Large (fp8)`;
-            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
-            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
-            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
-            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
-            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
-            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
-            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
-        } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
-            parameters.innerHTML = `<strong>Model:</strong> Stable Diffusion XL Turbo (fp16)`;
-            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
-            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
-            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
-            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
-            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
-            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
-        } else if (workflowData.checkpointName === 'flux1-dev-Q8_0.gguf') {
-            parameters.innerHTML = `<strong>Model:</strong> FLUX 1. Dev (Q8)`;
-            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
-            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
-            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
-            parameters.innerHTML += `<br><strong>Guidance:</strong> ${workflowData.guidance}`;
-            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
-            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
-        } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-            parameters.innerHTML = `<strong>Model:</strong> PixArt Sigma XL 2K`;
-            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
-            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
-            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
-            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
-            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
-            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-            parameters.innerHTML += `<br><strong>Ratio:</strong> ${workflowData.ratio}`;
+function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = false, filename = null) {
+    if (lightbox && lightboxImage) {
+        lightboxImage.src = imageUrl;
+        lightbox.style.display = 'flex';
+        deleteBtn.dataset.imageUrl = imageUrl;
+
+        currentLightboxImageOwnerUid = imageOwnerUid || uid;
+        currentLightboxImageFilename = filename || imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+
+        if (deleteBtn) {
+            deleteBtn.dataset.imageUrl = imageUrl;
+            // Only show delete button if the current user owns the image in the lightbox
+            deleteBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
         }
-    } catch (e) {
-        console.error("Error displaying metadata from workflow data:", e);
+
+        if (lightboxTogglePublicBtn) {
+            lightboxTogglePublicBtn.dataset.filename = currentLightboxImageFilename;
+            lightboxTogglePublicBtn.dataset.ownerUid = currentLightboxImageOwnerUid;
+            if (isPublic) {
+                lightboxTogglePublicBtn.textContent = 'Hide from public';
+                lightboxTogglePublicBtn.classList.add('is-public');
+            } else {
+                lightboxTogglePublicBtn.textContent = 'Show in public';
+                lightboxTogglePublicBtn.classList.remove('is-public');
+            }
+            // Only show toggle public button if the current user owns the image
+            lightboxTogglePublicBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
+        }
     }
-  }
+    const prompts = document.getElementById('lightboxPrompts');
+    const parameters = document.getElementById('lightboxParameters');
+    if (workflowData) {
+        try {
+            parameters.innerHTML = '';
+            if (imageOwnerUid && imageOwnerUid !== uid) {
+                parameters.innerHTML += `<strong>Shared by:</strong> ${imageOwnerUid}<br><br>`;
+            }
+            if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
+                parameters.innerHTML += `<strong>Model:</strong> Stable Diffusion XL`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Refiner Steps:</strong> ${workflowData.stepsRefiner}`;
+                parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
+                parameters.innerHTML += `<strong>Model:</strong> Stable Diffusion 3.5 Large (fp8)`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
+                parameters.innerHTML += `<strong>Model:</strong> Stable Diffusion XL Turbo (fp16)`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'flux1-dev-Q8_0.gguf') {
+                parameters.innerHTML += `<strong>Model:</strong> FLUX 1. Dev (Q8)`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>Guidance:</strong> ${workflowData.guidance}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+                parameters.innerHTML += `<strong>Model:</strong> PixArt Sigma XL 2K`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Ratio:</strong> ${workflowData.ratio}`;
+            }
+        } catch (e) {
+            console.error("Error displaying metadata from workflow data:", e);
+            if (prompts) prompts.innerHTML = "Error loading metadata.";
+            if (parameters) parameters.innerHTML = "Error loading metadata.";
+        }
+    } else {
+      if (prompts) prompts.innerHTML = "Metadata not available.";
+      if (parameters) parameters.innerHTML = "Metadata not available.";
+    }
+}
+
+if (lightboxTogglePublicBtn) {
+    lightboxTogglePublicBtn.addEventListener('click', async () => {
+        const filename = lightboxTogglePublicBtn.dataset.filename;
+        const ownerUid = lightboxTogglePublicBtn.dataset.ownerUid;
+
+        if (!filename || !ownerUid) {
+            alert("Error: Image details not found for toggling public status.");
+            return;
+        }
+        // Ensure current logged-in user is the owner before sending request
+        if (ownerUid !== uid) {
+            alert("You can only toggle the public status of your own images.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/toggle-public-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filename, image_owner_uid: ownerUid })
+            });
+            const result = await response.json();
+            if (result.success) {
+                if (result.is_public) {
+                    lightboxTogglePublicBtn.textContent = 'Hide from public';
+                    lightboxTogglePublicBtn.classList.add('is-public');
+                } else {
+                    lightboxTogglePublicBtn.textContent = 'Show in public';
+                    lightboxTogglePublicBtn.classList.remove('is-public');
+                }
+                // Refresh public gallery if it's the active tab
+                if (document.getElementById('publicGalleryTab')?.classList.contains('active')) {
+                    updateGridVariables();
+                }
+            } else {
+                alert(`Error: ${result.error || 'Failed to toggle public status.'}`);
+            }
+        } catch (error) {
+            console.error("Error toggling public status:", error);
+            alert("An error occurred. Please try again.");
+        }
+    });
 }
 
 function showCustomConfirm() {

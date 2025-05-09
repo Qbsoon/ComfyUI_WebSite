@@ -154,17 +154,23 @@ async function parsePngForComfyMetadata(arrayBuffer) {
     }
 }
 
-export async function galleryLoad(target, uid, limit = null) {
+export async function galleryLoad(target, uid, limit = null, customManifestUrl = null) {
     const outputDiv = document.getElementById(target);
     if (!outputDiv) {
         console.error(`Error loading gallery for target #${target}: Element not found.`);
         return;
     }
 
-    let manifestUrl = `${window.location.origin}/api/iiif-manifest?uid=${uid}`;
-    if (limit !== null && limit > 0) {
-        manifestUrl += `&limit=${limit}`;
+    let manifestUrl;
+    if (customManifestUrl) {
+        manifestUrl = customManifestUrl;
+    } else {
+        manifestUrl = `${window.location.origin}/api/iiif-manifest?uid=${uid}`;
+        if (limit !== null && limit > 0) {
+            manifestUrl += `&limit=${limit}`;
+        }
     }
+    const isPublicGallery = customManifestUrl === '/api/public-iiif-manifest';
 
     outputDiv.innerHTML = '<p>Loading gallery...</p>';
 
@@ -205,6 +211,9 @@ export async function galleryLoad(target, uid, limit = null) {
         canvases.forEach(canvas => {
             let thumbnailUrl = null;
             let fullImageUrl = null;
+            let imageOwnerUid = uid;
+            let isPublic = false;
+            let originalFilename = canvas.label || 'gallery_image.png';
 
             if (canvas.thumbnail && canvas.thumbnail['@id']) {
                 thumbnailUrl = canvas.thumbnail['@id'];
@@ -214,11 +223,17 @@ export async function galleryLoad(target, uid, limit = null) {
 
             if (canvas.images && canvas.images.length > 0 && canvas.images[0].resource) {
                 fullImageUrl = canvas.images[0].resource['@id'] || canvas.images[0].resource.id;
+                if (isPublicGallery) {
+                    if (canvas.service && canvas.service.length > 0 && canvas.service[0].original_uploader) {
+                        imageOwnerUid = canvas.service[0].original_uploader;
+                    }
+                    isPublic = true;
+                }
             }
 
-            if (!thumbnailUrl) {
-                thumbnailUrl = fullImageUrl;
-            }
+            originalFilename = fullImageUrl.substring(fullImageUrl.lastIndexOf('/') + 1);
+
+            if (!thumbnailUrl) thumbnailUrl = fullImageUrl;
 
             if (thumbnailUrl && fullImageUrl) {
                 const img = document.createElement('img');
@@ -227,6 +242,10 @@ export async function galleryLoad(target, uid, limit = null) {
 
                 img.dataset.fullSrc = fullImageUrl;
 
+                img.dataset.ownerUid = imageOwnerUid;
+                img.dataset.isPublic = isPublic.toString();
+                img.dataset.filename = originalFilename;
+
                 img.style.width = '200px';
                 img.style.height = 'auto';
                 img.style.margin = '5px';
@@ -234,20 +253,21 @@ export async function galleryLoad(target, uid, limit = null) {
 
                 img.addEventListener('click', async () => {
                     const fullSrc = img.dataset.fullSrc;
+                    const owner = img.dataset.ownerUid;
+                    const publicStatus = img.dataset.isPublic === 'true';
+                    const filenameFromDataset = img.dataset.filename;
                     if (fullSrc && typeof window.openLightbox === 'function') {
                         try {
                             console.log(`Fetching metadata for image: ${fullSrc}`);
                             const imageResponse = await fetch(fullSrc);
-                            if (!imageResponse.ok) {
-                                throw new Error(`Failed to fetch image for metadata parsing: ${imageResponse.status} ${imageResponse.statusText}`);
-                            }
+                            if (!imageResponse.ok) throw new Error(`Failed to fetch image for metadata parsing: ${imageResponse.status} ${imageResponse.statusText}`);
                             const arrayBuffer = await imageResponse.arrayBuffer();
                             const comfyData = await parsePngForComfyMetadata(arrayBuffer);
 
                             if (comfyData) {
-                                window.openLightbox(fullSrc, comfyData);
+                                window.openLightbox(fullSrc, comfyData, owner, publicStatus, filenameFromDataset);
                             } else {
-                                window.openLightbox(fullSrc, null);
+                                window.openLightbox(fullSrc, null, owner, publicStatus, filenameFromDataset);
                                 console.log("No 'prompt' metadata found in this PNG.");
                             }
                         } catch (error) {
@@ -267,8 +287,6 @@ export async function galleryLoad(target, uid, limit = null) {
 
     } catch (error) {
         console.error(`Error processing data for target #${target}:`, error);
-        if (outputDiv) {
-            outputDiv.innerHTML = 'Error loading gallery.';
-        }
+        if (outputDiv) outputDiv.innerHTML = 'Error loading gallery.';
     }
 }

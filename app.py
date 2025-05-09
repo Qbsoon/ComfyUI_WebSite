@@ -711,6 +711,168 @@ def delete_image_endpoint():
         app.logger.error(f"Unexpected error in delete_image_endpoint: {e}", exc_info=True)
         return jsonify({"success": False, "error": "An unexpected server error occurred."}), 500
 
+# --- Public Gallery ---
+PUBLIC_MANIFEST_DIR = "data"
+PUBLIC_MANIFEST_FILENAME = "public_manifest.json"
+PUBLIC_MANIFEST_PATH = os.path.join(PUBLIC_MANIFEST_DIR, PUBLIC_MANIFEST_FILENAME)
+public_manifest_lock = threading.Lock()
+
+def load_public_manifest():
+    with public_manifest_lock:
+        if not os.path.exists(PUBLIC_MANIFEST_PATH):
+            # Create the directory if it doesn't exist
+            os.makedirs(os.path.dirname(PUBLIC_MANIFEST_PATH), exist_ok=True)
+            return []
+        try:
+            with open(PUBLIC_MANIFEST_PATH, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
+
+def save_public_manifest(manifest_data):
+    with public_manifest_lock:
+        os.makedirs(os.path.dirname(PUBLIC_MANIFEST_PATH), exist_ok=True)
+        with open(PUBLIC_MANIFEST_PATH, 'w') as f:
+            json.dump(manifest_data, f, indent=2)
+
+@app.route('/api/toggle-public-status', methods=['POST'])
+@login_required
+def toggle_public_status():
+    data = request.get_json()
+    filename = data.get('filename')
+    image_owner_uid = data.get('image_owner_uid')
+
+    if not filename or not image_owner_uid:
+        return jsonify({"success": False, "error": "Missing filename or image owner UID"}), 400
+
+    # Security: Only the owner of an image can toggle its public status
+    if str(image_owner_uid) != str(current_user.username):
+        app.logger.warning(f"User {current_user.username} attempted to toggle public status for image owned by {image_owner_uid}")
+        return jsonify({"success": False, "error": "Unauthorized"}), 403
+
+    public_manifest = load_public_manifest()
+    image_entry = {"original_uid": str(image_owner_uid), "original_filename": filename}
+    
+    is_currently_public = False
+    # Check if already public by comparing original_uid and original_filename
+    for entry in public_manifest:
+        if entry.get("original_uid") == image_entry["original_uid"] and \
+           entry.get("original_filename") == image_entry["original_filename"]:
+            is_currently_public = True
+            break
+
+    if is_currently_public:
+        # Remove from public
+        public_manifest = [
+            entry for entry in public_manifest
+            if not (entry.get("original_uid") == image_entry["original_uid"] and \
+                    entry.get("original_filename") == image_entry["original_filename"])
+        ]
+        action = "removed"
+    else:
+        # Add to public
+        image_entry["timestamp_published"] = datetime.datetime.utcnow().isoformat()
+        public_manifest.append(image_entry)
+        public_manifest.sort(key=lambda x: x.get("timestamp_published", ""), reverse=True)
+        action = "added"
+
+    save_public_manifest(public_manifest)
+    app.logger.info(f"User {current_user.username} {action} image {filename} (owner: {image_owner_uid}) to/from public gallery.")
+    return jsonify({"success": True, "action": action, "is_public": not is_currently_public})
+
+@app.route('/api/public-iiif-manifest', endpoint='generate_public_iiif_manifest')
+@login_required
+def generate_public_iiif_manifest():
+    public_images_data = load_public_manifest()
+    
+    base_url_dynamic = request.host_url.rstrip('/')
+    manifest_id = url_for('generate_public_iiif_manifest', _external=True)
+
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": manifest_id,
+        "@type": "sc:Manifest",
+        "label": "Public Gallery",
+        "sequences": [{
+            "@id": f"{manifest_id}/sequence/normal",
+            "@type": "sc:Sequence",
+            "label": "Default order",
+            "canvases": []
+        }]
+    }
+
+    if not public_images_data:
+        app.logger.info("Public gallery is empty. Returning empty manifest.")
+        return jsonify(manifest)
+
+    for i, item_data in enumerate(public_images_data):
+        original_uid = item_data.get("original_uid")
+        original_filename = item_data.get("original_filename")
+
+        if not original_uid or not original_filename:
+            app.logger.warning(f"Skipping invalid entry in public manifest: {item_data}")
+            continue
+
+        user_gallery_path = os.path.join(GALLERY_BASE_DIR, str(original_uid))
+        original_image_path = os.path.join(user_gallery_path, original_filename)
+        
+        img_width, img_height = 100, 100
+        thumb_width, thumb_height = THUMBNAIL_WIDTH, THUMBNAIL_WIDTH 
+        try:
+             with Image.open(original_image_path) as img:
+                 img_width, img_height = img.size
+                 if img_width > 0:
+                     thumb_height = int(img_height * (THUMBNAIL_WIDTH / img_width))
+        except Exception as e:
+            app.logger.warning(f"Could not read dimensions for public image {original_filename} (UID: {original_uid}): {e}")
+
+        canvas_id = f"{manifest_id}/canvas/canvas-public-{i}"
+        quoted_filename = quote(original_filename)
+
+        full_image_url = f"{base_url_dynamic}/gallery/{original_uid}/{quoted_filename}"
+        thumb_image_url = f"{base_url_dynamic}/thumbnails/{original_uid}/{quoted_filename}"
+
+        image_resource = {
+            "@id": full_image_url,
+            "@type": "dctypes:Image",
+            "format": f"image/{original_filename.split('.')[-1].lower()}",
+            "width": img_width,
+            "height": img_height,
+            "metadata": [
+                {"label": "Uploaded by", "value": original_uid}
+            ]
+        }
+        canvas = {
+            "@id": canvas_id,
+            "@type": "sc:Canvas",
+            "label": original_filename,
+            "width": img_width,
+            "height": img_height,
+            "images": [{
+                "@id": f"{canvas_id}/image-public-{i}",
+                "@type": "oa:Annotation",
+                "motivation": "sc:painting",
+                "resource": image_resource,
+                "on": canvas_id
+            }],
+            "thumbnail": {
+                 "@id": thumb_image_url,
+                 "@type": "dctypes:Image",
+                 "width": thumb_width,
+                 "height": thumb_height
+            },
+            "service": [
+                {
+                    "original_uploader": original_uid
+                }
+            ]
+        }
+        manifest["sequences"][0]["canvases"].append(canvas)
+    
+    return jsonify(manifest)
+
+# --- End Public Gallery ---
+
 # General route to serve files in all other directories
 @app.route("/<path:directory>/<filename>")
 @login_required

@@ -192,7 +192,7 @@ button {
     }
 }
 
-#lastGallery, #fullGallery {
+#lastGallery, #fullGallery, #publicGallery {
     display: grid;
     gap: @grid-gap;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -340,6 +340,20 @@ button {
         background-color: #dc3545;
         &:hover {
             background-color: #c82333;
+        }
+    }
+
+    &.public {
+        background-color: #d63384;
+        &:hover {
+            background-color: #b02a6e;
+        }
+        &.is-public {
+            background-color: #0d6efd;
+            color: white;
+            &:hover {
+                background-color: #0b5ed7;
+            }
         }
     }
 }
