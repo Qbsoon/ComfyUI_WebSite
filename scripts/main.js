@@ -260,11 +260,14 @@ window.init = init;
 const lightbox = document.getElementById('simpleLightbox');
 const lightboxImage = document.getElementById('lightboxImage');
 const closeBtn = document.getElementById('lightboxCloseButton');
+const deleteBtn = document.getElementById('lightboxDeleteButton');
+let currentImageToDeleteUrl = null;
 
 function openLightbox(imageUrl, workflowData) {
   if (lightbox && lightboxImage) {
     lightboxImage.src = imageUrl;
     lightbox.style.display = 'flex';
+    deleteBtn.dataset.imageUrl = imageUrl;
   }
   if (workflowData) {
     try {
@@ -325,15 +328,76 @@ function openLightbox(imageUrl, workflowData) {
   }
 }
 
+function showCustomConfirm() {
+    if (customConfirmModal) {
+        customConfirmModal.style.display = 'flex';
+    }
+}
+
+function hideCustomConfirm() {
+    if (customConfirmModal) {
+        customConfirmModal.style.display = 'none';
+    }
+    currentImageToDeleteUrl = null;
+}
+
+async function performDeleteImage() {
+    if (!currentImageToDeleteUrl) {
+        console.error("No image URL set for deletion.");
+        hideCustomConfirm();
+        return;
+    }
+
+    try {
+        const url = new URL(currentImageToDeleteUrl);
+        const pathParts = url.pathname.split('/');
+        const filename = pathParts.pop();
+
+        const response = await fetch('/api/delete-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ uid: uid, filename: filename }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            closeLightbox();
+            updateGridVariables();
+        } else {
+            throw new Error(result.error || 'Failed to delete image.');
+        }
+    } catch (error) {
+        console.error('Error deleting image:', error);
+    } finally {
+        hideCustomConfirm();
+    }
+}
+
 function closeLightbox() {
   if (lightbox) {
     lightbox.style.display = 'none';
     lightboxImage.src = '';
+    if (lightboxImage) lightboxImage.src = '';
+    if (deleteBtn) deleteBtn.dataset.imageUrl = '';
   }
 }
 
 if (closeBtn) {
   closeBtn.addEventListener('click', closeLightbox);
+}
+
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+        currentImageToDeleteUrl = deleteBtn.dataset.imageUrl;
+        if (currentImageToDeleteUrl) {
+            showCustomConfirm();
+        } else {
+            alert("Could not determine which image to delete.");
+        }
+    });
 }
 
 if (lightbox) {
@@ -342,6 +406,21 @@ if (lightbox) {
       closeLightbox();
     }
   });
+}
+
+const customConfirmYesBtn = document.getElementById('customConfirmYes');
+const customConfirmNoBtn = document.getElementById('customConfirmNo');
+
+if (customConfirmYesBtn) {
+    customConfirmYesBtn.addEventListener('click', performDeleteImage);
+} else {
+  console.warn("Custom confirm 'Yes' button not found.");
+}
+
+if (customConfirmNoBtn) {
+    customConfirmNoBtn.addEventListener('click', hideCustomConfirm);
+} else {
+  console.warn("Custom confirm 'No' button not found.");
 }
 
 window.openLightbox = openLightbox;

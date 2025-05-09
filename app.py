@@ -636,6 +636,80 @@ def handle_gallery(subpath):
     else:
         # Path does not exist
         return f"<h1>Path {subpath} not found</h1>", 404
+    
+# --- Endpoint to Delete an Image ---
+@app.route('/api/delete-image', methods=['POST'])
+@login_required
+def delete_image_endpoint():
+    app.logger.info("--- Delete Image Endpoint Called ---")
+    try:
+        data = request.get_json()
+        if not data:
+            app.logger.warning("Delete request received with no JSON data.")
+            return jsonify({"success": False, "error": "Missing JSON data"}), 400
+
+        uid_from_request = data.get('uid')
+        filename_from_request = data.get('filename')
+
+        app.logger.debug(f"Delete request for UID: {uid_from_request}, Filename: {filename_from_request}")
+
+        if not uid_from_request or not filename_from_request:
+            app.logger.warning("Delete request missing UID or filename.")
+            return jsonify({"success": False, "error": "Missing uid or filename in request"}), 400
+
+        # Security Check: Ensure the UID from request matches the logged-in user
+        if str(uid_from_request) != str(current_user.username):
+            app.logger.error(f"SECURITY ALERT: User '{current_user.username}' attempted to delete image for UID '{uid_from_request}'.")
+            return jsonify({"success": False, "error": "Unauthorized action"}), 403
+
+        if ".." in filename_from_request or "/" in filename_from_request or "\\" in filename_from_request:
+            app.logger.error(f"SECURITY ALERT: Invalid characters in filename for deletion: '{filename_from_request}'")
+            return jsonify({"success": False, "error": "Invalid filename"}), 400
+        
+        # Use the already available current_user.username for path construction for safety
+        user_gallery_dir = os.path.join(GALLERY_BASE_DIR, str(current_user.username))
+        original_image_path = os.path.join(user_gallery_dir, filename_from_request)
+        thumbnail_image_path = os.path.join(user_gallery_dir, THUMBNAIL_SUBDIR, filename_from_request)
+
+        app.logger.info(f"Attempting to delete original: {original_image_path}")
+        app.logger.info(f"Attempting to delete thumbnail: {thumbnail_image_path}")
+
+        deleted_original = False
+        deleted_thumbnail = False
+
+        if os.path.isfile(original_image_path):
+            try:
+                os.remove(original_image_path)
+                deleted_original = True
+                app.logger.info(f"Successfully deleted original image: {original_image_path}")
+            except OSError as e:
+                app.logger.error(f"Error deleting original image {original_image_path}: {e}")
+        else:
+            app.logger.warning(f"Original image not found for deletion: {original_image_path}")
+
+        if os.path.isfile(thumbnail_image_path):
+            try:
+                os.remove(thumbnail_image_path)
+                deleted_thumbnail = True
+                app.logger.info(f"Successfully deleted thumbnail image: {thumbnail_image_path}")
+            except OSError as e:
+                app.logger.error(f"Error deleting thumbnail image {thumbnail_image_path}: {e}")
+        else:
+            app.logger.warning(f"Thumbnail image not found for deletion: {thumbnail_image_path}")
+
+        if deleted_original or deleted_thumbnail: # Consider it a success if at least one part was found and deleted
+            app.logger.info(f"Deletion process completed for {filename_from_request} (Original deleted: {deleted_original}, Thumbnail deleted: {deleted_thumbnail})")
+            return jsonify({"success": True, "message": "Image and/or thumbnail deleted successfully."})
+        elif not os.path.exists(original_image_path) and not os.path.exists(thumbnail_image_path):
+            app.logger.info(f"Neither original nor thumbnail existed for {filename_from_request}. Considered deleted.")
+            return jsonify({"success": True, "message": "Image already deleted or never existed."})
+        else:
+            app.logger.error(f"Failed to delete files for {filename_from_request}. Check previous errors.")
+            return jsonify({"success": False, "error": "Failed to delete one or more image files. See server logs."}), 500
+
+    except Exception as e:
+        app.logger.error(f"Unexpected error in delete_image_endpoint: {e}", exc_info=True)
+        return jsonify({"success": False, "error": "An unexpected server error occurred."}), 500
 
 # General route to serve files in all other directories
 @app.route("/<path:directory>/<filename>")
