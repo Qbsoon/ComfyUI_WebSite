@@ -68,6 +68,13 @@ function changeModel() {
         document.getElementById('stepsRefineInput').hidden = true;
         document.getElementById('stepsRefineLabel').hidden = true;
     }
+    if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+        document.getElementById('schedulerSelect').hidden = true;
+        document.getElementById('schedulerLabel').hidden = true;
+    } else {
+        document.getElementById('schedulerSelect').hidden = false;
+        document.getElementById('schedulerLabel').hidden = false;
+    }
     if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
         document.getElementById('negativePromptBox').hidden = true;
         document.getElementById('cfgInput').hidden = true;
@@ -252,12 +259,69 @@ window.init = init;
 // Lightbox
 const lightbox = document.getElementById('simpleLightbox');
 const lightboxImage = document.getElementById('lightboxImage');
-const closeBtn = document.querySelector('.lightbox-close');
+const closeBtn = document.getElementById('lightboxCloseButton');
 
-function openLightbox(imageUrl) {
+function openLightbox(imageUrl, workflowData) {
   if (lightbox && lightboxImage) {
     lightboxImage.src = imageUrl;
     lightbox.style.display = 'flex';
+  }
+  if (workflowData) {
+    try {
+        const prompts = document.getElementById('lightboxPrompts');
+        const parameters = document.getElementById('lightboxParameters');
+        if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
+            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+            parameters.innerHTML += `<br><strong>Refiner Steps:</strong> ${workflowData.stepsRefiner}`;
+            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+        } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
+            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+        } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
+            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+        } else if (workflowData.checkpointName === 'flux1-dev-Q8_0.gguf') {
+            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+            parameters.innerHTML += `<br><strong>Guidance:</strong> ${workflowData.guidance}`;
+            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+            parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+            parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+        } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+            parameters.innerHTML = `<strong>Model:</strong> ${workflowData.checkpointName}`;
+            prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+            prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+            parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+            parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+            parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+            parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+            parameters.innerHTML += `<br><strong>Ratio:</strong> ${workflowData.ratio}`;
+        }
+    } catch (e) {
+        console.error("Error displaying metadata from workflow data:", e);
+    }
   }
 }
 

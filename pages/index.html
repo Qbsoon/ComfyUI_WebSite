@@ -83,7 +83,7 @@
 			    	<option value="uni_pc">uni_pc</option>
 			    	<option value="uni_pc_bh2">uni_pc_bh2</option>
 			    </select>
-                <label for="schedulerSelect">Scheduler</label>
+                <label for="schedulerSelect" if="schedulerLabel">Scheduler</label>
                 <select id="schedulerSelect">
 			    	<option value="normal">normal</option>
 			    	<option value="kerras">kerras</option>
@@ -179,8 +179,19 @@
     </div>
 
     <div id="simpleLightbox" class="lightbox-overlay" style="display: none;">
+        <div id="lightboxPrompts" class="lightbox-nav left">
+            <!-- Prompts -->
+        </div>
+
+        <div id="lightboxMainContent">
+            <button id="lightboxCloseButton" class="lightbox-close-button">Close</button>
+            <img class="lightbox-content" id="lightboxImage">
+        </div>
+
+        <div id="lightboxParameters" class="lightbox-nav right">
+            <!-- Parameters -->
+        </div>
         <span class="lightbox-close">&times;</span>
-        <img class="lightbox-content" id="lightboxImage">
     </div>
 
     <!-- Gallery Tab Content -->
