@@ -178,7 +178,7 @@ export async function galleryLoad(target, uid, limit = null, customManifestUrl =
         if (!response.ok) {
             let errorBody = await response.text();
             console.error(`Manifest fetch failed for #${target}. Status: ${response.status}. Body: ${errorBody}`);
-            if (errorBody.includes("No images found")) {
+            if (errorBody.includes("No images found") || response.status === 404) {
                 console.info(`Gallery for target #${target} is empty.`);
                 const emptyMessage = document.createElement('p');
                 emptyMessage.textContent = 'Gallery empty';
@@ -187,6 +187,10 @@ export async function galleryLoad(target, uid, limit = null, customManifestUrl =
                 outputDiv.innerHTML = "";
                 outputDiv.appendChild(emptyMessage);
                 return;
+            } else if (response.status === 403) {
+                 console.warn(`Unauthorized access to manifest for #${target}.`);
+                 outputDiv.innerHTML = '<p>You are not authorized to view this gallery.</p>';
+                 return;
             } else {
                 throw new Error(`Failed to fetch manifest: ${response.status} ${response.statusText}`);
             }
@@ -227,12 +231,16 @@ export async function galleryLoad(target, uid, limit = null, customManifestUrl =
                         imageOwnerUid = canvas.service[0].original_uploader;
                     }
                     isPublic = true;
+                } else {
+                    if (canvas.service && canvas.service.length > 0 && typeof canvas.service[0].is_public === 'boolean') {
+                        isPublic = canvas.service[0].is_public;
+                    }
                 }
             }
 
             originalFilename = fullImageUrl.substring(fullImageUrl.lastIndexOf('/') + 1);
 
-            if (!thumbnailUrl) thumbnailUrl = fullImageUrl;
+            if (!thumbnailUrl && fullImageUrl) thumbnailUrl = fullImageUrl;
 
             if (thumbnailUrl && fullImageUrl) {
                 const img = document.createElement('img');

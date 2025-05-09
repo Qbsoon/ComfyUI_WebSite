@@ -398,6 +398,10 @@ def generate_iiif_manifest():
 
     if not uid:
         return jsonify({"error": "Missing 'uid' parameter"}), 400
+    
+    if str(uid) != str(current_user.username):
+        app.logger.warning(f"User {current_user.username} attempted to access manifest for UID {uid}.")
+        return jsonify({"error": "Unauthorized access to gallery manifest"}), 403
 
     user_gallery_path = os.path.join(GALLERY_BASE_DIR, str(uid))
     image_files = get_image_files(user_gallery_path)
@@ -405,8 +409,7 @@ def generate_iiif_manifest():
     if limit is not None and len(image_files) > limit:
         image_files = image_files[:limit]
 
-    if not image_files:
-        return jsonify({"error": f"No images found or directory not accessible for uid {uid}"}), 404
+    public_manifest_data = load_public_manifest() 
     
     base_url_dynamic = request.host_url.rstrip('/')
 
@@ -430,65 +433,79 @@ def generate_iiif_manifest():
             }
         ]
     }
-    if image_files:
-        app.logger.debug(f"Found {len(image_files)} images for manifest (UID: {uid}).")
-        if limit is not None and len(image_files) > limit:
-            image_files = image_files[:limit]
 
-        for i, filename in enumerate(image_files):
-            img_width, img_height = 100, 100
-            thumb_width, thumb_height = THUMBNAIL_WIDTH, THUMBNAIL_WIDTH
-            try:
-                 original_image_path = os.path.join(user_gallery_path, filename)
-                 with Image.open(original_image_path) as img:
-                     img_width, img_height = img.size
-                     if img_width > 0:
-                         thumb_height = int(img_height * (THUMBNAIL_WIDTH / img_width))
-                     else:
-                         thumb_height = THUMBNAIL_WIDTH
-            except Exception as e:
-                app.logger.warning(f"Could not read dimensions for {filename} (UID: {uid}): {e}")
-
-            canvas_id = f"{manifest_id}/canvas/canvas-{i}"
-            quoted_filename = quote(filename)
-
-            full_image_url = f"{gallery_base_url}{uid}/{quoted_filename}"
-            thumb_image_url = f"{thumbnail_base_url}{uid}/{quoted_filename}"
-
-            image_resource = {
-                "@id": full_image_url,
-                "@type": "dctypes:Image",
-                "format": f"image/{filename.split('.')[-1].lower()}",
-                "width": img_width,
-                "height": img_height,
-            }
-
-            canvas = {
-                "@id": canvas_id,
-                "@type": "sc:Canvas",
-                "label": filename,
-                "width": img_width,
-                "height": img_height,
-                "images": [
-                    {
-                        "@id": f"{canvas_id}/image-{i}",
-                        "@type": "oa:Annotation",
-                        "motivation": "sc:painting",
-                        "resource": image_resource,
-                        "on": canvas_id
-                    }
-                ],
-                "thumbnail": {
-                     "@id": thumb_image_url,
-                     "@type": "dctypes:Image",
-                     "width": thumb_width,
-                     "height": thumb_height
-                }
-            }
-            manifest["sequences"][0]["canvases"].append(canvas)
-
-    else:
+    if not image_files:
         app.logger.info(f"No images found for manifest (UID: {uid}). Returning empty manifest.")
+        return jsonify(manifest) 
+    
+    app.logger.debug(f"Found {len(image_files)} images for manifest (UID: {uid}).")
+
+    if limit is not None and len(image_files) > limit:
+        image_files = image_files[:limit]
+
+    for i, filename in enumerate(image_files):
+        is_public = False
+        for public_entry in public_manifest_data:
+            if public_entry.get("original_uid") == str(uid) and \
+               public_entry.get("original_filename") == filename:
+                is_public = True
+                break
+        
+        img_width, img_height = 100, 100
+        thumb_width, thumb_height = THUMBNAIL_WIDTH, THUMBNAIL_WIDTH
+        try:
+             original_image_path = os.path.join(user_gallery_path, filename)
+             with Image.open(original_image_path) as img:
+                 img_width, img_height = img.size
+                 if img_width > 0:
+                     thumb_height = int(img_height * (THUMBNAIL_WIDTH / img_width))
+                 else:
+                     thumb_height = THUMBNAIL_WIDTH
+        except Exception as e:
+            app.logger.warning(f"Could not read dimensions for {filename} (UID: {uid}): {e}")
+
+        canvas_id = f"{manifest_id}/canvas/canvas-{i}"
+        quoted_filename = quote(filename)
+
+        full_image_url = f"{gallery_base_url}{uid}/{quoted_filename}"
+        thumb_image_url = f"{thumbnail_base_url}{uid}/{quoted_filename}"
+
+        image_resource = {
+            "@id": full_image_url,
+            "@type": "dctypes:Image",
+            "format": f"image/{filename.split('.')[-1].lower()}",
+            "width": img_width,
+            "height": img_height,
+        }
+
+        canvas = {
+            "@id": canvas_id,
+            "@type": "sc:Canvas",
+            "label": filename,
+            "width": img_width,
+            "height": img_height,
+            "images": [
+                {
+                    "@id": f"{canvas_id}/image-{i}",
+                    "@type": "oa:Annotation",
+                    "motivation": "sc:painting",
+                    "resource": image_resource,
+                    "on": canvas_id
+                }
+            ],
+            "thumbnail": {
+                 "@id": thumb_image_url,
+                 "@type": "dctypes:Image",
+                 "width": thumb_width,
+                 "height": thumb_height
+            },
+            "service": [
+                {
+                    "is_public": is_public
+                }
+            ]
+        }
+        manifest["sequences"][0]["canvases"].append(canvas)
 
     return jsonify(manifest)
 
