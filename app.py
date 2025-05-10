@@ -20,10 +20,12 @@ import time
 import requests
 
 # --- Configuration for Queue Monitoring and Freeing ---
-MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174" # Or get from app.config if preferred
+MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174"
 MONITOR_CHECK_INTERVAL_SECONDS = 0.25
 MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
+_latest_server_queue_count = -1
+_server_queue_count_lock = threading.Lock()
 # --- End Configuration ---
 
 # --- Monitoring Script Functions (adapted for Flask logger) ---
@@ -79,10 +81,14 @@ def background_queue_monitor_logic():
     idle_since_timestamp = None
     freed_during_this_idle_period = False
 
+    global _latest_server_queue_count
+
     while True:
         try:
             current_time_display = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             current_queue_count = monitor_get_total_queue_count(MONITOR_SERVER_BASE_URL)
+            with _server_queue_count_lock: # Use lock to update the global variable
+                _latest_server_queue_count = current_queue_count
 
             if current_queue_count == -1:
                 app.logger.warning(f"BGTask: {current_time_display} - Failed to get queue count. Resetting state.")
@@ -121,6 +127,7 @@ def background_queue_monitor_logic():
         except Exception as e:
             app.logger.error(f"BGTask: Unexpected error in monitor loop: {e}", exc_info=True)
             time.sleep(5)
+
 # --- End Monitoring Script Functions ---
 
 logging.getLogger('ldap3').setLevel(logging.DEBUG)
@@ -889,6 +896,16 @@ def generate_public_iiif_manifest():
     return jsonify(manifest)
 
 # --- End Public Gallery ---
+
+@app.route('/api/get-server-queue-count', methods=['GET'])
+@login_required
+def get_server_queue_count_endpoint():
+    with _server_queue_count_lock:
+        count_to_return = _latest_server_queue_count
+    
+    if count_to_return == -1:
+        return jsonify({"success": False, "error": "Queue count not available or error fetching.", "queue_count": -1}), 503
+    return jsonify({"success": True, "queue_count": count_to_return})
 
 # General route to serve files in all other directories
 @app.route("/<path:directory>/<filename>")

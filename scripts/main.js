@@ -68,25 +68,38 @@ function updateProgressBar(value, max) {
 let comfyQueuePollIntervalId = null; // For ComfyUI queue polling
 
 async function fetchAndUpdateComfyUIQueueDisplay() {
-    if (!client) {
-        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
-        if (comfyQueueOutputEl) {
-            comfyQueueOutputEl.innerText = "Server Queue: Disconnected";
-        }
-        return;
-    }
     try {
-        const comfyQueueData = await client.getQueue();
-        const runningCount = comfyQueueData?.Running?.length || 0;
-        const pendingCount = comfyQueueData?.Pending?.length || 0;
-        const totalComfyQueue = runningCount + pendingCount;
-        
-        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
-        if (comfyQueueOutputEl) {
-            comfyQueueOutputEl.innerText = `Server Queue: ${totalComfyQueue}`;
+        const response = await fetch('/api/get-server-queue-count');
+        if (!response.ok) {
+            // Attempt to parse error from Python if available
+            let errorMsg = `Server error: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg;
+            } catch (e) {
+                // Ignore if response is not JSON
+            }
+            throw new Error(errorMsg);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            const latestComfyUIServerQueueCount = data.queue_count;
+            const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+            if (comfyQueueOutputEl) {
+                if (latestComfyUIServerQueueCount === -1) {
+                    comfyQueueOutputEl.innerText = "Server Queue: N/A";
+                } else {
+                    comfyQueueOutputEl.innerText = `Server Queue: ${latestComfyUIServerQueueCount}`;
+                }
+            }
+        } else {
+            throw new Error(data.error || 'Failed to fetch queue count from server.');
         }
     } catch (error) {
-        console.error('Error fetching ComfyUI queue for display:', error);
+        console.error('Error fetching ComfyUI queue count via Python backend:', error);
+        latestComfyUIServerQueueCount = -1;
         const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
         if (comfyQueueOutputEl) {
             comfyQueueOutputEl.innerText = "Server Queue: Error";
