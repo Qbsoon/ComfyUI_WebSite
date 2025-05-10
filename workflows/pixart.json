@@ -79,7 +79,7 @@
     		"t5v11_name": "model-00001-of-00002.safetensors",
     		"t5v11_ver": "xxl",
     		"path_type": "folder",
-    		"device": "gpu",
+    		"device": "cpu",
     		"dtype": "default"
     	},
     	"class_type": "T5v11Loader"
