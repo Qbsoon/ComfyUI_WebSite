@@ -153,20 +153,58 @@ async function parsePngForComfyMetadata(arrayBuffer) {
     }
 }
 
-export async function galleryLoad(target, uid, limit = null, customManifestUrl = null) {
+export async function galleryLoad(target, uid, current_page = null, limit_end = null, customManifestUrl = null) {
     const outputDiv = document.getElementById(target);
     if (!outputDiv) {
         console.error(`Error loading gallery for target #${target}: Element not found.`);
         return;
     }
 
+    const isPagedGallery = (target === 'fullGallery' || target === 'publicGallery');
+    let currentPage = 1;
+    let imagesPerPage = 0;
+    let api_from = current_page;
+    let api_to = limit_end;
+
+    if (isPagedGallery) {
+        const itemMinWidthWithGap = 202 + 10; 
+        let imagesPerRow = 1;
+        if (outputDiv.clientWidth > 0) {
+            imagesPerRow = Math.max(1, Math.floor(outputDiv.clientWidth / itemMinWidthWithGap));
+        } else {
+            imagesPerRow = Math.max(1, Math.floor((window.innerWidth * 0.9) / itemMinWidthWithGap));
+        }
+        imagesPerPage = 4 * imagesPerRow;
+
+        if (typeof current_page === 'number' && current_page > 0) { 
+            currentPage = current_page;
+        }
+        api_from = (currentPage - 1) * imagesPerPage;
+        api_to = currentPage * imagesPerPage;
+    }
+
     let manifestUrl;
     if (customManifestUrl) {
         manifestUrl = customManifestUrl;
+        if ((api_from !== null && api_from > 0) || (api_to !== null && api_to > 0)) {
+            manifestUrl += '?';
+        }
+        if (api_from !== null && api_to > 0) {
+            manifestUrl += `from=${api_from}`;
+        }
+        if (api_from !== null && api_from > 0 && api_to !== null && api_to > 0) {
+            manifestUrl += '&';
+        }
+        if (api_to !== null && api_to > 0) {
+            manifestUrl += `to=${api_to}`;
+        }
     } else {
         manifestUrl = `${window.location.origin}/api/iiif-manifest?uid=${uid}`;
-        if (limit !== null && limit > 0) {
-            manifestUrl += `&limit=${limit}`;
+        if (api_from !== null && api_from > 0) {
+            manifestUrl += `&from=${api_from}`;
+        }
+        if (api_to !== null && api_to > 0) {
+            manifestUrl += `&to=${api_to}`;
         }
     }
     const isPublicGallery = customManifestUrl === '/api/public-iiif-manifest';
@@ -207,6 +245,51 @@ export async function galleryLoad(target, uid, limit = null, customManifestUrl =
             emptyMessage.style.marginTop = '20px';
             outputDiv.appendChild(emptyMessage);
             return;
+        }
+
+        if (isPagedGallery && manifest.totalCanvases > 0 && imagesPerPage > 0) {
+            const totalPages = Math.ceil(manifest.totalCanvases / imagesPerPage);
+            if (totalPages > 0) { 
+                const pagingControlsDiv = document.createElement('div');
+                pagingControlsDiv.className = 'paged-controls';
+                pagingControlsDiv.style.gridColumn = '1 / -1'; 
+
+                const firstBtn = document.createElement('button');
+                firstBtn.textContent = 'First';
+                firstBtn.disabled = currentPage === 1;
+                firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl));
+
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = 'Previous';
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl));
+
+                const pageInfo = document.createElement('span');
+                pageInfo.textContent = `${currentPage}/${totalPages}`;
+                pageInfo.style.margin = '0 10px'; 
+
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Next';
+                nextBtn.disabled = currentPage === totalPages;
+                nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl));
+
+                const lastBtn = document.createElement('button');
+                lastBtn.textContent = 'Last';
+                lastBtn.disabled = currentPage === totalPages;
+                lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl));
+                
+                [firstBtn, prevBtn, nextBtn, lastBtn].forEach(btn => {
+                    btn.style.margin = "0 5px"; 
+                    btn.style.padding = "5px 10px";
+                });
+
+                pagingControlsDiv.appendChild(firstBtn);
+                pagingControlsDiv.appendChild(prevBtn);
+                pagingControlsDiv.appendChild(pageInfo);
+                pagingControlsDiv.appendChild(nextBtn);
+                pagingControlsDiv.appendChild(lastBtn);
+                outputDiv.appendChild(pagingControlsDiv); 
+            }
         }
 
         const canvases = manifest.sequences[0].canvases;

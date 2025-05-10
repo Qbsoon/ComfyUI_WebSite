@@ -393,15 +393,24 @@ def get_image_files(directory):
 @login_required
 def generate_iiif_manifest():
     uid = request.args.get('uid')
-    limit_str = request.args.get('limit')
-    limit = None
-    if limit_str:
+    limit_start = request.args.get('from')
+    limit_end = request.args.get('to')
+    if limit_start:
         try:
-            limit = int(limit_str)
-            if limit <= 0:
-                limit = None
+            limit_start = int(limit_start)
+            if limit_start <= 0:
+                limit_start = None
         except ValueError:
-            limit = None
+            limit_start = None
+    
+    if limit_end:
+        try:
+            limit_end = int(limit_end)
+            if limit_end <= 0:
+                limit_end = None
+        except ValueError:
+            limit_end = None
+
 
     if not uid:
         return jsonify({"error": "Missing 'uid' parameter"}), 400
@@ -412,9 +421,6 @@ def generate_iiif_manifest():
 
     user_gallery_path = os.path.join(GALLERY_BASE_DIR, str(uid))
     image_files = get_image_files(user_gallery_path)
-
-    if limit is not None and len(image_files) > limit:
-        image_files = image_files[:limit]
 
     public_manifest_data = load_public_manifest() 
     
@@ -430,7 +436,8 @@ def generate_iiif_manifest():
         "@context": "http://iiif.io/api/presentation/2/context.json",
         "@id": manifest_id,
         "@type": "sc:Manifest",
-        "label": f"Gallery for User {uid}" + (f" (Last {limit})" if limit else ""),
+        "label": f"Gallery for User {uid}" + (f" (From {limit_start})" if limit_start else "" + (f'To {limit_end})' if limit_end else "")),
+        "totalCanvases": len(image_files),
         "sequences": [
             {
                 "@id": f"{manifest_id}/sequence/normal",
@@ -447,8 +454,11 @@ def generate_iiif_manifest():
     
     app.logger.debug(f"Found {len(image_files)} images for manifest (UID: {uid}).")
 
-    if limit is not None and len(image_files) > limit:
-        image_files = image_files[:limit]
+    if limit_end is not None and len(image_files) > limit_end:
+        image_files = image_files[:limit_end]
+
+    if limit_start is not None and len(image_files) > 0:
+        image_files = image_files[limit_start:]
 
     for i, filename in enumerate(image_files):
         is_public = False
@@ -811,12 +821,30 @@ def generate_public_iiif_manifest():
     
     base_url_dynamic = request.host_url.rstrip('/')
     manifest_id = url_for('generate_public_iiif_manifest', _external=True)
+    limit_start = request.args.get('from')
+    limit_end = request.args.get('to')
+    if limit_start:
+        try:
+            limit_start = int(limit_start)
+            if limit_start <= 0:
+                limit_start = None
+        except ValueError:
+            limit_start = None
+    
+    if limit_end:
+        try:
+            limit_end = int(limit_end)
+            if limit_end <= 0:
+                limit_end = None
+        except ValueError:
+            limit_end = None
 
     manifest = {
         "@context": "http://iiif.io/api/presentation/2/context.json",
         "@id": manifest_id,
         "@type": "sc:Manifest",
         "label": "Public Gallery",
+        "totalCanvases": len(public_images_data),
         "sequences": [{
             "@id": f"{manifest_id}/sequence/normal",
             "@type": "sc:Sequence",
@@ -828,6 +856,14 @@ def generate_public_iiif_manifest():
     if not public_images_data:
         app.logger.info("Public gallery is empty. Returning empty manifest.")
         return jsonify(manifest)
+    
+
+    if limit_end is not None and len(public_images_data) > limit_end:
+        public_images_data = public_images_data[:limit_end]
+
+    if limit_start is not None and len(public_images_data) > 0:
+        public_images_data = public_images_data[limit_start:]
+
 
     for i, item_data in enumerate(public_images_data):
         original_uid = item_data.get("original_uid")

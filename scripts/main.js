@@ -7,7 +7,7 @@ const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
 const queueLimit = 3;
 
-function updateGridVariables() {
+function updateGridVariables(limit_start = null, limit_end = null) {
     
     const lastNum = Math.round(window.innerWidth / 320);
     const fullGallery = document.getElementById('fullGallery');
@@ -21,11 +21,11 @@ function updateGridVariables() {
     const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
 
     if (mainContainer.style.display === 'grid') {
-        loadImages('lastGallery', uid, lastNum);
+        loadImages('lastGallery', uid, null, lastNum);
     } else if (galleryContainerTab.style.display === 'grid') {
         loadImages('fullGallery', uid);
     } else if (publicGalleryContainerTab.style.display === 'grid') {
-        loadImages('publicGallery', null, null, '/api/public-iiif-manifest');
+        loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest');
     }
 }
 

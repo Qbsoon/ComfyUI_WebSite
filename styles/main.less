@@ -107,6 +107,11 @@ body {
     .box-shadow();
 }
 
+#galleryContainerTab, #publicGalleryContainerTab {
+    h2 {
+        text-align: center;
+    }
+}
 .container {
     background: @background-color;
     border: 1px solid @border-color;
@@ -415,5 +420,30 @@ button {
         &:hover {
             background-color: #5a6268;
         }
+    }
+}
+
+.paged-controls {
+    text-align: center;
+    margin-bottom: 20px; 
+    button {
+        display: inline-block;
+        width: auto; 
+        margin: 0 5px; 
+        padding: 5px 10px; 
+
+        &:disabled {
+            background-color: #ccc; 
+            color: #666;
+            cursor: not-allowed;
+            &:hover {
+                background-color: #ccc; 
+            }
+        }
+    }
+    span {
+        margin: 0 10px; 
+        display: inline-block; 
+        vertical-align: middle; 
     }
 }
