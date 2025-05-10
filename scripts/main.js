@@ -44,7 +44,7 @@ try {
 
     setTimeout(() => {
         console.log('Initiating server queue polling after delay.');
-        startComfyQueuePolling(5000); // Or your desired polling interval
+        startComfyQueuePolling(5000);
     }, 2500);
 
 } catch (error) {
@@ -89,7 +89,7 @@ async function fetchAndUpdateComfyUIQueueDisplay() {
         console.error('Error fetching ComfyUI queue for display:', error);
         const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
         if (comfyQueueOutputEl) {
-            comfyQueueOutputEl.innerText = "Server Queue: Error"; // Optional
+            comfyQueueOutputEl.innerText = "Server Queue: Error";
         }
     }
 }
@@ -272,7 +272,7 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     const workflow = await setWorkflow(uid);
     queue = queue + 1;
     sessionStorage.setItem('comfyQueueCount', queue.toString());
-    document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
+    document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
     console.log(`Queue: ${queue}`);
     generateImage(workflow);
 });
@@ -321,7 +321,6 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
     if (lightbox && lightboxImage) {
         lightboxImage.src = imageUrl;
         lightbox.style.display = 'flex';
-        deleteBtn.dataset.imageUrl = imageUrl;
 
         currentLightboxImageOwnerUid = imageOwnerUid || uid;
         currentLightboxImageFilename = filename || imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
@@ -542,7 +541,12 @@ const customConfirmYesBtn = document.getElementById('customConfirmYes');
 const customConfirmNoBtn = document.getElementById('customConfirmNo');
 
 if (customConfirmYesBtn) {
-    customConfirmYesBtn.addEventListener('click', performDeleteImage);
+    customConfirmYesBtn.addEventListener('click', () => {
+        if (lightboxTogglePublicBtn.classList.contains('is-public')) {
+            lightboxTogglePublicBtn.click();
+        }
+        performDeleteImage();
+    });
 } else {
   console.warn("Custom confirm 'Yes' button not found.");
 }
