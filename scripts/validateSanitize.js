@@ -14,8 +14,9 @@ export function validateInputs() {
     const heightInput = parseInt(document.getElementById('heightInput').value);
     const ratioInput = parseFloat(document.getElementById('ratioInput').value);
     var stepsMaxLimit = 70
+    const model = document.getElementById('modelSelect').value
 
-    if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+    if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
         stepsMaxLimit = 10
     }
 
@@ -39,7 +40,7 @@ export function validateInputs() {
         throw new Error('Validation failed on stepsInput')
     }
 
-    if (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput+stepsInput > stepsMaxLimit || !Number.isInteger(stepsRefineInput)) {
+    if (model === 'sd_xl_base_1.0.safetensors' && (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput+stepsInput > stepsMaxLimit || !Number.isInteger(stepsRefineInput))) {
         alert('Suma Steps i Refiner Steps  musi być liczbą całkowitą pomiędzy 1 a' + stepsMaxLimit +'.');
         throw new Error('Validation failed on stepsRefineInput')
     }

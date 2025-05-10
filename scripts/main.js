@@ -5,7 +5,7 @@ import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 const FTP = window.location.origin;
 const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
-const queueLimit = 5;
+const queueLimit = 3;
 
 function updateGridVariables() {
     
@@ -41,14 +41,12 @@ const client = new Client({
 try {
 	client.connect()
 	console.log('Connected to server');
-    client.getQueue().then((queue) => {
-        console.log('Current queue:', queue['Running'].length);
-    }
-    ).catch((error) => {
-        console.error('Error fetching queue:', error);
-        alert('Failed to fetch queue information. Please check the server connection.');
-    }
-    );
+
+    setTimeout(() => {
+        console.log('Initiating server queue polling after delay.');
+        startComfyQueuePolling(5000); // Or your desired polling interval
+    }, 2500);
+
 } catch (error) {
 	console.error('Failed to connect to ComfyUI server:', error);
 }
@@ -65,9 +63,52 @@ function updateProgressBar(value, max) {
 	} else {
 		progressName.innerText = '';
 	}
-    client.getQueue().then((queue) => {
-        console.log('Current queue:', queue['Running']);
-    })
+}
+
+let comfyQueuePollIntervalId = null; // For ComfyUI queue polling
+
+async function fetchAndUpdateComfyUIQueueDisplay() {
+    if (!client) {
+        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+        if (comfyQueueOutputEl) {
+            comfyQueueOutputEl.innerText = "Server Queue: Disconnected";
+        }
+        return;
+    }
+    try {
+        const comfyQueueData = await client.getQueue();
+        const runningCount = comfyQueueData?.Running?.length || 0;
+        const pendingCount = comfyQueueData?.Pending?.length || 0;
+        const totalComfyQueue = runningCount + pendingCount;
+        
+        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+        if (comfyQueueOutputEl) {
+            comfyQueueOutputEl.innerText = `Server Queue: ${totalComfyQueue}`;
+        }
+    } catch (error) {
+        console.error('Error fetching ComfyUI queue for display:', error);
+        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+        if (comfyQueueOutputEl) {
+            comfyQueueOutputEl.innerText = "Server Queue: Error"; // Optional
+        }
+    }
+}
+
+function startComfyQueuePolling(intervalMs = 5000) {
+    if (comfyQueuePollIntervalId) {
+        clearInterval(comfyQueuePollIntervalId);
+    }
+    fetchAndUpdateComfyUIQueueDisplay(); 
+    comfyQueuePollIntervalId = setInterval(fetchAndUpdateComfyUIQueueDisplay, intervalMs);
+    console.log(`Started ComfyUI server queue polling every ${intervalMs / 1000} seconds.`);
+}
+
+function stopComfyQueuePolling() {
+    if (comfyQueuePollIntervalId) {
+        clearInterval(comfyQueuePollIntervalId);
+        comfyQueuePollIntervalId = null;
+        console.log("Stopped ComfyUI server queue polling.");
+    }
 }
 
 function changeModel() {
@@ -119,14 +160,6 @@ function changeModel() {
 
 async function generateImage(workflow) {
     try {
-        client.getQueue().then((queue) => {
-            console.log('Current queue:', queue);
-        }
-        ).catch((error) => {
-            console.error('Error fetching queue:', error);
-            alert('Failed to fetch queue information. Please check the server connection.');
-        }
-        );
 	    const progressName = document.getElementById('progressName');
         progressName.innerText = 'Processing...';
         // Wysłanie zapytania do kolejki serwera ComfyUI
@@ -134,9 +167,6 @@ async function generateImage(workflow) {
         const result = await client.enqueue(workflow, {
 			progress: ({max,value}) => updateProgressBar(value, max),
 		});
-        client.getQueue().then((queue) => {
-            console.log('Current queue:', queue);
-        })
 
 		console.log('Result received');
     
@@ -167,10 +197,7 @@ async function generateImage(workflow) {
     queue = queue - 1;
     sessionStorage.setItem('comfyQueueCount', queue.toString());
     console.log(`Queue: ${queue}`)
-    document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
-    client.getQueue().then((queue) => {
-        console.log('Current queue:', queue);
-    })
+    document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
 }
 
 export function switchTab(tab) {
@@ -193,7 +220,7 @@ export function switchTab(tab) {
         generatorTab.classList.add('active');
         mainContainer.style.display = 'grid';
         mainContainer.style.gridTemplateColumns = `1fr 1fr`;
-        document.getElementById('queueOutput').innerText = `Queue: ${queue}/5`;
+        document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
         updateGridVariables();
     } else if (tab === 'gallery') {
         galleryTab.classList.add('active');
@@ -262,6 +289,7 @@ document.getElementById('publicGalleryTab').addEventListener('click', () => {
 document.getElementById('widthInput').addEventListener('input', updateResRatio);
 document.getElementById('heightInput').addEventListener('input', updateResRatio);
 document.getElementById('logoutButton').addEventListener('click', () => {
+    stopComfyQueuePolling();
     sessionStorage.removeItem('comfyQueueCount');
     window.location.href = '/logout';
 });
@@ -324,7 +352,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
         try {
             parameters.innerHTML = '';
             if (imageOwnerUid && imageOwnerUid !== uid) {
-                parameters.innerHTML += `<strong>Shared by:</strong> ${imageOwnerUid}<br><br>`;
+                parameters.innerHTML += `<strong>Shared by:</strong> ${imageOwnerUid}<br>`;
             }
             if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
                 parameters.innerHTML += `<strong>Model:</strong> Stable Diffusion XL`;

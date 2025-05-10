@@ -12,7 +12,8 @@
     <!-- Header with Tabs -->
     <div id="header">
         <div id="queueDiv">
-            <h2 id="queueOutput">Queue: 0/5</h2>
+            <h2 id="queueOutput">Your Queue: 0/3</h2>
+            <h2 id="comfyQueueOutput">Server Queue: 0</h2>
         </div>
         <h1>Image Generation KUL Tool</h1>
         <div id="tabs">
@@ -84,7 +85,7 @@
 			    	<option value="uni_pc">uni_pc</option>
 			    	<option value="uni_pc_bh2">uni_pc_bh2</option>
 			    </select>
-                <label for="schedulerSelect" if="schedulerLabel">Scheduler</label>
+                <label for="schedulerSelect" id="schedulerLabel">Scheduler</label>
                 <select id="schedulerSelect">
 			    	<option value="normal">normal</option>
 			    	<option value="kerras">kerras</option>
