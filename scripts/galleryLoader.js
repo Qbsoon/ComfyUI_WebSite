@@ -192,7 +192,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         if (api_from !== null && api_to > 0) {
             manifestUrl += `from=${api_from}`;
         }
-        if (api_from !== null && api_from > 0 && api_to !== null && api_to > 0) {
+        if (api_from !== null && api_from >= 0 && api_to !== null && api_to > 0) {
             manifestUrl += '&';
         }
         if (api_to !== null && api_to > 0) {
