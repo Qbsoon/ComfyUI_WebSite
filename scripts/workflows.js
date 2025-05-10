@@ -68,7 +68,6 @@ export async function setWorkflow(uid) {
 		workflow["5"].inputs.height = height;
 		workflow["6"].inputs.text = promptP;
 		workflow["7"].inputs.text = promptN;
-		workflow["13"].inputs.cfg = cfg;
 		workflow["14"].inputs.sampler_name = sampler;
 		workflow["22"].inputs.steps = steps;
 		workflow["19"].inputs.filename_prefix = `${uid}/sdxlturbo`;

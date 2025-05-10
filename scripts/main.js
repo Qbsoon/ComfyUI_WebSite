@@ -112,33 +112,41 @@ function stopComfyQueuePolling() {
 }
 
 function changeModel() {
+    // Default behavior, for SD3.5
+    document.getElementById('stepsRefineInput').hidden = true;
+    document.getElementById('stepsRefineLabel').hidden = true;
+    document.getElementById('schedulerSelect').hidden = false;
+    document.getElementById('schedulerLabel').hidden = false;
+    document.getElementById('cfgInput').hidden = false;
+    document.getElementById('cfgLabel').hidden = false;
+    document.getElementById('negativePromptBox').hidden = false;
+    document.getElementById('guidanceInput').hidden = true;
+    document.getElementById('guidanceLabel').hidden = true;
+    document.getElementById('ratioLabel').hidden = true;
+    document.getElementById('ratioInput').hidden = true;
+    document.getElementById('widthInput').hidden = false;
+    document.getElementById('widthLabel').hidden = false;
+    document.getElementById('heightInput').hidden = false;
+    document.getElementById('heightLabel').hidden = false;
+    document.getElementById('ratioOutput').hidden = false;
+    
     if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
         document.getElementById('stepsRefineInput').hidden = false;
         document.getElementById('stepsRefineLabel').hidden = false;
-    } else {
-        document.getElementById('stepsRefineInput').hidden = true;
-        document.getElementById('stepsRefineLabel').hidden = true;
-    }
+    } 
     if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
         document.getElementById('schedulerSelect').hidden = true;
         document.getElementById('schedulerLabel').hidden = true;
-    } else {
-        document.getElementById('schedulerSelect').hidden = false;
-        document.getElementById('schedulerLabel').hidden = false;
-    }
+        document.getElementById('cfgInput').hidden = true;
+        document.getElementById('cfgLabel').hidden = true;
+    } 
     if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
         document.getElementById('negativePromptBox').hidden = true;
         document.getElementById('cfgInput').hidden = true;
         document.getElementById('cfgLabel').hidden = true;
         document.getElementById('guidanceInput').hidden = false;
         document.getElementById('guidanceLabel').hidden = false;
-    } else {
-        document.getElementById('negativePromptBox').hidden = false;
-        document.getElementById('cfgInput').hidden = false;
-        document.getElementById('cfgLabel').hidden = false;
-        document.getElementById('guidanceInput').hidden = true;
-        document.getElementById('guidanceLabel').hidden = true;
-    }
+    } 
     if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
         document.getElementById('ratioLabel').hidden = false;
         document.getElementById('ratioInput').hidden = false;
@@ -147,14 +155,6 @@ function changeModel() {
         document.getElementById('heightInput').hidden = true;
         document.getElementById('heightLabel').hidden = true;
         document.getElementById('ratioOutput').hidden = true;
-    } else {
-        document.getElementById('ratioLabel').hidden = true;
-        document.getElementById('ratioInput').hidden = true;
-        document.getElementById('widthInput').hidden = false;
-        document.getElementById('widthLabel').hidden = false;
-        document.getElementById('heightInput').hidden = false;
-        document.getElementById('heightLabel').hidden = false;
-        document.getElementById('ratioOutput').hidden = false;
     }
 }
 
