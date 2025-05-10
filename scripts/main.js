@@ -326,6 +326,7 @@ const lightboxImage = document.getElementById('lightboxImage');
 const closeBtn = document.getElementById('lightboxCloseButton');
 const deleteBtn = document.getElementById('lightboxDeleteButton');
 const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
+const lightboxCopyParametersBtn = document.getElementById('lightboxCopyParametersButton');
 let currentImageToDeleteUrl = null;
 let currentLightboxImageOwnerUid = null;
 let currentLightboxImageFilename = null;
@@ -356,6 +357,13 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             }
             // Only show toggle public button if the current user owns the image
             lightboxTogglePublicBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
+        }
+
+        if (lightboxCopyParametersBtn) {
+            lightboxCopyParametersBtn.dataset.workflowData = JSON.stringify(workflowData);
+            console.log(workflowData);
+        } else {
+            console.warn("Lightbox copy parameters button not found.");
         }
     }
     const prompts = document.getElementById('lightboxPrompts');
@@ -548,6 +556,62 @@ if (lightbox) {
       closeLightbox();
     }
   });
+}
+
+if (lightboxCopyParametersBtn) {
+    lightboxCopyParametersBtn.addEventListener('click', () => {
+        closeLightbox();
+        switchTab('generator');
+        let workflowData = null;
+        try {
+            workflowData = JSON.parse(lightboxCopyParametersBtn.dataset.workflowData);
+        } catch (error) {
+            console.error('Error parsing workflow data:', error);
+            return;
+        }
+        console.log(workflowData);
+        document.getElementById('modelSelect').value = workflowData.checkpointName;
+        changeModel()
+        document.getElementById('positivePrompt').value = workflowData.promptP;
+        document.getElementById('samplerSelect').value = workflowData.sampler;
+
+        if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
+            document.getElementById('negativePrompt').value = workflowData.promptN;
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('stepsRefineInput').value = workflowData.stepsRefiner;
+            document.getElementById('widthInput').value = workflowData.width;
+            document.getElementById('heightInput').value = workflowData.height;
+        } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
+            document.getElementById('negativePrompt').value = workflowData.promptN;
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('widthInput').value = workflowData.width;
+            document.getElementById('heightInput').value = workflowData.height;
+        } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
+            document.getElementById('negativePrompt').value = workflowData.promptN;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('widthInput').value = workflowData.width;
+            document.getElementById('heightInput').value = workflowData.height;
+        } else if (workflowData.checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
+            document.getElementById('modelSelect').value = 'flux1-dev-Q8_0.gguf';
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('guidanceInput').value = workflowData.guidance;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('widthInput').value = workflowData.width;
+            document.getElementById('heightInput').value = workflowData.height;
+        } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+            document.getElementById('negativePrompt').value = workflowData.promptN;
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('ratioInput').value = workflowData.ratio;
+        }
+        lightboxCopyParametersBtn.dataset.workflowData = null;
+    });
 }
 
 const customConfirmYesBtn = document.getElementById('customConfirmYes');
