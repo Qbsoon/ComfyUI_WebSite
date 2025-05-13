@@ -153,7 +153,7 @@ async function parsePngForComfyMetadata(arrayBuffer) {
     }
 }
 
-export async function galleryLoad(target, uid, current_page = null, limit_end = null, customManifestUrl = null, model = null) {
+export async function galleryLoad(target, uid, current_page = null, limit_end = null, customManifestUrl = null, model = null, keywords = null, keywordsRadio = null) {
     const outputDiv = document.getElementById(target);
     if (!outputDiv) {
         console.error(`Error loading gallery for target #${target}: Element not found.`);
@@ -212,6 +212,11 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         manifestUrl += `&model=${model}`;
     }
 
+    if (keywords) {
+        manifestUrl += `&keywords=${encodeURIComponent(keywords)}`;
+        manifestUrl += `&keywordsRadio=${keywordsRadio}`;
+    }
+
     const isPublicGallery = customManifestUrl === '/api/public-iiif-manifest';
 
     outputDiv.innerHTML = '<p>Loading gallery...</p>';
@@ -243,13 +248,23 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         outputDiv.innerHTML = '';
 
         if (!manifest.sequences || manifest.sequences.length === 0 || !manifest.sequences[0].canvases || manifest.sequences[0].canvases.length === 0) {
-            console.info(`Gallery for target #${target} is empty.`);
-            const emptyMessage = document.createElement('p');
-            emptyMessage.textContent = 'Gallery empty';
-            emptyMessage.style.textAlign = 'center';
-            emptyMessage.style.marginTop = '20px';
-            outputDiv.appendChild(emptyMessage);
-            return;
+            if (model || keywords) {
+                console.info(`Gallery for target #${target} is empty after filtering.`);
+                const emptyMessage = document.createElement('p');
+                emptyMessage.textContent = 'No images found for selected filters';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.marginTop = '20px';
+                outputDiv.appendChild(emptyMessage);
+                return;
+            } else {
+                console.info(`Gallery for target #${target} is empty.`);
+                const emptyMessage = document.createElement('p');
+                emptyMessage.textContent = 'Gallery empty';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.marginTop = '20px';
+                outputDiv.appendChild(emptyMessage);
+                return;
+            }
         }
 
         if (isPagedGallery && manifest.totalCanvases > 0 && imagesPerPage > 0) {
@@ -271,12 +286,58 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 filterModelSelect.addEventListener('change', () => {
                     const selectedModel = filterModelSelect.value;
                     if (selectedModel === 'all') {
-                        galleryLoad(target, uid, currentPage, limit_end, customManifestUrl);
+                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, selectedRadio);
                     } else {
-                        galleryLoad(target, uid, currentPage, limit_end, customManifestUrl, selectedModel);
+                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, selectedRadio);
                     }
                 });
+
+                const filterKeywords = document.createElement('input');
+                filterKeywords.type = 'text';
+                filterKeywords.id = 'filterKeywords';
+                filterKeywords.placeholder = 'Filter keywords';
+                filterKeywords.title = 'Keywords should be separated by commas';
+                const radioAll = document.createElement('input');
+                radioAll.type = 'radio';
+                radioAll.name = 'keywordsRadio';
+                radioAll.value = 'all';
+                radioAll.checked = true;
+                const radioAny = document.createElement('input');
+                radioAny.type = 'radio';
+                radioAny.name = 'keywordsRadio';
+                radioAny.value = 'any';
+                if (keywordsRadio === 'any') {
+                    radioAny.checked = true;
+                }
+                const filterKeywordsBtn = document.createElement('button');
+                filterKeywordsBtn.textContent = 'Filter'
+                filterKeywordsBtn.addEventListener('click', () => {
+                    const keywordsText = filterKeywords.value;
+                    const radioButtons = document.querySelectorAll('input[name="keywordsRadio"]');
+                    let selectedRadio = null;
+                    radioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedRadio = radio.value;
+                        }
+                    });
+                    if (keywordsText !='') {
+                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText, selectedRadio);
+                    } else {
+                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText);
+                    }
+                });
+
+                if (keywords) {
+                    filterKeywords.value = keywords;
+                }
+
                 filterControlsDiv.appendChild(filterModelSelect);
+                filterControlsDiv.appendChild(filterKeywords);
+                filterControlsDiv.appendChild(radioAll);
+                filterControlsDiv.appendChild(document.createTextNode('All'));
+                filterControlsDiv.appendChild(radioAny);
+                filterControlsDiv.appendChild(document.createTextNode('Any'));
+                filterControlsDiv.appendChild(filterKeywordsBtn);
                 outputDiv.appendChild(filterControlsDiv);
 
                 const pagingControlsDiv = document.createElement('div');
@@ -286,12 +347,12 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 const firstBtn = document.createElement('button');
                 firstBtn.textContent = 'First';
                 firstBtn.disabled = currentPage === 1;
-                firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl));
+                firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl, model, keywords, selectedRadio));
 
                 const prevBtn = document.createElement('button');
                 prevBtn.textContent = 'Previous';
                 prevBtn.disabled = currentPage === 1;
-                prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl));
+                prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl, model, keywords, selectedRadio));
 
                 const pageInfo = document.createElement('span');
                 pageInfo.textContent = `${currentPage}/${totalPages}`;
@@ -300,12 +361,12 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 const nextBtn = document.createElement('button');
                 nextBtn.textContent = 'Next';
                 nextBtn.disabled = currentPage === totalPages;
-                nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl));
+                nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl, model, keywords, selectedRadio));
 
                 const lastBtn = document.createElement('button');
                 lastBtn.textContent = 'Last';
                 lastBtn.disabled = currentPage === totalPages;
-                lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl));
+                lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl, model, keywords, selectedRadio));
                 
                 [firstBtn, prevBtn, nextBtn, lastBtn].forEach(btn => {
                     btn.style.margin = "0 5px"; 

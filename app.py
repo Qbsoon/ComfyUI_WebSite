@@ -18,6 +18,7 @@ import logging
 import threading
 import time
 import requests
+from urllib.parse import unquote_plus
 
 # --- Configuration for Queue Monitoring and Freeing ---
 MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174"
@@ -410,6 +411,14 @@ def generate_iiif_manifest():
         app.logger.debug(f"Model filter provided: {filter_model}")
     except:
         filter_model = None
+
+    try:
+        filter_keywords = request.args.get('keywords')
+        filter_keywords_type = request.args.get('keywordsRadio')
+        app.logger.debug(f"Keywords filter provided: {filter_keywords}")
+    except:
+        filter_keywords = None
+        filter_keywords_type = None
         
 
     if limit_start:
@@ -448,23 +457,6 @@ def generate_iiif_manifest():
     gallery_base_url = f"{base_url_dynamic}/gallery/"
     thumbnail_base_url = f"{base_url_dynamic}/thumbnails/"
 
-    # --- Budowanie struktury manifestu IIIF ---
-    manifest = {
-        "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@id": manifest_id,
-        "@type": "sc:Manifest",
-        "label": f"Gallery for User {uid}" + (f" (From {limit_start})" if limit_start else "" + (f'To {limit_end})' if limit_end else "")) + (f" (Model: {filter_model})" if filter_model else ""),
-        "totalCanvases": len(image_files),
-        "sequences": [
-            {
-                "@id": f"{manifest_id}/sequence/normal",
-                "@type": "sc:Sequence",
-                "label": "Default order",
-                "canvases": []
-            }
-        ]
-    }
-
     if filter_model:
         model_prefix = model_filename(filter_model)
         if model_prefix!="sdxl":
@@ -476,9 +468,50 @@ def generate_iiif_manifest():
         else:
             image_files = None
 
+    if filter_keywords:
+        app.logger.debug(f"Filter keywords provided: {filter_keywords}")
+        decoded_sentence = unquote_plus(filter_keywords)
+        keywords = decoded_sentence.split(",")
+        keywords = [k.strip().lower() for k in keywords if k.strip()]
+        filtered_image_files = []
+        for f in image_files:
+            user_gallery_path = os.path.join(GALLERY_BASE_DIR, str(uid))
+            f_fp = os.path.join(user_gallery_path, f)
+            f_wf = get_workflow_from_image_path(f_fp)
+            f_cp = py_find_checkpoint_in_workflow(f_wf)
+            f_prompt_p = py_get_positive_prompt_from_comfy_workflow(f_wf, f_cp)
+            if filter_keywords_type == 'all':
+                if all(keyword.lower() in f_prompt_p.lower() for keyword in keywords):
+                    filtered_image_files.append(f)
+            if filter_keywords_type == 'any':
+                if any(keyword.lower() in f_prompt_p.lower() for keyword in keywords):
+                    filtered_image_files.append(f)
+        if len(filtered_image_files) != 0:
+            image_files = filtered_image_files.copy()
+        else:
+            image_files = None
+
+# --- Budowanie struktury manifestu IIIF ---
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": manifest_id,
+        "@type": "sc:Manifest",
+        "label": f"Gallery for User {uid}" + (f" (From {limit_start})" if limit_start else "" + (f'To {limit_end})' if limit_end else "")) + (f" (Model: {filter_model})" if filter_model else "") + (f" (Keywords: {unquote_plus(filter_keywords)})" if filter_keywords else ""),
+        "totalCanvases": len(image_files) if image_files is not None else 0,
+        "sequences": [
+            {
+                "@id": f"{manifest_id}/sequence/normal",
+                "@type": "sc:Sequence",
+                "label": "Default order",
+                "canvases": []
+            }
+        ]
+    }
 
     if not image_files:
         app.logger.info(f"No images found for manifest (UID: {uid}). Returning empty manifest.")
+        if filter_model or filter_keywords:
+            manifest["label"] = manifest.get("label", "") + " - No Results"
         return jsonify(manifest) 
     
     app.logger.debug(f"Found {len(image_files)} images for manifest (UID: {uid}).")
@@ -858,6 +891,14 @@ def generate_public_iiif_manifest():
     except:
         filter_model = None
 
+    try:
+        filter_keywords = request.args.get('keywords')
+        filter_keywords_type = request.args.get('keywordsRadio')
+        app.logger.debug(f"Keywords filter provided: {filter_keywords}")
+    except:
+        filter_keywords = None
+        filter_keywords_type = None
+
     if limit_start:
         try:
             limit_start = int(limit_start)
@@ -874,12 +915,47 @@ def generate_public_iiif_manifest():
         except ValueError:
             limit_end = None
 
+    if filter_model:
+        model_prefix = model_filename(filter_model)
+        if model_prefix:
+            if model_prefix!="sdxl":
+                filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
+            else:
+                filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('sdxl') and not f.get('original_filename').startswith('sdxlturbo'))]
+        if len(filtered_image_files) != 0:
+            public_images_data = filtered_image_files.copy()
+        else:
+            public_images_data = None
+
+    if filter_keywords:
+        decoded_sentence = unquote_plus(filter_keywords)
+        keywords = decoded_sentence.split(",")
+        keywords = [k.strip().lower() for k in keywords if k.strip()]
+        filtered_image_files = []
+        for f in public_images_data:
+            user_gallery_path = os.path.join(GALLERY_BASE_DIR, f.get('original_uid'))
+            f_fn = f.get('original_filename')
+            f_fp = os.path.join(user_gallery_path, f_fn)
+            f_wf = get_workflow_from_image_path(f_fp)
+            f_cp = py_find_checkpoint_in_workflow(f_wf)
+            f_prompt_p = py_get_positive_prompt_from_comfy_workflow(f_wf, f_cp)
+            if filter_keywords_type == 'all':
+                if all(keyword.lower() in f_prompt_p.lower() for keyword in keywords):
+                    filtered_image_files.append(f)
+            if filter_keywords_type == 'any':
+                if any(keyword.lower() in f_prompt_p.lower() for keyword in keywords):
+                    filtered_image_files.append(f)
+        if len(filtered_image_files) != 0:
+            public_images_data = filtered_image_files.copy()
+        else:
+            public_images_data = None
+
     manifest = {
         "@context": "http://iiif.io/api/presentation/2/context.json",
         "@id": manifest_id,
         "@type": "sc:Manifest",
-        "label": "Public Gallery",
-        "totalCanvases": len(public_images_data),
+        "label": "Public Gallery" + (f" (From {limit_start})" if limit_start else "" + (f'To {limit_end})' if limit_end else "")) + (f" (Model: {filter_model})" if filter_model else "") + (f" (Keywords: {unquote_plus(filter_keywords)})" if (filter_keywords and keywords) else ""),
+        "totalCanvases": len(public_images_data) if public_images_data is not None else 0,
         "sequences": [{
             "@id": f"{manifest_id}/sequence/normal",
             "@type": "sc:Sequence",
@@ -888,19 +964,11 @@ def generate_public_iiif_manifest():
         }]
     }
 
-    if filter_model:
-        model_prefix = model_filename(filter_model)
-        if model_prefix!="sdxl":
-            filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
-        else:
-            filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('sdxl') and not f.get('original_filename').startswith('sdxlturbo'))]
-        if len(filtered_image_files) != 0:
-            public_images_data = filtered_image_files.copy()
-        else:
-            public_images_data = None
 
     if not public_images_data:
         app.logger.info("Public gallery is empty. Returning empty manifest.")
+        if filter_model or filter_keywords:
+            manifest["label"] = manifest.get("label", "") + " - No Results"
         return jsonify(manifest)
     
 
@@ -978,6 +1046,89 @@ def generate_public_iiif_manifest():
     return jsonify(manifest)
 
 # --- End Public Gallery ---
+
+# --- Begin parse workflow functions ---
+def get_workflow_from_image_path(image_path):
+    if not os.path.exists(image_path):
+        app.logger.warning(f"get_workflow_from_image_path: Image path not found: {image_path}")
+        return None
+    
+    try:
+        with Image.open(image_path) as img:
+            # Ensure img.info exists and 'prompt' is a key
+            raw_workflow_json_string = img.info.get('prompt') if hasattr(img, 'info') and isinstance(img.info, dict) else None
+            
+            if not raw_workflow_json_string:
+                app.logger.debug(f"get_workflow_from_image_path: No 'prompt' metadata in img.info for {image_path}")
+                return None
+            return raw_workflow_json_string
+    except FileNotFoundError: # Should be caught by os.path.exists, but good for robustness
+        app.logger.warning(f"get_workflow_from_image_path: Image file not found (FileNotFoundError): {image_path}")
+        return None
+    except Exception as e: # Catch other PIL errors, e.g., not an image file
+        app.logger.error(f"get_workflow_from_image_path: Error processing image {image_path}: {e}", exc_info=True)
+        return None
+
+def py_find_checkpoint_in_workflow(raw_workflow_json_string):
+    if not raw_workflow_json_string or not isinstance(raw_workflow_json_string, str):
+        return None
+    
+    # List of known checkpoint filenames
+    checkpoints = [
+        'sd3.5_large_fp8_scaled.safetensors',
+        'sd_xl_base_1.0.safetensors',
+        'sd_xl_turbo_1.0_fp16.safetensors',
+        'FLUX1/flux1-dev-Q8_0.gguf',
+        'PixArt-Sigma-XL-2-2K-MS.pth'
+    ]
+    for cp_name in checkpoints:
+        # Check if the checkpoint name (as a string literal) is in the JSON string
+        if f'"{cp_name}"' in raw_workflow_json_string:
+            return cp_name
+    return None
+
+def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpoint_name):
+    if not raw_workflow_json_string or not isinstance(raw_workflow_json_string, str) or not checkpoint_name:
+        app.logger.debug("py_get_positive_prompt: Missing raw_workflow_json_string or checkpoint_name.")
+        return ""
+
+    workflow_data = None
+    try:
+        workflow_data = json.loads(raw_workflow_json_string)
+    except json.JSONDecodeError:
+        app.logger.warning(f"py_get_positive_prompt: Could not decode prompt JSON. Checkpoint was: {checkpoint_name}")
+        return ""
+
+    if not isinstance(workflow_data, dict):
+        app.logger.debug(f"py_get_positive_prompt: Parsed workflow_data is not a dict. Type: {type(workflow_data)}")
+        return ""
+    
+    positive_prompt = ""
+    try:
+        # Node IDs are based on your previous JS and Python logic
+        # Ensure these node IDs and input names are correct for your workflows
+        if checkpoint_name == 'sd_xl_base_1.0.safetensors':
+            positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'sd3.5_large_fp8_scaled.safetensors':
+            # Assuming same node structure as sd_xl_base for positive prompt
+            positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'sd_xl_turbo_1.0_fp16.safetensors':
+            # Assuming same node structure
+            positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'FLUX1/flux1-dev-Q8_0.gguf':
+            positive_prompt = workflow_data.get("11", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'PixArt-Sigma-XL-2-2K-MS.pth':
+            positive_prompt = workflow_data.get("5", {}).get("inputs", {}).get("text", "")
+        # Add other checkpoint conditions as needed
+
+
+    except Exception as e:
+        app.logger.error(f"Error in py_get_positive_prompt_from_comfy_workflow for {checkpoint_name}: {e}", exc_info=True)
+        return "" # Return empty string on error
+    
+    # Ensure the result is a string and convert to lowercase
+    return str(positive_prompt).lower() if positive_prompt else ""
+# --- End Helper function ---
 
 @app.route('/api/get-server-queue-count', methods=['GET'])
 @login_required
