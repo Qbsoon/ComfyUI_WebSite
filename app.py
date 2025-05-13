@@ -852,6 +852,12 @@ def generate_public_iiif_manifest():
     manifest_id = url_for('generate_public_iiif_manifest', _external=True)
     limit_start = request.args.get('from')
     limit_end = request.args.get('to')
+    try:
+        filter_model = request.args.get('model')
+        app.logger.debug(f"Model filter provided: {filter_model}")
+    except:
+        filter_model = None
+
     if limit_start:
         try:
             limit_start = int(limit_start)
@@ -881,6 +887,17 @@ def generate_public_iiif_manifest():
             "canvases": []
         }]
     }
+
+    if filter_model:
+        model_prefix = model_filename(filter_model)
+        if model_prefix!="sdxl":
+            filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
+        else:
+            filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('sdxl') and not f.get('original_filename').startswith('sdxlturbo'))]
+        if len(filtered_image_files) != 0:
+            public_images_data = filtered_image_files.copy()
+        else:
+            public_images_data = None
 
     if not public_images_data:
         app.logger.info("Public gallery is empty. Returning empty manifest.")
