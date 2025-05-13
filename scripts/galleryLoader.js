@@ -153,7 +153,7 @@ async function parsePngForComfyMetadata(arrayBuffer) {
     }
 }
 
-export async function galleryLoad(target, uid, current_page = null, limit_end = null, customManifestUrl = null) {
+export async function galleryLoad(target, uid, current_page = null, limit_end = null, customManifestUrl = null, model = null) {
     const outputDiv = document.getElementById(target);
     if (!outputDiv) {
         console.error(`Error loading gallery for target #${target}: Element not found.`);
@@ -207,6 +207,11 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
             manifestUrl += `&to=${api_to}`;
         }
     }
+
+    if (model) {
+        manifestUrl += `&model=${model}`;
+    }
+
     const isPublicGallery = customManifestUrl === '/api/public-iiif-manifest';
 
     outputDiv.innerHTML = '<p>Loading gallery...</p>';
@@ -250,6 +255,30 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         if (isPagedGallery && manifest.totalCanvases > 0 && imagesPerPage > 0) {
             const totalPages = Math.ceil(manifest.totalCanvases / imagesPerPage);
             if (totalPages > 0) { 
+                const filterControlsDiv = document.createElement('div');
+                filterControlsDiv.className = 'filter-controls';
+                filterControlsDiv.style.gridColumn = '1 / -1';
+
+                const filterModelSelect = document.createElement('select');
+                filterModelSelect.appendChild(new Option('All Models', 'all'));
+                const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf'];
+                const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1'];
+                models.forEach((model, index) => {
+                    const option = new Option(modelNames[index], model);
+                    filterModelSelect.appendChild(option);
+                });
+                filterModelSelect.value = model || 'all';
+                filterModelSelect.addEventListener('change', () => {
+                    const selectedModel = filterModelSelect.value;
+                    if (selectedModel === 'all') {
+                        galleryLoad(target, uid, currentPage, limit_end, customManifestUrl);
+                    } else {
+                        galleryLoad(target, uid, currentPage, limit_end, customManifestUrl, selectedModel);
+                    }
+                });
+                filterControlsDiv.appendChild(filterModelSelect);
+                outputDiv.appendChild(filterControlsDiv);
+
                 const pagingControlsDiv = document.createElement('div');
                 pagingControlsDiv.className = 'paged-controls';
                 pagingControlsDiv.style.gridColumn = '1 / -1'; 

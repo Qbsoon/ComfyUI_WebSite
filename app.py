@@ -388,6 +388,16 @@ def get_image_files(directory):
     sorted_filenames = [item[0] for item in images_with_mtime]
     return sorted_filenames
 
+def model_filename(model):
+    if model=="sd_xl_base_1.0.safetensors":
+        return 'sdxl'
+    if model=='sd3.5_large_fp8_scaled.safetensors':
+        return 'sd35'
+    if model=='sd_xl_turbo_1.0_fp16.safetensors':
+        return 'sdxlturbo'
+    if model=='flux1-dev-Q8_0.gguf':
+        return 'flux'
+
 # --- Endpoint generujący manifest IIIF ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
 @login_required
@@ -395,6 +405,13 @@ def generate_iiif_manifest():
     uid = request.args.get('uid')
     limit_start = request.args.get('from')
     limit_end = request.args.get('to')
+    try:
+        filter_model = request.args.get('model')
+        app.logger.debug(f"Model filter provided: {filter_model}")
+    except:
+        filter_model = None
+        
+
     if limit_start:
         try:
             limit_start = int(limit_start)
@@ -436,7 +453,7 @@ def generate_iiif_manifest():
         "@context": "http://iiif.io/api/presentation/2/context.json",
         "@id": manifest_id,
         "@type": "sc:Manifest",
-        "label": f"Gallery for User {uid}" + (f" (From {limit_start})" if limit_start else "" + (f'To {limit_end})' if limit_end else "")),
+        "label": f"Gallery for User {uid}" + (f" (From {limit_start})" if limit_start else "" + (f'To {limit_end})' if limit_end else "")) + (f" (Model: {filter_model})" if filter_model else ""),
         "totalCanvases": len(image_files),
         "sequences": [
             {
@@ -447,6 +464,18 @@ def generate_iiif_manifest():
             }
         ]
     }
+
+    if filter_model:
+        model_prefix = model_filename(filter_model)
+        if model_prefix!="sdxl":
+            filtered_image_files = [f for f in image_files if f.startswith(model_prefix)]
+        else:
+            filtered_image_files = [f for f in image_files if (f.startswith('sdxl') and not f.startswith('sdxlturbo'))]
+        if len(filtered_image_files) != 0:
+            image_files = filtered_image_files.copy()
+        else:
+            image_files = None
+
 
     if not image_files:
         app.logger.info(f"No images found for manifest (UID: {uid}). Returning empty manifest.")
