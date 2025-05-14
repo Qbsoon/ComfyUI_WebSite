@@ -289,8 +289,8 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
 
                 const filterModelSelect = document.createElement('select');
                 filterModelSelect.appendChild(new Option('All Models', 'all'));
-                const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf'];
-                const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1'];
+                const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors'];
+                const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast'];
                 models.forEach((model, index) => {
                     const option = new Option(modelNames[index], model);
                     filterModelSelect.appendChild(option);
@@ -299,9 +299,9 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 filterModelSelect.addEventListener('change', () => {
                     const selectedModel = filterModelSelect.value;
                     if (selectedModel === 'all') {
-                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, selectedRadio);
+                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, keywordsRadio);
                     } else {
-                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, selectedRadio);
+                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, keywordsRadio);
                     }
                 });
 
@@ -360,12 +360,12 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 const firstBtn = document.createElement('button');
                 firstBtn.textContent = 'First';
                 firstBtn.disabled = currentPage === 1;
-                firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl, model, keywords, selectedRadio));
+                firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl, model, keywords, keywordsRadio));
 
                 const prevBtn = document.createElement('button');
                 prevBtn.textContent = 'Previous';
                 prevBtn.disabled = currentPage === 1;
-                prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl, model, keywords, selectedRadio));
+                prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl, model, keywords, keywordsRadio));
 
                 const pageInfo = document.createElement('span');
                 pageInfo.textContent = `${currentPage}/${totalPages}`;
@@ -374,12 +374,12 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 const nextBtn = document.createElement('button');
                 nextBtn.textContent = 'Next';
                 nextBtn.disabled = currentPage === totalPages;
-                nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl, model, keywords, selectedRadio));
+                nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl, model, keywords, keywordsRadio));
 
                 const lastBtn = document.createElement('button');
                 lastBtn.textContent = 'Last';
                 lastBtn.disabled = currentPage === totalPages;
-                lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl, model, keywords, selectedRadio));
+                lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl, model, keywords, keywordsRadio));
                 
                 [firstBtn, prevBtn, nextBtn, lastBtn].forEach(btn => {
                     btn.style.margin = "0 5px"; 

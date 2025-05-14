@@ -179,8 +179,16 @@ function changeModel() {
 
 async function generateImage(workflow) {
     try {
+        fetchAndUpdateComfyUIQueueDisplay();
 	    const progressName = document.getElementById('progressName');
-        progressName.innerText = 'Processing...';
+        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+        const comfyQueueOutputValue = comfyQueueOutputEl.innerText.charAt(comfyQueueOutputEl.innerText.length-1);
+        console.log(`ComfyUI queue output value: ${comfyQueueOutputValue}`);
+        if (comfyQueueOutputValue > 0) {
+            progressName.innerText = 'Queued...';
+        } else {
+            progressName.innerText = 'Processing...';
+        }
         // Wysłanie zapytania do kolejki serwera ComfyUI
 		console.log('Sending workflow');
         const result = await client.enqueue(workflow, {
