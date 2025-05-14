@@ -125,7 +125,7 @@ function stopComfyQueuePolling() {
 }
 
 function changeModel() {
-    // Default behavior, for SD3.5
+    // Default behavior, for SD3.5 & HDi1f
     document.getElementById('stepsRefineInput').hidden = true;
     document.getElementById('stepsRefineLabel').hidden = true;
     document.getElementById('schedulerSelect').hidden = false;
@@ -168,6 +168,12 @@ function changeModel() {
         document.getElementById('heightInput').hidden = true;
         document.getElementById('heightLabel').hidden = true;
         document.getElementById('ratioOutput').hidden = true;
+    }
+    if (document.getElementById('modelSelect').value === 'hidream_i1_fast_fp8.safetensors') {
+        document.getElementById('schedulerSelect').value = 'normal';
+        document.getElementById('samplerSelect').value = 'lcm';
+        document.getElementById('stepsInput').value = 16;
+        document.getElementById('cfgInput').value = 1.0;
     }
 }
 
@@ -422,6 +428,16 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>Ratio:</strong> ${workflowData.ratio}`;
+            } else if (workflowData.checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+                parameters.innerHTML += `<strong>Model:</strong> HiDream I1 Fast (fp8)`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
             }
         } catch (e) {
             console.error("Error displaying metadata from workflow data:", e);
@@ -609,6 +625,13 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('cfgInput').value = workflowData.cfg;
             document.getElementById('stepsInput').value = workflowData.steps;
             document.getElementById('ratioInput').value = workflowData.ratio;
+        } else if (workflowData.checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+            document.getElementById('negativePrompt').value = workflowData.promptN;
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('widthInput').value = workflowData.width;
+            document.getElementById('heightInput').value = workflowData.height;
         }
         lightboxCopyParametersBtn.dataset.workflowData = null;
     });

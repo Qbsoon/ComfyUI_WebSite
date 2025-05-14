@@ -398,6 +398,8 @@ def model_filename(model):
         return 'sdxlturbo'
     if model=='flux1-dev-Q8_0.gguf':
         return 'flux'
+    if model=='hidream_i1_fast_fp8.safetensors':
+        return 'hdi1f'
 
 # --- Endpoint generujący manifest IIIF ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
@@ -1079,7 +1081,8 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
         'sd_xl_base_1.0.safetensors',
         'sd_xl_turbo_1.0_fp16.safetensors',
         'FLUX1/flux1-dev-Q8_0.gguf',
-        'PixArt-Sigma-XL-2-2K-MS.pth'
+        'PixArt-Sigma-XL-2-2K-MS.pth',
+        'hidream_i1_fast_fp8.safetensors',
     ]
     for cp_name in checkpoints:
         # Check if the checkpoint name (as a string literal) is in the JSON string
@@ -1119,6 +1122,8 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
             positive_prompt = workflow_data.get("11", {}).get("inputs", {}).get("text", "")
         elif checkpoint_name == 'PixArt-Sigma-XL-2-2K-MS.pth':
             positive_prompt = workflow_data.get("5", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'hidream_i1_fast_fp8.safetensors':
+            positive_prompt = workflow_data.get("16", {}).get("inputs", {}).get("text", "")
         # Add other checkpoint conditions as needed
 
 

@@ -93,6 +93,18 @@ export async function setWorkflow(uid) {
 		workflow["5"].inputs.text = promptP;
 		workflow["6"].inputs.text = promptN;
 		workflow["10"].inputs.filename_prefix = `${uid}/pixart`;
+	} else if (document.getElementById('modelSelect').value === 'hidream_i1_fast_fp8.safetensors') {
+		workflow = await loadWorkflow('HDi1f.json')
+		workflow["3"].inputs.sampler_name = sampler;
+		workflow["3"].inputs.scheduler = scheduler;
+		workflow["3"].inputs.cfg = cfg;
+		workflow["3"].inputs.steps = steps;
+		workflow["3"].inputs.seed = seed;
+		workflow["16"].inputs.text = promptP;
+		workflow["40"].inputs.text = promptN;
+		workflow["53"].inputs.width = width;
+		workflow["53"].inputs.height = height;
+		workflow["9"].inputs.filename_prefix = `${uid}/hdi1f`;
 	}
 	return workflow
 }

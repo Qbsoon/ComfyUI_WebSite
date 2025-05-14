@@ -2,7 +2,7 @@ function findCheckpoint(workflowData) {
     if (!workflowData || typeof workflowData !== 'object') {
         return false;
     }
-    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth']
+    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors']
     try {
         const jsonString = JSON.stringify(workflowData);
         for (let i = 0; i < checkpoints.length; i++) {
@@ -81,6 +81,19 @@ function getComfyMetadata(workflowData, checkpointName) {
                 cfg: workflowData["4"].inputs.cfg,
                 steps: workflowData["4"].inputs.steps,
                 ratio: workflowData["2"].inputs.ratio
+            }
+            return metadataObject;
+        } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+            let metadataObject = {
+                checkpointName: checkpointName,
+                promptP: workflowData["16"].inputs.text,
+                promptN: workflowData["40"].inputs.text,
+                sampler: workflowData["3"].inputs.sampler_name,
+                scheduler: workflowData["3"].inputs.scheduler,
+                cfg: workflowData["3"].inputs.cfg,
+                steps: workflowData["3"].inputs.steps,
+                width: workflowData["53"].inputs.width,
+                height: workflowData["53"].inputs.height
             }
             return metadataObject;
         }
