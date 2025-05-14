@@ -2,7 +2,7 @@ function findCheckpoint(workflowData) {
     if (!workflowData || typeof workflowData !== 'object') {
         return false;
     }
-    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors']
+    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors']
     try {
         const jsonString = JSON.stringify(workflowData);
         for (let i = 0; i < checkpoints.length; i++) {
@@ -94,6 +94,18 @@ function getComfyMetadata(workflowData, checkpointName) {
                 steps: workflowData["3"].inputs.steps,
                 width: workflowData["53"].inputs.width,
                 height: workflowData["53"].inputs.height
+            }
+            return metadataObject;
+        } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+            let metadataObject = {
+                checkpointName: checkpointName,
+                promptP: workflowData["6"].inputs.text,
+                sampler: workflowData["16"].inputs.sampler_name,
+                scheduler: workflowData["17"].inputs.scheduler,
+                cfg: workflowData["40"].inputs.cfg,
+                steps: workflowData["17"].inputs.steps,
+                width: workflowData["39"].inputs.width,
+                height: workflowData["39"].inputs.height
             }
             return metadataObject;
         }
@@ -289,8 +301,8 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
 
                 const filterModelSelect = document.createElement('select');
                 filterModelSelect.appendChild(new Option('All Models', 'all'));
-                const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors'];
-                const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast'];
+                const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors'];
+                const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)'];
                 models.forEach((model, index) => {
                     const option = new Option(modelNames[index], model);
                     filterModelSelect.appendChild(option);

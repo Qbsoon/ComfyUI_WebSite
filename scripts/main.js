@@ -175,6 +175,14 @@ function changeModel() {
         document.getElementById('stepsInput').value = 16;
         document.getElementById('cfgInput').value = 1.0;
     }
+    if (document.getElementById('modelSelect').value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+        document.getElementById('negativePromptBox').hidden = true;
+
+        document.getElementById('schedulerSelect').value = 'beta';
+        document.getElementById('samplerSelect').value = 'euler';
+        document.getElementById('stepsInput').value = 30;
+        document.getElementById('cfgInput').value = 3.5;
+    }
 }
 
 async function generateImage(workflow) {
@@ -375,7 +383,6 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
 
         if (lightboxCopyParametersBtn) {
             lightboxCopyParametersBtn.dataset.workflowData = JSON.stringify(workflowData);
-            console.log(workflowData);
         } else {
             console.warn("Lightbox copy parameters button not found.");
         }
@@ -440,6 +447,15 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<strong>Model:</strong> HiDream I1 Fast (fp8)`;
                 prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+                parameters.innerHTML += `<strong>Model:</strong> Verus Vision 1.0b Transformer (fp8)`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
                 parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
                 parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
                 parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
@@ -635,6 +651,12 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('ratioInput').value = workflowData.ratio;
         } else if (workflowData.checkpointName === 'hidream_i1_fast_fp8.safetensors') {
             document.getElementById('negativePrompt').value = workflowData.promptN;
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('widthInput').value = workflowData.width;
+            document.getElementById('heightInput').value = workflowData.height;
+        } else if (workflowData.checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
             document.getElementById('cfgInput').value = workflowData.cfg;
             document.getElementById('stepsInput').value = workflowData.steps;

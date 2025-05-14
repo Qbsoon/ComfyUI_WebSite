@@ -95,7 +95,7 @@ export async function setWorkflow(uid) {
 		workflow["10"].inputs.filename_prefix = `${uid}/pixart`;
 	} else if (document.getElementById('modelSelect').value === 'hidream_i1_fast_fp8.safetensors') {
 		workflow = await loadWorkflow('HDi1f.json')
-		workflow["3"].inputs.sampler_name = sampler;
+		workflow["16"].inputs.sampler_name = sampler;
 		workflow["3"].inputs.scheduler = scheduler;
 		workflow["3"].inputs.cfg = cfg;
 		workflow["3"].inputs.steps = steps;
@@ -105,6 +105,18 @@ export async function setWorkflow(uid) {
 		workflow["53"].inputs.width = width;
 		workflow["53"].inputs.height = height;
 		workflow["9"].inputs.filename_prefix = `${uid}/hdi1f`;
+	} else if (document.getElementById('modelSelect').value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+		workflow = await loadWorkflow('verusvision.json')
+		workflow["6"].inputs.text = promptP;
+		workflow["16"].inputs.sampler_name = sampler;
+		workflow["17"].inputs.scheduler = scheduler;
+		workflow["17"].inputs.steps = steps;
+		workflow["25"].inputs.noise_seed = seed;
+		workflow["39"].inputs.width = width;
+		workflow["39"].inputs.height = height;
+		workflow["40"].inputs.cfg = cfg;
+		workflow["26"].inputs.guidance = cfg;
+		workflow["9"].inputs.filename_prefix = `${uid}/verusvision`;
 	}
 	return workflow
 }

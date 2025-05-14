@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 import json
 from urllib.parse import quote, unquote
 from PIL import Image
-from flask import Flask, send_from_directory, render_template_string, redirect, request, jsonify, url_for, render_template
+from flask import Flask, send_from_directory, render_template_string, redirect, request, jsonify, url_for, render_template, session
 from flask_cors import CORS
 import os
 import datetime
@@ -137,6 +137,10 @@ app = Flask(__name__, template_folder='pages')
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)
 app.logger.setLevel(logging.DEBUG)
+
+@app.before_request
+def make_session_non_permanent():
+    session.permanent = False
 
 class RegexConverter(BaseConverter):
     def __init__(self, url_map, *items):
@@ -400,6 +404,8 @@ def model_filename(model):
         return 'flux'
     if model=='hidream_i1_fast_fp8.safetensors':
         return 'hdi1f'
+    if model=='VerusVision_1.0b_Transformer_fp8.safetensors':
+        return 'verusvision'
 
 # --- Endpoint generujący manifest IIIF ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
@@ -1083,6 +1089,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
         'FLUX1/flux1-dev-Q8_0.gguf',
         'PixArt-Sigma-XL-2-2K-MS.pth',
         'hidream_i1_fast_fp8.safetensors',
+        'VerusVision_1.0b_Transformer_fp8.safetensors',
     ]
     for cp_name in checkpoints:
         # Check if the checkpoint name (as a string literal) is in the JSON string
@@ -1124,6 +1131,8 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
             positive_prompt = workflow_data.get("5", {}).get("inputs", {}).get("text", "")
         elif checkpoint_name == 'hidream_i1_fast_fp8.safetensors':
             positive_prompt = workflow_data.get("16", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'VerusVision_1.0b_Transformer_fp8.safetensors':
+            positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
         # Add other checkpoint conditions as needed
 
 
