@@ -184,6 +184,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         console.error(`Error loading gallery for target #${target}: Element not found.`);
         return;
     }
+    outputDiv.innerHTML = '';
 
     const isPagedGallery = (target === 'fullGallery' || target === 'publicGallery');
     let currentPage = 1;
@@ -244,7 +245,82 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
 
     const isPublicGallery = customManifestUrl === '/api/public-iiif-manifest';
 
-    outputDiv.innerHTML = '<p>Loading gallery...</p>';
+    const filterControlsDiv = document.createElement('div');
+    filterControlsDiv.className = 'filter-controls';
+    filterControlsDiv.style.gridColumn = '1 / -1'
+    const filterModelSelect = document.createElement('select');
+    filterModelSelect.appendChild(new Option('All Models', 'all'));
+    const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors'];
+    const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)'];
+    models.forEach((model, index) => {
+        const option = new Option(modelNames[index], model);
+        filterModelSelect.appendChild(option);
+    });
+    filterModelSelect.value = model || 'all';
+    filterModelSelect.addEventListener('change', () => {
+        const selectedModel = filterModelSelect.value;
+        if (selectedModel === 'all') {
+            galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, keywordsRadio);
+        } else {
+            galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, keywordsRadio);
+        }
+    });
+
+    const filterKeywords = document.createElement('input');
+    filterKeywords.type = 'text';
+    filterKeywords.id = 'filterKeywords';
+    filterKeywords.placeholder = 'Filter keywords';
+    filterKeywords.title = 'Keywords should be separated by commas';
+    const radioAll = document.createElement('input');
+    radioAll.type = 'radio';
+    radioAll.name = 'keywordsRadio';
+    radioAll.value = 'all';
+    radioAll.checked = true;
+    const radioAny = document.createElement('input');
+    radioAny.type = 'radio';
+    radioAny.name = 'keywordsRadio';
+    radioAny.value = 'any';
+    if (keywordsRadio === 'any') {
+        radioAny.checked = true;
+    }
+    const filterKeywordsBtn = document.createElement('button');
+    filterKeywordsBtn.textContent = 'Filter'
+    filterKeywordsBtn.addEventListener('click', () => {
+        const keywordsText = filterKeywords.value;
+        const radioButtons = document.querySelectorAll('input[name="keywordsRadio"]');
+        let selectedRadio = null;
+        radioButtons.forEach((radio) => {
+            if (radio.checked) {
+                selectedRadio = radio.value;
+            }
+        });
+        if (keywordsText !='') {
+            galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText, selectedRadio);
+        } else {
+            galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText);
+        }
+    });
+
+    if (keywords) {
+        filterKeywords.value = keywords;
+    }
+            
+    filterControlsDiv.appendChild(filterModelSelect);
+    filterControlsDiv.appendChild(filterKeywords);
+    filterControlsDiv.appendChild(radioAll);
+    filterControlsDiv.appendChild(document.createTextNode('All'));
+    filterControlsDiv.appendChild(radioAny);
+    filterControlsDiv.appendChild(document.createTextNode('Any'));
+    filterControlsDiv.appendChild(filterKeywordsBtn);
+    outputDiv.appendChild(filterControlsDiv);
+    
+    const loadingMessage = document.createElement('p');
+    loadingMessage.id = 'loadingP';
+    loadingMessage.style.textAlign = 'center';
+    loadingMessage.style.marginTop = '20px';
+    loadingMessage.textContent = 'Loading gallery...';
+    loadingMessage.style.gridColumn = '1 / -1'; 
+    outputDiv.appendChild(loadingMessage);
 
     try {
         const response = await fetch(manifestUrl);
@@ -257,7 +333,10 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 emptyMessage.textContent = 'Gallery empty';
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.marginTop = '20px';
-                outputDiv.innerHTML = "";
+                emptyMessage.style.gridColumn = '1 / -1'; 
+                if (outputDiv.contains(loadingMessage)) {
+                    outputDiv.removeChild(loadingMessage);
+                }
                 outputDiv.appendChild(emptyMessage);
                 return;
             } else if (response.status === 403) {
@@ -270,8 +349,6 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         }
         const manifest = await response.json();
 
-        outputDiv.innerHTML = '';
-
         if (!manifest.sequences || manifest.sequences.length === 0 || !manifest.sequences[0].canvases || manifest.sequences[0].canvases.length === 0) {
             if (model || keywords) {
                 console.info(`Gallery for target #${target} is empty after filtering.`);
@@ -279,6 +356,10 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 emptyMessage.textContent = 'No images found for selected filters';
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.marginTop = '20px';
+                emptyMessage.style.gridColumn = '1 / -1'; 
+                if (outputDiv.contains(loadingMessage)) {
+                    outputDiv.removeChild(loadingMessage);
+                }
                 outputDiv.appendChild(emptyMessage);
                 return;
             } else {
@@ -287,81 +368,21 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 emptyMessage.textContent = 'Gallery empty';
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.marginTop = '20px';
+                emptyMessage.style.gridColumn = '1 / -1'; 
+                if (outputDiv.contains(loadingMessage)) {
+                    outputDiv.removeChild(loadingMessage);
+                }
                 outputDiv.appendChild(emptyMessage);
                 return;
             }
         }
 
-        const filterControlsDiv = document.createElement('div');
-        filterControlsDiv.className = 'filter-controls';
-        filterControlsDiv.style.gridColumn = '1 / -1'
-        const filterModelSelect = document.createElement('select');
-        filterModelSelect.appendChild(new Option('All Models', 'all'));
-        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors'];
-        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)'];
-        models.forEach((model, index) => {
-            const option = new Option(modelNames[index], model);
-            filterModelSelect.appendChild(option);
-        });
-        filterModelSelect.value = model || 'all';
-        filterModelSelect.addEventListener('change', () => {
-            const selectedModel = filterModelSelect.value;
-            if (selectedModel === 'all') {
-                galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, keywordsRadio);
-            } else {
-                galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, keywordsRadio);
-            }
-        });
+        
+        if (outputDiv.contains(loadingMessage)) {
+            outputDiv.removeChild(loadingMessage);
+        }
 
         if (isPagedGallery) {
-            const filterKeywords = document.createElement('input');
-            filterKeywords.type = 'text';
-            filterKeywords.id = 'filterKeywords';
-            filterKeywords.placeholder = 'Filter keywords';
-            filterKeywords.title = 'Keywords should be separated by commas';
-            const radioAll = document.createElement('input');
-            radioAll.type = 'radio';
-            radioAll.name = 'keywordsRadio';
-            radioAll.value = 'all';
-            radioAll.checked = true;
-            const radioAny = document.createElement('input');
-            radioAny.type = 'radio';
-            radioAny.name = 'keywordsRadio';
-            radioAny.value = 'any';
-            if (keywordsRadio === 'any') {
-                radioAny.checked = true;
-            }
-            const filterKeywordsBtn = document.createElement('button');
-            filterKeywordsBtn.textContent = 'Filter'
-            filterKeywordsBtn.addEventListener('click', () => {
-                const keywordsText = filterKeywords.value;
-                const radioButtons = document.querySelectorAll('input[name="keywordsRadio"]');
-                let selectedRadio = null;
-                radioButtons.forEach((radio) => {
-                    if (radio.checked) {
-                        selectedRadio = radio.value;
-                    }
-                });
-                if (keywordsText !='') {
-                    galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText, selectedRadio);
-                } else {
-                    galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText);
-                }
-            });
-
-                if (keywords) {
-                    filterKeywords.value = keywords;
-                }
-            
-                filterControlsDiv.appendChild(filterModelSelect);
-                filterControlsDiv.appendChild(filterKeywords);
-                filterControlsDiv.appendChild(radioAll);
-                filterControlsDiv.appendChild(document.createTextNode('All'));
-                filterControlsDiv.appendChild(radioAny);
-                filterControlsDiv.appendChild(document.createTextNode('Any'));
-                filterControlsDiv.appendChild(filterKeywordsBtn);
-                outputDiv.appendChild(filterControlsDiv);
-            
                 if (isPagedGallery && manifest.totalCanvases > 0 && imagesPerPage > 0) {
                     const totalPages = Math.ceil(manifest.totalCanvases / imagesPerPage);
                     if (totalPages > 0) { 
