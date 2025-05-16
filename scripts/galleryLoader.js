@@ -292,70 +292,67 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
             }
         }
 
-        if (isPagedGallery && manifest.totalCanvases > 0 && imagesPerPage > 0) {
-            const totalPages = Math.ceil(manifest.totalCanvases / imagesPerPage);
-            if (totalPages > 0) { 
-                const filterControlsDiv = document.createElement('div');
-                filterControlsDiv.className = 'filter-controls';
-                filterControlsDiv.style.gridColumn = '1 / -1';
+        const filterControlsDiv = document.createElement('div');
+        filterControlsDiv.className = 'filter-controls';
+        filterControlsDiv.style.gridColumn = '1 / -1'
+        const filterModelSelect = document.createElement('select');
+        filterModelSelect.appendChild(new Option('All Models', 'all'));
+        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors'];
+        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)'];
+        models.forEach((model, index) => {
+            const option = new Option(modelNames[index], model);
+            filterModelSelect.appendChild(option);
+        });
+        filterModelSelect.value = model || 'all';
+        filterModelSelect.addEventListener('change', () => {
+            const selectedModel = filterModelSelect.value;
+            if (selectedModel === 'all') {
+                galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, keywordsRadio);
+            } else {
+                galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, keywordsRadio);
+            }
+        });
 
-                const filterModelSelect = document.createElement('select');
-                filterModelSelect.appendChild(new Option('All Models', 'all'));
-                const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors'];
-                const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)'];
-                models.forEach((model, index) => {
-                    const option = new Option(modelNames[index], model);
-                    filterModelSelect.appendChild(option);
-                });
-                filterModelSelect.value = model || 'all';
-                filterModelSelect.addEventListener('change', () => {
-                    const selectedModel = filterModelSelect.value;
-                    if (selectedModel === 'all') {
-                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, null, keywords, keywordsRadio);
-                    } else {
-                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, selectedModel, keywords, keywordsRadio);
+        if (isPagedGallery) {
+            const filterKeywords = document.createElement('input');
+            filterKeywords.type = 'text';
+            filterKeywords.id = 'filterKeywords';
+            filterKeywords.placeholder = 'Filter keywords';
+            filterKeywords.title = 'Keywords should be separated by commas';
+            const radioAll = document.createElement('input');
+            radioAll.type = 'radio';
+            radioAll.name = 'keywordsRadio';
+            radioAll.value = 'all';
+            radioAll.checked = true;
+            const radioAny = document.createElement('input');
+            radioAny.type = 'radio';
+            radioAny.name = 'keywordsRadio';
+            radioAny.value = 'any';
+            if (keywordsRadio === 'any') {
+                radioAny.checked = true;
+            }
+            const filterKeywordsBtn = document.createElement('button');
+            filterKeywordsBtn.textContent = 'Filter'
+            filterKeywordsBtn.addEventListener('click', () => {
+                const keywordsText = filterKeywords.value;
+                const radioButtons = document.querySelectorAll('input[name="keywordsRadio"]');
+                let selectedRadio = null;
+                radioButtons.forEach((radio) => {
+                    if (radio.checked) {
+                        selectedRadio = radio.value;
                     }
                 });
-
-                const filterKeywords = document.createElement('input');
-                filterKeywords.type = 'text';
-                filterKeywords.id = 'filterKeywords';
-                filterKeywords.placeholder = 'Filter keywords';
-                filterKeywords.title = 'Keywords should be separated by commas';
-                const radioAll = document.createElement('input');
-                radioAll.type = 'radio';
-                radioAll.name = 'keywordsRadio';
-                radioAll.value = 'all';
-                radioAll.checked = true;
-                const radioAny = document.createElement('input');
-                radioAny.type = 'radio';
-                radioAny.name = 'keywordsRadio';
-                radioAny.value = 'any';
-                if (keywordsRadio === 'any') {
-                    radioAny.checked = true;
+                if (keywordsText !='') {
+                    galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText, selectedRadio);
+                } else {
+                    galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText);
                 }
-                const filterKeywordsBtn = document.createElement('button');
-                filterKeywordsBtn.textContent = 'Filter'
-                filterKeywordsBtn.addEventListener('click', () => {
-                    const keywordsText = filterKeywords.value;
-                    const radioButtons = document.querySelectorAll('input[name="keywordsRadio"]');
-                    let selectedRadio = null;
-                    radioButtons.forEach((radio) => {
-                        if (radio.checked) {
-                            selectedRadio = radio.value;
-                        }
-                    });
-                    if (keywordsText !='') {
-                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText, selectedRadio);
-                    } else {
-                        galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText);
-                    }
-                });
+            });
 
                 if (keywords) {
                     filterKeywords.value = keywords;
                 }
-
+            
                 filterControlsDiv.appendChild(filterModelSelect);
                 filterControlsDiv.appendChild(filterKeywords);
                 filterControlsDiv.appendChild(radioAll);
@@ -364,49 +361,53 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 filterControlsDiv.appendChild(document.createTextNode('Any'));
                 filterControlsDiv.appendChild(filterKeywordsBtn);
                 outputDiv.appendChild(filterControlsDiv);
+            
+                if (isPagedGallery && manifest.totalCanvases > 0 && imagesPerPage > 0) {
+                    const totalPages = Math.ceil(manifest.totalCanvases / imagesPerPage);
+                    if (totalPages > 0) { 
+                    
+                        const pagingControlsDiv = document.createElement('div');
+                        pagingControlsDiv.className = 'paged-controls';
+                        pagingControlsDiv.style.gridColumn = '1 / -1'; 
+                    
+                        const firstBtn = document.createElement('button');
+                        firstBtn.textContent = 'First';
+                        firstBtn.disabled = currentPage === 1;
+                        firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl, model, keywords, keywordsRadio));
+                    
+                        const prevBtn = document.createElement('button');
+                        prevBtn.textContent = 'Previous';
+                        prevBtn.disabled = currentPage === 1;
+                        prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl, model, keywords, keywordsRadio));
+                    
+                        const pageInfo = document.createElement('span');
+                        pageInfo.textContent = `${currentPage}/${totalPages}`;
+                        pageInfo.style.margin = '0 10px'; 
+                    
+                        const nextBtn = document.createElement('button');
+                        nextBtn.textContent = 'Next';
+                        nextBtn.disabled = currentPage === totalPages;
+                        nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl, model, keywords, keywordsRadio));
+                    
+                        const lastBtn = document.createElement('button');
+                        lastBtn.textContent = 'Last';
+                        lastBtn.disabled = currentPage === totalPages;
+                        lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl, model, keywords, keywordsRadio));
 
-                const pagingControlsDiv = document.createElement('div');
-                pagingControlsDiv.className = 'paged-controls';
-                pagingControlsDiv.style.gridColumn = '1 / -1'; 
-
-                const firstBtn = document.createElement('button');
-                firstBtn.textContent = 'First';
-                firstBtn.disabled = currentPage === 1;
-                firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl, model, keywords, keywordsRadio));
-
-                const prevBtn = document.createElement('button');
-                prevBtn.textContent = 'Previous';
-                prevBtn.disabled = currentPage === 1;
-                prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl, model, keywords, keywordsRadio));
-
-                const pageInfo = document.createElement('span');
-                pageInfo.textContent = `${currentPage}/${totalPages}`;
-                pageInfo.style.margin = '0 10px'; 
-
-                const nextBtn = document.createElement('button');
-                nextBtn.textContent = 'Next';
-                nextBtn.disabled = currentPage === totalPages;
-                nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl, model, keywords, keywordsRadio));
-
-                const lastBtn = document.createElement('button');
-                lastBtn.textContent = 'Last';
-                lastBtn.disabled = currentPage === totalPages;
-                lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl, model, keywords, keywordsRadio));
-                
-                [firstBtn, prevBtn, nextBtn, lastBtn].forEach(btn => {
-                    btn.style.margin = "0 5px"; 
-                    btn.style.padding = "5px 10px";
-                });
-
-                pagingControlsDiv.appendChild(firstBtn);
-                pagingControlsDiv.appendChild(prevBtn);
-                pagingControlsDiv.appendChild(pageInfo);
-                pagingControlsDiv.appendChild(nextBtn);
-                pagingControlsDiv.appendChild(lastBtn);
-                outputDiv.appendChild(pagingControlsDiv); 
+                        [firstBtn, prevBtn, nextBtn, lastBtn].forEach(btn => {
+                            btn.style.margin = "0 5px"; 
+                            btn.style.padding = "5px 10px";
+                        });
+                    
+                        pagingControlsDiv.appendChild(firstBtn);
+                        pagingControlsDiv.appendChild(prevBtn);
+                        pagingControlsDiv.appendChild(pageInfo);
+                        pagingControlsDiv.appendChild(nextBtn);
+                        pagingControlsDiv.appendChild(lastBtn);
+                        outputDiv.appendChild(pagingControlsDiv); 
+                    }
+                }
             }
-        }
-
         const canvases = manifest.sequences[0].canvases;
 
         canvases.forEach(canvas => {
