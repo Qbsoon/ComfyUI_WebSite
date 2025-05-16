@@ -9,7 +9,7 @@ const queueLimit = 3;
 
 function updateGridVariables(limit_start = null, limit_end = null) {
     
-    const lastNum = Math.round(window.innerWidth / 320);
+    const lastNum = Math.round(window.innerWidth / 202);
     const fullGallery = document.getElementById('fullGallery');
     const lastGallery = document.getElementById('lastGallery');
     const publicGallery = document.getElementById('publicGallery');
@@ -185,8 +185,11 @@ function changeModel() {
     }
 }
 
+let queueItems = [];
+
 async function generateImage(workflow) {
     try {
+        const outputDiv = document.getElementById('output');
         fetchAndUpdateComfyUIQueueDisplay();
 	    const progressName = document.getElementById('progressName');
         const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
@@ -197,6 +200,8 @@ async function generateImage(workflow) {
         } else {
             progressName.innerText = 'Processing...';
         }
+        const queueItem = document.createElement('div');
+
         // Wysłanie zapytania do kolejki serwera ComfyUI
 		console.log('Sending workflow');
         const result = await client.enqueue(workflow, {
@@ -221,7 +226,6 @@ async function generateImage(workflow) {
         };
     
         // Wyświetlenie nowego obrazu
-        const outputDiv = document.getElementById('output');
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
 		updateGridVariables();
@@ -331,7 +335,7 @@ document.getElementById('logoutButton').addEventListener('click', () => {
 
 export async function init() {
     switchTab('generator');
-    updateGridVariables();
+    //updateGridVariables();
     updateResRatio();
 }
 

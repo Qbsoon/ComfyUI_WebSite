@@ -118,6 +118,9 @@ export async function setWorkflow(uid) {
 		workflow["26"].inputs.guidance = cfg;
 		workflow["9"].inputs.filename_prefix = `${uid}/verusvision`;
 	}
+	let response = await fetch('/api/prompt-unique-id')
+	let uniquePromptId = await response.json();
+	workflow["99"]._meta.title = uniquePromptId.unique_id;
 	return workflow
 }
 

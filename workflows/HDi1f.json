@@ -108,5 +108,14 @@
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader"
+  },
+  "99": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "PromptID"
+    }
   }
 }

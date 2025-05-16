@@ -151,5 +151,14 @@
       ]
     },
     "class_type": "CLIPTextEncode"
+  },
+  "99": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "PromptID"
+    }
   }
 }

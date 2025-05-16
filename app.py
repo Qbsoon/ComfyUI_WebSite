@@ -27,6 +27,8 @@ MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
 _latest_server_queue_count = -1
 _server_queue_count_lock = threading.Lock()
+NEXT_PROMPT_UNIQUE_ID = 0
+NEXT_PROMPT_UNIQUE_ID_LOCK = threading.Lock()
 # --- End Configuration ---
 
 # --- Monitoring Script Functions (adapted for Flask logger) ---
@@ -1153,6 +1155,16 @@ def get_server_queue_count_endpoint():
     if count_to_return == -1:
         return jsonify({"success": False, "error": "Queue count not available or error fetching.", "queue_count": -1}), 503
     return jsonify({"success": True, "queue_count": count_to_return})
+
+# Get and increment prompt unique variable
+@app.route('/api/prompt-unique-id', methods=['GET'])
+@login_required
+def get_prompt_unique_id():
+    global NEXT_PROMPT_UNIQUE_ID
+    with NEXT_PROMPT_UNIQUE_ID_LOCK:
+        PROMPT_UNIQUE_ID = hex(NEXT_PROMPT_UNIQUE_ID)
+        NEXT_PROMPT_UNIQUE_ID += 1
+    return jsonify({"success": True, "unique_id": PROMPT_UNIQUE_ID})
 
 # General route to serve files in all other directories
 @app.route("/<path:directory>/<filename>")

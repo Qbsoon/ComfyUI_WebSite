@@ -104,5 +104,14 @@
         ]
       },
       "class_type": "SaveImage"
+    },
+    "99": {
+      "inputs": {
+        "value": ""
+      },
+      "class_type": "PrimitiveString",
+      "_meta": {
+        "title": "PromptID"
+      }
     }
 }
