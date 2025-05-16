@@ -187,21 +187,91 @@ function changeModel() {
 
 let queueItems = [];
 
+async function getTaskIdByUniqueId(uniqueTaskId) {
+  const queue = await client.getQueue();
+  console.log("Full Queue Response:", queue);
+
+  // Tag tasks with their queue type.
+  const runningTasks = (Array.isArray(queue.Running) ? queue.Running : []).map(task => ({
+    queue: "Running",
+    task
+  }));
+  const pendingTasks = (Array.isArray(queue.Pending) ? queue.Pending : []).map(task => ({
+    queue: "Pending",
+    task
+  }));
+
+  // Combine both arrays.
+  const allTasks = runningTasks.concat(pendingTasks);
+
+  // Find the task whose metadata '_meta.title' matches uniqueTaskId.
+  // (Using optional chaining to avoid errors if any properties are undefined.)
+  const found = allTasks.find(
+    ({ task }) => task.prompt[2]?.["99"]?._meta?.title === uniqueTaskId
+  );
+
+  // If a match is found, return an array with the queue type and the task identifier.
+  return found ? [found.queue, found.task.prompt[1]] : null;
+}
+
+
+async function removeTaskByTaskId(task) {
+    if (!task) {
+        console.error("Task not found!");
+        return;
+    }
+    
+    if (task[0] === 'Running') {
+        try {
+            console.log("Task is running, interrupting it.");
+            await client.interrupt(task[1]);
+        } catch (error) {
+            console.error("Error interrupting task:", error);
+        }
+    } else {
+        try {
+            await client.deleteItem('queue', task[1]);
+            console.log(`Task ${task[1]} removed successfully from queue.`);
+        } catch (error) {
+            console.error("Error removing task:", error);
+        }
+    }
+}
+
 async function generateImage(workflow) {
     try {
         const outputDiv = document.getElementById('output');
+        const queueDisplay = document.getElementById('queueDisplay');
         fetchAndUpdateComfyUIQueueDisplay();
 	    const progressName = document.getElementById('progressName');
         const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
         const comfyQueueOutputValue = comfyQueueOutputEl.innerText.charAt(comfyQueueOutputEl.innerText.length-1);
-        console.log(`ComfyUI queue output value: ${comfyQueueOutputValue}`);
         if (comfyQueueOutputValue > 0) {
             progressName.innerText = 'Queued...';
         } else {
             progressName.innerText = 'Processing...';
         }
         const queueItem = document.createElement('div');
+        queueItem.className = 'queue-item';
+        const metaUniqueId = workflow["99"]._meta.title;
+        queueItem.innerText = `Task: ${metaUniqueId}`;
+        const queueItemDeleteBtn = document.createElement('button');
+        queueItemDeleteBtn.textContent = 'Cancel';
+        queueItemDeleteBtn.addEventListener('click', () => {
+            getTaskIdByUniqueId(metaUniqueId).then(taskId => {
+                removeTaskByTaskId(taskId)
+            });
+            queueDisplay.removeChild(queueItem);
+            queue = queue - 1;
 
+            const index = queueItems.indexOf(queueItem);
+            if (index > -1) {
+                queueItems.splice(index, 1);
+            }
+        });
+        queueItem.appendChild(queueItemDeleteBtn);
+        queueItems.push(queueItem);
+        queueDisplay.appendChild(queueItems[queueItems.length - 1]);
         // Wysłanie zapytania do kolejki serwera ComfyUI
 		console.log('Sending workflow');
         const result = await client.enqueue(workflow, {
@@ -234,8 +304,9 @@ async function generateImage(workflow) {
         alert('Failed to generate image. Check the console for details.');
     }
     queue = queue - 1;
+    queueDisplay.removeChild(queueItems[0]);
+    queueItems.shift();
     sessionStorage.setItem('comfyQueueCount', queue.toString());
-    console.log(`Queue: ${queue}`)
     document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
 }
 
