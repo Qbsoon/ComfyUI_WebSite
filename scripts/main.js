@@ -410,6 +410,13 @@ document.getElementById('logoutButton').addEventListener('click', () => {
     window.location.href = '/logout';
 });
 
+const Rbuttons = document.querySelectorAll('.refresh-button');
+Rbuttons.forEach(button => {
+    button.addEventListener('click', () => {
+        updateGridVariables();
+    });
+});
+
 export async function init() {
     switchTab('generator');
     //updateGridVariables();
