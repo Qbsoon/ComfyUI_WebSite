@@ -305,6 +305,7 @@ async function generateImage(workflow) {
         // Wyświetlenie nowego obrazu
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
+        updateGridVariables();
     } catch (error) {
         console.error('Error generating image:', error);
         alert('Failed to generate image. Check the console for details.');
@@ -370,6 +371,60 @@ export function updateResRatio() {
     }
 }
 
+export function restoreModelDefaults() {
+    const checkpointName = document.getElementById('modelSelect').value;
+    if (checkpointName === 'sd_xl_base_1.0.safetensors') {
+        document.getElementById('schedulerSelect').value = "normal";
+        document.getElementById('samplerSelect').value = "euler";
+        document.getElementById('cfgInput').value = 8;
+        document.getElementById('stepsInput').value = 20;
+        document.getElementById('stepsRefineInput').value = 5;
+        document.getElementById('widthInput').value = 1024;
+        document.getElementById('heightInput').value = 1024;
+    } else if (checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
+        document.getElementById('schedulerSelect').value = "sgm_uniform";
+        document.getElementById('samplerSelect').value = "euler";
+        document.getElementById('cfgInput').value = 4;
+        document.getElementById('stepsInput').value = 20;
+        document.getElementById('widthInput').value = 1024;
+        document.getElementById('heightInput').value = 1024;
+    } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
+        document.getElementById('samplerSelect').value = "euler_ancestral";
+        document.getElementById('cfgInput').value = 1;
+        document.getElementById('stepsInput').value = 5;
+        document.getElementById('widthInput').value = 512;
+        document.getElementById('heightInput').value = 512;
+    } else if (checkpointName === 'flux1-dev-Q8_0.gguf') {
+        document.getElementById('schedulerSelect').value = "normal";
+        document.getElementById('samplerSelect').value = "euler";
+        document.getElementById('guidanceInput').value = 2;
+        document.getElementById('stepsInput').value = 25;
+        document.getElementById('widthInput').value = 1024;
+        document.getElementById('heightInput').value = 1024;
+    } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+        document.getElementById('schedulerSelect').value = "normal";
+        document.getElementById('samplerSelect').value = "euler_ancestral";
+        document.getElementById('cfgInput').value = 7;
+        document.getElementById('stepsInput').value = 20;
+        document.getElementById('ratioInput').value = 1;
+    } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+        document.getElementById('schedulerSelect').value = 'normal';
+        document.getElementById('samplerSelect').value = 'lcm';
+        document.getElementById('cfgInput').value = 1;
+        document.getElementById('stepsInput').value = 16;
+        document.getElementById('widthInput').value = 1024;
+        document.getElementById('heightInput').value = 1024;
+    } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+        document.getElementById('schedulerSelect').value = 'beta';
+        document.getElementById('samplerSelect').value = 'euler';
+        document.getElementById('cfgInput').value = 3.5;
+        document.getElementById('stepsInput').value = 25;
+        document.getElementById('widthInput').value = 1024;
+        document.getElementById('heightInput').value = 1024;
+    }
+
+}
+
 window.loadImages = galleryLoad;
 
 // EventListenery
@@ -417,10 +472,17 @@ Rbuttons.forEach(button => {
     });
 });
 
+const modelDefaultBtn = document.getElementById('modelDefaults');
+modelDefaultBtn.addEventListener('click', () => {
+    restoreModelDefaults();
+    updateResRatio();
+});
+
 export async function init() {
     switchTab('generator');
     //updateGridVariables();
     updateResRatio();
+    restoreModelDefaults();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

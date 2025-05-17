@@ -39,6 +39,7 @@
                     <option value="VerusVision_1.0b_Transformer_fp8.safetensors">Verus Vision 1.0b Transformer (fp8)</option>
                     <!-- <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option> -->
                 </select>
+                <button id="modelDefaults">Model Defaults</button>
             </div>
             <div class="textarea-row">
                 <label for="positivePrompt">Positive Prompt</label>
@@ -105,9 +106,9 @@
                 <label for="guidanceInput" id="guidanceLabel" hidden="true">Guidance</label>
                 <input type="number" id="guidanceInput" min="1" max="10" step="0.1" value="2" hidden="true" />
                 <label for="stepsInput">Steps</label>
-                <input type="number" id="stepsInput" min="20" max="70" step="1" value="25" />
+                <input type="number" id="stepsInput" min="1" max="70" step="1" value="25" />
                 <label id="stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
-                <input type="number" id="stepsRefineInput" min="20" max="70" step="1" value="20" hidden="true" />
+                <input type="number" id="stepsRefineInput" min="1" max="70" step="1" value="20" hidden="true" />
             </div>
             <div class="row">
                 <label for="widthInput" id="widthLabel">Width</label>
