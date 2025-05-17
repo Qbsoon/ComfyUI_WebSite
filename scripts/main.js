@@ -751,6 +751,7 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('widthInput').value = workflowData.width;
             document.getElementById('heightInput').value = workflowData.height;
         }
+        updateResRatio();
         lightboxCopyParametersBtn.dataset.workflowData = null;
     });
 }
