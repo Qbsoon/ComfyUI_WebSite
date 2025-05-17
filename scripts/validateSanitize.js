@@ -41,7 +41,7 @@ export function validateInputs() {
     }
 
     if (model === 'sd_xl_base_1.0.safetensors' && (isNaN(stepsRefineInput) || stepsRefineInput < 1 || stepsRefineInput+stepsInput > stepsMaxLimit || !Number.isInteger(stepsRefineInput))) {
-        alert('Suma Steps i Refiner Steps  musi być liczbą całkowitą pomiędzy 1 a' + stepsMaxLimit +'.');
+        alert('Suma Steps i Refiner Steps musi być liczbą całkowitą pomiędzy 1 a' + stepsMaxLimit +'.');
         throw new Error('Validation failed on stepsRefineInput')
     }
 

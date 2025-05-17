@@ -142,6 +142,7 @@ function changeModel() {
     document.getElementById('heightInput').hidden = false;
     document.getElementById('heightLabel').hidden = false;
     document.getElementById('ratioOutput').hidden = false;
+    document.getElementById('stepsInput').max = 70;
     
     if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
         document.getElementById('stepsRefineInput').hidden = false;
@@ -152,6 +153,7 @@ function changeModel() {
         document.getElementById('schedulerLabel').hidden = true;
         document.getElementById('cfgInput').hidden = true;
         document.getElementById('cfgLabel').hidden = true;
+        document.getElementById('stepsInput').max = 10;
     } 
     if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
         document.getElementById('negativePromptBox').hidden = true;
@@ -169,19 +171,8 @@ function changeModel() {
         document.getElementById('heightLabel').hidden = true;
         document.getElementById('ratioOutput').hidden = true;
     }
-    if (document.getElementById('modelSelect').value === 'hidream_i1_fast_fp8.safetensors') {
-        document.getElementById('schedulerSelect').value = 'normal';
-        document.getElementById('samplerSelect').value = 'lcm';
-        document.getElementById('stepsInput').value = 16;
-        document.getElementById('cfgInput').value = 1.0;
-    }
     if (document.getElementById('modelSelect').value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
         document.getElementById('negativePromptBox').hidden = true;
-
-        document.getElementById('schedulerSelect').value = 'beta';
-        document.getElementById('samplerSelect').value = 'euler';
-        document.getElementById('stepsInput').value = 30;
-        document.getElementById('cfgInput').value = 3.5;
     }
 }
 
