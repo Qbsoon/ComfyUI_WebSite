@@ -238,6 +238,10 @@ async function removeTaskByTaskId(task) {
     }
 }
 
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function generateImage(workflow) {
     try {
         const outputDiv = document.getElementById('output');
@@ -257,12 +261,15 @@ async function generateImage(workflow) {
         queueItem.innerText = `Task: ${metaUniqueId}`;
         const queueItemDeleteBtn = document.createElement('button');
         queueItemDeleteBtn.textContent = 'Cancel';
-        queueItemDeleteBtn.addEventListener('click', () => {
-            getTaskIdByUniqueId(metaUniqueId).then(taskId => {
-                removeTaskByTaskId(taskId)
-            });
+        queueItemDeleteBtn.addEventListener('click', async () => {
+            const taskId = await getTaskIdByUniqueId(metaUniqueId);
+            removeTaskByTaskId(taskId);
             queueDisplay.removeChild(queueItem);
             queue = queue - 1;
+            await wait(500);
+            document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+            updateProgressBar(0, 100);
+            progressName.innerText = 'Canceled by user';
 
             const index = queueItems.indexOf(queueItem);
             if (index > -1) {
@@ -298,7 +305,6 @@ async function generateImage(workflow) {
         // Wyświetlenie nowego obrazu
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
-		updateGridVariables();
     } catch (error) {
         console.error('Error generating image:', error);
         alert('Failed to generate image. Check the console for details.');
