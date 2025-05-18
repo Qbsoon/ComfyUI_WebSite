@@ -15,6 +15,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_ldap3_login import LDAP3LoginManager
 import ssl
 import logging
+from logging.handlers import RotatingFileHandler
 import threading
 import time
 import requests
@@ -138,7 +139,33 @@ logging.getLogger('ldap3').setLevel(logging.DEBUG)
 app = Flask(__name__, template_folder='pages')
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 CORS(app)
+
+# --- Logging Configuration ---
+log_directory = "logs"
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
+log_file = os.path.join(log_directory, "comfy_site.log")
+
+# Rotate logs: 10 MB per file, keep last 10 files
+file_handler = RotatingFileHandler(log_file, maxBytes=1024*1024*10, backupCount=9)
+
+# Format: 2025-05-18 10:00:00,123 INFO in app: Log message
+log_formatter = logging.Formatter(
+    '%(asctime)s %(levelname)s in %(module)s: %(message)s'
+)
+
+file_handler.setFormatter(log_formatter)
+file_handler.setLevel(logging.DEBUG)
+app.logger.addHandler(file_handler)
 app.logger.setLevel(logging.DEBUG)
+
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.setLevel(logging.WARNING)
+
+app.logger.info('Site file logging configured (always active).')
+
+# --- End of Logging Configuration ---
 
 @app.before_request
 def make_session_non_permanent():
@@ -203,8 +230,25 @@ class User(UserMixin):
 # --- Funkcje obsługi użytkownika ---
 @login_manager.user_loader
 def load_user(user_id):
-    """Ładuje użytkownika na podstawie DN zapisanego w sesji."""
-    app.logger.debug(f"--- user_loader called with user_id (DN): {user_id} ---")
+    # Ładuje użytkownika na podstawie DN zapisanego w sesji.
+    #app.logger.debug(f"--- user_loader called with user_id (DN): {user_id} ---")
+    cached_user_profile = session.get('user_profile')
+    if cached_user_profile and cached_user_profile.get('dn') == user_id:
+        #app.logger.debug(f"user_loader: Found user profile in session for DN: {user_id}")
+        try:
+            user = User(
+                dn=cached_user_profile['dn'],
+                username=cached_user_profile['username'],
+                data=cached_user_profile['attributes']
+            )
+            #app.logger.info(f"user_loader: Successfully loaded user {user.username} from session cache.")
+            #app.logger.debug(f"--- user_loader finished for user_id (from cache): {user_id} ---")
+            return user
+        except KeyError as e:
+            app.logger.warning(f"user_loader: Missing key {e} in cached_user_profile. Invalidating cache for {user_id}.")
+            session.pop('user_profile', None)
+
+    app.logger.debug(f"user_loader: No valid user profile in session for DN {user_id}. Querying LDAP.")
     conn = None
     try:
         tls_config = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1_2)
@@ -237,6 +281,13 @@ def load_user(user_id):
 
                 username = user_data.get(app.config['LDAP_USER_LOGIN_ATTR'], None)
                 if username:
+                    user_profile_for_session = {
+                        'dn': entry.entry_dn,
+                        'username': username,
+                        'attributes': user_attributes_dict
+                    }
+                    session['user_profile'] = user_profile_for_session
+                    app.logger.debug(f"user_loader: Stored user profile in session for {username}")
                     user = User(dn=entry.entry_dn, username=username, data=user_data)
                     app.logger.info(f"user_loader: Successfully loaded user {username}")
                     return user
@@ -259,7 +310,7 @@ def load_user(user_id):
     finally:
         if conn and conn.bound:
             conn.unbind()
-        app.logger.debug(f"--- user_loader finished for user_id: {user_id} ---")
+        #app.logger.debug(f"--- user_loader finished for user_id: {user_id} ---")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -319,12 +370,23 @@ def login():
 
                     if len(conn.entries) == 1:
                         entry = conn.entries[0]
+                        actual_user_dn = entry.entry_dn
                         app.logger.debug(f"Manual Auth: User entry found: {entry.entry_dn}")
                         app.logger.debug(f"Manual Auth: User attributes: {entry.entry_attributes_as_dict}")
 
                         user_data = {k: v[0] for k, v in entry.entry_attributes_as_dict.items() if v}
 
-                        user = User(dn=entry.entry_dn, username=username, data=user_data)
+                        user_attributes_dict = {k: v[0] for k, v in entry.entry_attributes_as_dict.items() if v}
+
+                        user_profile_for_session = {
+                            'dn': actual_user_dn,
+                            'username': username,
+                            'attributes': user_attributes_dict
+                        }
+                        session['user_profile'] = user_profile_for_session
+                        app.logger.debug(f"Manual Auth: Stored user profile in session for {username}")
+
+                        user = User(dn=entry.entry_dn, username=username, data=user_attributes_dict)
                         login_user(user)
                         app.logger.info(f"User {username} object created and logged in via Flask-Login.")
                         try:
@@ -364,6 +426,7 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    session.pop('user_profile', None)
     logout_user()
     app.logger.info("User logged out.")
     return redirect(url_for('login'))
