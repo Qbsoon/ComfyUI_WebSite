@@ -233,6 +233,16 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function updateQueueItemsIds() {
+    if (!queueItems || queueItems.length === 0) {
+        return;
+    }
+    for (let index = 0; index < queueItems.length; index++) {
+        const taskNoText = queueItems[index].querySelector('.task-no-text');
+        taskNoText.innerText = `Task #${index + 1}`;
+    }
+}
+
 async function generateImage(workflow) {
     try {
         const outputDiv = document.getElementById('output');
@@ -249,27 +259,31 @@ async function generateImage(workflow) {
         const queueItem = document.createElement('div');
         queueItem.className = 'queue-item';
         const metaUniqueId = workflow["99"]._meta.title;
-        queueItem.innerText = `Task: ${metaUniqueId}`;
+        const taskNoText = document.createElement('span');
+        taskNoText.innerText = `Task #${queueItems.length + 1}`;
+        taskNoText.className = 'task-no-text';
+        queueItem.appendChild(taskNoText);
         const queueItemDeleteBtn = document.createElement('button');
         queueItemDeleteBtn.textContent = 'Cancel';
         queueItemDeleteBtn.addEventListener('click', async () => {
             const taskId = await getTaskIdByUniqueId(metaUniqueId);
             removeTaskByTaskId(taskId);
             queueDisplay.removeChild(queueItem);
+            const index = queueItems.indexOf(queueItem);
+            if (index > -1) {
+                queueItems.splice(index, 1);
+            }
+            updateQueueItemsIds();
             queue = queue - 1;
             await wait(500);
             document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
             updateProgressBar(0, 100);
             progressName.innerText = 'Canceled by user';
-
-            const index = queueItems.indexOf(queueItem);
-            if (index > -1) {
-                queueItems.splice(index, 1);
-            }
         });
         queueItem.appendChild(queueItemDeleteBtn);
         queueItems.push(queueItem);
         queueDisplay.appendChild(queueItems[queueItems.length - 1]);
+        updateQueueItemsIds();
         // Wysłanie zapytania do kolejki serwera ComfyUI
 		console.log('Sending workflow');
         const result = await client.enqueue(workflow, {
@@ -297,6 +311,7 @@ async function generateImage(workflow) {
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
         updateGridVariables();
+        updateQueueItemsIds();
     } catch (error) {
         console.error('Error generating image:', error);
         alert('Failed to generate image. Check the console for details.');
