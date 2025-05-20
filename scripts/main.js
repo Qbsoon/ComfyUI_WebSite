@@ -63,6 +63,7 @@ function updateProgressBar(value, max) {
 	} else {
 		progressName.innerText = '';
 	}
+    updateQueueItemsIds();
 }
 
 let comfyQueuePollIntervalId = null; // For ComfyUI queue polling
@@ -179,31 +180,47 @@ function changeModel() {
 let queueItems = [];
 
 async function getTaskIdByUniqueId(uniqueTaskId) {
-  const queue = await client.getQueue();
-  console.log("Full Queue Response:", queue);
+    const queue = await client.getQueue();
 
-  // Tag tasks with their queue type.
-  const runningTasks = (Array.isArray(queue.Running) ? queue.Running : []).map(task => ({
-    queue: "Running",
-    task
-  }));
-  const pendingTasks = (Array.isArray(queue.Pending) ? queue.Pending : []).map(task => ({
-    queue: "Pending",
-    task
-  }));
+    const runningTasks = (Array.isArray(queue.Running) ? queue.Running : []).map(task => ({
+        queue: "Running",
+        task
+    }));
+    const pendingTasks = (Array.isArray(queue.Pending) ? queue.Pending : []).map(task => ({
+        queue: "Pending",
+        task
+    }));
 
-  // Combine both arrays.
-  const allTasks = runningTasks.concat(pendingTasks);
+    const allTasks = runningTasks.concat(pendingTasks);
 
-  // Find the task whose metadata '_meta.title' matches uniqueTaskId.
-  // (Using optional chaining to avoid errors if any properties are undefined.)
-  const found = allTasks.find(
-    ({ task }) => task.prompt[2]?.["99"]?._meta?.title === uniqueTaskId
-  );
+    const found = allTasks.find(
+        ({ task }) => task.prompt[2]?.["99"]?._meta?.title === uniqueTaskId
+    );
 
-  // If a match is found, return an array with the queue type and the task identifier.
-  return found ? [found.queue, found.task.prompt[1]] : null;
+    return found ? [found.queue, found.task.prompt[1]] : null;
 }
+
+async function getTaskNoByUniqueId(uniqueTaskId) {
+    const queue = await client.getQueue();
+
+    const runningTasks = (Array.isArray(queue.Running) ? queue.Running : []).map(task => ({
+        queue: "Running",
+        task
+    }));
+    const pendingTasks = (Array.isArray(queue.Pending) ? queue.Pending : []).map(task => ({
+        queue: "Pending",
+        task
+    }));
+
+    const allTasks = runningTasks.concat(pendingTasks);
+
+    const foundIndex = allTasks.findIndex(
+        ({ task }) => task.prompt[2]?.["99"]?._meta?.title === uniqueTaskId
+    );
+
+    return foundIndex ? foundIndex + 1 : (foundIndex === 0 ? 1 : -1);
+}
+
 
 
 async function removeTaskByTaskId(task) {
@@ -233,13 +250,14 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function updateQueueItemsIds() {
+async function updateQueueItemsIds() {
     if (!queueItems || queueItems.length === 0) {
         return;
     }
     for (let index = 0; index < queueItems.length; index++) {
         const taskNoText = queueItems[index].querySelector('.task-no-text');
-        taskNoText.innerText = `Task #${index + 1}`;
+        const serverQueueNo = await getTaskNoByUniqueId(taskNoText.id);
+        taskNoText.innerHTML = `Task #${index + 1}<br>Server Queue: ${serverQueueNo}`;
     }
 }
 
@@ -262,6 +280,7 @@ async function generateImage(workflow) {
         const taskNoText = document.createElement('span');
         taskNoText.innerText = `Task #${queueItems.length + 1}`;
         taskNoText.className = 'task-no-text';
+        taskNoText.id = `${metaUniqueId}`;
         queueItem.appendChild(taskNoText);
         const queueItemDeleteBtn = document.createElement('button');
         queueItemDeleteBtn.textContent = 'Cancel';
