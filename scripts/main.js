@@ -84,6 +84,7 @@ async function fetchAndUpdateComfyUIQueueDisplay() {
         }
 
         const data = await response.json();
+        updateQueueItemsIds();
 
         if (data.success) {
             const latestComfyUIServerQueueCount = data.queue_count;
