@@ -257,7 +257,7 @@ async function updateQueueItemsIds() {
     for (let index = 0; index < queueItems.length; index++) {
         const taskNoText = queueItems[index].querySelector('.task-no-text');
         const serverQueueNo = await getTaskNoByUniqueId(taskNoText.id);
-        taskNoText.innerHTML = `Task #${index + 1}<br>Server Queue: ${serverQueueNo}`;
+        taskNoText.innerHTML = `Task #${index + 1}<br>TaskID: ${taskNoText.id}<br>Server Queue: ${serverQueueNo}`;
     }
 }
 
@@ -294,6 +294,7 @@ async function generateImage(workflow) {
             }
             updateQueueItemsIds();
             queue = queue - 1;
+            sessionStorage.setItem('comfyQueueCount', queue.toString());
             await wait(500);
             document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
             updateProgressBar(0, 100);
