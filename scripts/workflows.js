@@ -95,7 +95,7 @@ export async function setWorkflow(uid) {
 		workflow["10"].inputs.filename_prefix = `${uid}/pixart`;
 	} else if (document.getElementById('modelSelect').value === 'hidream_i1_fast_fp8.safetensors') {
 		workflow = await loadWorkflow('HDi1f.json')
-		workflow["16"].inputs.sampler_name = sampler;
+		workflow["3"].inputs.sampler_name = sampler;
 		workflow["3"].inputs.scheduler = scheduler;
 		workflow["3"].inputs.cfg = cfg;
 		workflow["3"].inputs.steps = steps;
