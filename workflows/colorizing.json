@@ -1,0 +1,225 @@
+{
+	"1": {
+		"inputs": {
+    		"ckpt_name": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
+		},
+    	"class_type": "CheckpointLoaderSimple"
+	},
+	"2": {
+    	"inputs": {
+    		"seed": 505342203118005,
+    		"steps": 5,
+    		"cfg": 1.98,
+    		"sampler_name": "dpmpp_sde",
+    		"scheduler": "karras",
+    		"denoise": 1,
+    		"model": [
+    			"1",
+    			0
+    		],
+    		"positive": [
+    		  "98",
+    		  0
+    		],
+    		"negative": [
+    		  "98",
+    		  1
+    		],
+    		"latent_image": [
+    		  "22",
+    		  0
+    		]
+    	},
+    	"class_type": "KSampler"
+	},
+	"3": {
+    	"inputs": {
+    		"text": "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic",
+    		"clip": [
+        		"1",
+        		1
+    		]
+    	},
+    	"class_type": "CLIPTextEncode"
+	},
+  	"4": {
+    	"inputs": {
+      		"text": "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark",
+      		"clip": [
+        		"1",
+        		1
+      		]
+    	},
+    	"class_type": "CLIPTextEncode"
+  	},
+  	"6": {
+    	"inputs": {
+      		"samples": [
+        		"2",
+        		0
+      		],
+      		"vae": [
+        		"1",
+        		2
+      		]
+    	},
+    	"class_type": "VAEDecode"
+  	},
+  	"22": {
+    	"inputs": {
+      		"width": [
+        		"101",
+        		1
+      		],
+      		"height": [
+        		"101",
+        		2
+      		],
+      		"batch_size": 1
+    	},
+    	"class_type": "EmptyLatentImage"
+  	},
+  	"96": {
+    	"inputs": {
+      		"control_net_name": "control-lora-recolor-rank256.safetensors"
+    	},
+    	"class_type": "ControlNetLoader"
+  	},
+  	"98": {
+    	"inputs": {
+      		"strength": 1.0000000000000002,
+      		"start_percent": 0,
+      		"end_percent": 1,
+      		"positive": [
+        		"100",
+        		0
+      		],
+      		"negative": [
+        		"100",
+        		1
+      		],
+      		"control_net": [
+        		"96",
+        		0
+      		],
+      		"image": [
+        		"148",
+        		0
+      		]
+    	},
+    	"class_type": "ControlNetApplyAdvanced"
+  	},
+  	"100": {
+	    "inputs": {
+      		"strength": 0.8500000000000002,
+      		"start_percent": 0,
+      		"end_percent": 1,
+      		"positive": [
+        		"3",
+        		0
+      		],
+      		"negative": [
+        		"4",
+        		0
+      		],
+      		"control_net": [
+        		"135",
+        		0
+      		],
+      		"image": [
+        		"148",
+        		0
+      		]
+    	},
+    	"class_type": "ControlNetApplyAdvanced"
+  	},
+  	"101": {
+    	"inputs": {
+      		"width": 1024,
+      		"height": 1024,
+      		"upscale_method": "lanczos",
+      		"keep_proportion": true,
+      		"divisible_by": 2,
+      		"crop": 0,
+      		"image": [
+        		"174",
+        		0
+      		]
+    	},
+    	"class_type": "ImageResizeKJ"
+  	},
+  	"135": {
+    	"inputs": {
+      		"control_net_name": "t2i-adapter_diffusers_xl_lineart.safetensors"
+    	},
+    	"class_type": "ControlNetLoader"
+  	},
+  	"148": {
+    	"inputs": {
+      		"brightness": 0,
+      		"contrast": 1.0000000000000002,
+      		"saturation": 0,
+      		"sharpness": 1.0000000000000002,
+      		"blur": 0,
+      		"gaussian_blur": 0,
+      		"edge_enhance": 0,
+      		"detail_enhance": "true",
+      		"image": [
+        		"101",
+        		0
+      		]
+    	},
+    	"class_type": "Image Filter Adjustments"
+  	},
+  	"161": {
+	    "inputs": {
+      		"mode": "color",
+      		"blend_percentage": 0.7000000000000002,
+      		"image_a": [
+        		"101",
+        		0
+      		],
+      		"image_b": [
+        		"6",
+        		0
+      		]
+    	},
+    	"class_type": "Image Blending Mode"
+  	},
+  	"169": {
+    	"inputs": {
+      		"upscale_method": "lanczos",
+      		"scale_by": 4.000000000000001,
+      		"image": [
+        		"161",
+        		0
+      		]
+    	},
+    	"class_type": "ImageScaleBy"
+  	},
+  	"174": {
+	    "inputs": {
+      		"image": "test1024.jpg"
+    	},
+    	"class_type": "LoadImage"
+  	},
+  	"186": {
+    	"inputs": {
+      		"filename_prefix": "ComfyUI",
+      		"images": [
+        		"161",
+        		0
+      		]
+    		},
+    		"class_type": "SaveImage"
+  	},
+    "99": {
+      	"inputs": {
+        	"value": ""
+      	},
+      	"class_type": "PrimitiveString",
+      	"_meta": {
+        	"title": "PromptID"
+      	}
+    }
+}

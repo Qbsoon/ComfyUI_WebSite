@@ -2,7 +2,7 @@ function findCheckpoint(workflowData) {
     if (!workflowData || typeof workflowData !== 'object') {
         return false;
     }
-    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors']
+    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors']
     try {
         const jsonString = JSON.stringify(workflowData);
         for (let i = 0; i < checkpoints.length; i++) {
@@ -106,6 +106,18 @@ function getComfyMetadata(workflowData, checkpointName) {
                 steps: workflowData["17"].inputs.steps,
                 width: workflowData["39"].inputs.width,
                 height: workflowData["39"].inputs.height
+            }
+            return metadataObject;
+        } else if (checkpointName === 'control-lora-recolor-rank256.safetensors') {
+            let metadataObject = {
+                checkpointName: 'colorizing',
+                promptP: workflowData["3"].inputs.text,
+                promptN: workflowData["4"].inputs.text,
+                sampler: workflowData["2"].inputs.sampler_name,
+                scheduler: workflowData["2"].inputs.scheduler,
+                cfg: workflowData["2"].inputs.cfg,
+                steps: workflowData["2"].inputs.steps,
+                blend: workflowData["161"].inputs.blend_percentage
             }
             return metadataObject;
         }
@@ -258,8 +270,8 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         filterControlsDiv.style.gridColumn = '1 / -1'
         const filterModelSelect = document.createElement('select');
         filterModelSelect.appendChild(new Option('All Models', 'all'));
-        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors'];
-        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)'];
+        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'colorizing'];
+        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)', 'Colorizing'];
         models.forEach((model, index) => {
             const option = new Option(modelNames[index], model);
             filterModelSelect.appendChild(option);
@@ -308,6 +320,13 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywordsText);
             }
         });
+        const filterRefreshBtn = document.createElement('button');
+        filterRefreshBtn.innerHTML = '<span>&#x21BB;</span>';
+        filterRefreshBtn.class = 'refresh-button';
+        filterRefreshBtn.addEventListener('click', () => {
+            galleryLoad(target, uid, 1, limit_end, customManifestUrl, model, keywords, keywordsRadio);
+        });
+        
 
         if (keywords) {
             filterKeywords.value = keywords;
@@ -320,6 +339,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         filterControlsDiv.appendChild(radioAny);
         filterControlsDiv.appendChild(document.createTextNode('Any'));
         filterControlsDiv.appendChild(filterKeywordsBtn);
+        filterControlsDiv.appendChild(filterRefreshBtn);
         outputDiv.appendChild(filterControlsDiv);
     }
     

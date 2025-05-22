@@ -13,8 +13,10 @@ export function validateInputs() {
     const widthInput = parseInt(document.getElementById('widthInput').value);
     const heightInput = parseInt(document.getElementById('heightInput').value);
     const ratioInput = parseFloat(document.getElementById('ratioInput').value);
+    const blendInput = parseFloat(document.getElementById('blendInput').value);
     var stepsMaxLimit = 70
     const model = document.getElementById('modelSelect').value
+    const editor = document.getElementById('editorSelect').value
 
     if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
         stepsMaxLimit = 10
@@ -56,5 +58,9 @@ export function validateInputs() {
     if (isNaN(ratioInput) || ratioInput < 0.25 || ratioInput > 4.0) {
         alert('Ratio musi być liczbą pomiędzy 0.25 a 4.0.');
         throw new Error('Validation failed on ratioInput')
+    }
+    if (editor === 'colorizing' && (isNaN(blendInput) || blendInput < 0.0 || blendInput > 1.0)) {
+        alert('Blend musi być liczbą pomiędzy 0.0 a 1.0.');
+        throw new Error('Validation failed on blendInput')
     }
 }

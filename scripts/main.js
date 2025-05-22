@@ -127,54 +127,100 @@ function stopComfyQueuePolling() {
 }
 
 function changeModel() {
-    // Default behavior, for SD3.5 & HDi1f
-    document.getElementById('stepsRefineInput').hidden = true;
-    document.getElementById('stepsRefineLabel').hidden = true;
-    document.getElementById('schedulerSelect').hidden = false;
-    document.getElementById('schedulerLabel').hidden = false;
-    document.getElementById('cfgInput').hidden = false;
-    document.getElementById('cfgLabel').hidden = false;
-    document.getElementById('negativePromptBox').hidden = false;
-    document.getElementById('guidanceInput').hidden = true;
-    document.getElementById('guidanceLabel').hidden = true;
-    document.getElementById('ratioLabel').hidden = true;
-    document.getElementById('ratioInput').hidden = true;
-    document.getElementById('widthInput').hidden = false;
-    document.getElementById('widthLabel').hidden = false;
-    document.getElementById('heightInput').hidden = false;
-    document.getElementById('heightLabel').hidden = false;
-    document.getElementById('ratioOutput').hidden = false;
-    document.getElementById('stepsInput').max = 70;
-    
-    if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
-        document.getElementById('stepsRefineInput').hidden = false;
-        document.getElementById('stepsRefineLabel').hidden = false;
-    } 
-    if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+    if (document.getElementById('generatorTab')?.classList.contains('active')) {
+        // Default behavior, for SD3.5 & HDi1f
+        document.getElementById('positivePromptBox').hidden = false;
+        document.getElementById('negativePromptBox').hidden = false;
+        document.getElementById('positivePrompt').placeholder = "Elvish sword";
+        document.getElementById('negativePrompt').placeholder = "Bad";
+        document.getElementById('stepsRefineInput').hidden = true;
+        document.getElementById('stepsRefineLabel').hidden = true;
+        document.getElementById('schedulerSelect').hidden = false;
+        document.getElementById('schedulerLabel').hidden = false;
+        document.getElementById('cfgInput').hidden = false;
+        document.getElementById('cfgLabel').hidden = false;
+        document.getElementById('guidanceInput').hidden = true;
+        document.getElementById('guidanceLabel').hidden = true;
+        document.getElementById('ratioLabel').hidden = true;
+        document.getElementById('ratioInput').hidden = true;
+        document.getElementById('widthInput').hidden = false;
+        document.getElementById('widthLabel').hidden = false;
+        document.getElementById('heightInput').hidden = false;
+        document.getElementById('heightLabel').hidden = false;
+        document.getElementById('ratioOutput').hidden = false;
+        document.getElementById('stepsInput').hidden = false;
+        document.getElementById('stepsLabel').hidden = false;
+        document.getElementById('stepsInput').max = 70;
+        document.getElementById('blendInput').hidden = true;
+        document.getElementById('blendLabel').hidden = true;
+        
+        if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
+            document.getElementById('stepsRefineInput').hidden = false;
+            document.getElementById('stepsRefineLabel').hidden = false;
+        } 
+        if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+            document.getElementById('schedulerSelect').hidden = true;
+            document.getElementById('schedulerLabel').hidden = true;
+            document.getElementById('cfgInput').hidden = true;
+            document.getElementById('cfgLabel').hidden = true;
+            document.getElementById('stepsInput').max = 10;
+        } 
+        if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
+            document.getElementById('negativePromptBox').hidden = true;
+            document.getElementById('cfgInput').hidden = true;
+            document.getElementById('cfgLabel').hidden = true;
+            document.getElementById('guidanceInput').hidden = false;
+            document.getElementById('guidanceLabel').hidden = false;
+        } 
+        if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+            document.getElementById('ratioLabel').hidden = false;
+            document.getElementById('ratioInput').hidden = false;
+            document.getElementById('widthInput').hidden = true;
+            document.getElementById('widthLabel').hidden = true;
+            document.getElementById('heightInput').hidden = true;
+            document.getElementById('heightLabel').hidden = true;
+            document.getElementById('ratioOutput').hidden = true;
+        }
+        if (document.getElementById('modelSelect').value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+            document.getElementById('negativePromptBox').hidden = true;
+        }
+    } else if (document.getElementById('editorTab')?.classList.contains('active')) {
+        document.getElementById('positivePromptBox').hidden = true;
+        document.getElementById('negativePromptBox').hidden = true;
+        document.getElementById('stepsRefineInput').hidden = true;
+        document.getElementById('stepsRefineLabel').hidden = true;
         document.getElementById('schedulerSelect').hidden = true;
         document.getElementById('schedulerLabel').hidden = true;
         document.getElementById('cfgInput').hidden = true;
         document.getElementById('cfgLabel').hidden = true;
-        document.getElementById('stepsInput').max = 10;
-    } 
-    if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
-        document.getElementById('negativePromptBox').hidden = true;
-        document.getElementById('cfgInput').hidden = true;
-        document.getElementById('cfgLabel').hidden = true;
-        document.getElementById('guidanceInput').hidden = false;
-        document.getElementById('guidanceLabel').hidden = false;
-    } 
-    if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-        document.getElementById('ratioLabel').hidden = false;
-        document.getElementById('ratioInput').hidden = false;
+        document.getElementById('guidanceInput').hidden = true;
+        document.getElementById('guidanceLabel').hidden = true;
+        document.getElementById('ratioLabel').hidden = true;
+        document.getElementById('ratioInput').hidden = true;
         document.getElementById('widthInput').hidden = true;
         document.getElementById('widthLabel').hidden = true;
         document.getElementById('heightInput').hidden = true;
         document.getElementById('heightLabel').hidden = true;
         document.getElementById('ratioOutput').hidden = true;
-    }
-    if (document.getElementById('modelSelect').value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
-        document.getElementById('negativePromptBox').hidden = true;
+        document.getElementById('blendInput').hidden = true;
+        document.getElementById('blendLabel').hidden = true;
+        if (document.getElementById('editorSelect').value === 'colorizing') {
+            document.getElementById('positivePromptBox').hidden = false;
+            document.getElementById('positivePrompt').placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
+            document.getElementById('negativePromptBox').hidden = false;
+            document.getElementById('negativePrompt').placeholder = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";
+            document.getElementById('samplerSelect').hidden = false;
+            document.getElementById('samplerLabel').hidden = false;
+            document.getElementById('schedulerSelect').hidden = false;
+            document.getElementById('schedulerLabel').hidden = false;
+            document.getElementById('cfgInput').hidden = false;
+            document.getElementById('cfgLabel').hidden = false;
+            document.getElementById('stepsInput').hidden = false;
+            document.getElementById('stepsLabel').hidden = false;
+            document.getElementById('stepsInput').max = 10;
+            document.getElementById('blendInput').hidden = false;
+            document.getElementById('blendLabel').hidden = false;
+        }
     }
 }
 
@@ -346,17 +392,28 @@ async function generateImage(workflow) {
 
 export function switchTab(tab) {
     const generatorTab = document.getElementById('generatorTab');
+    const editorTab = document.getElementById('editorTab');
     const galleryTab = document.getElementById('galleryTab');
     const publicGalleryTab = document.getElementById('publicGalleryTab');
     const mainContainer = document.getElementById('mainContainer');
+    const modelParameters = document.getElementById('modelParameters');
+    const editorParameters = document.getElementById('editorParameters');
     const galleryContainerTab = document.getElementById('galleryContainerTab');
     const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+    let current_active_tab = null;
 
-    
-    galleryTab.classList.remove('active');
+    if (generatorTab.classList.contains('active') && tab === 'generator') {
+        current_active_tab = 'generator';
+    } else if (editorTab.classList.contains('active') && tab === 'editor') {
+        current_active_tab = 'editor';
+    }
     generatorTab.classList.remove('active');
+    editorTab.classList.remove('active');
+    galleryTab.classList.remove('active');
     publicGalleryTab.classList.remove('active');
     mainContainer.style.display = 'none';
+    modelParameters.style.display = 'none';
+    editorParameters.style.display = 'none';
     galleryContainerTab.style.display = 'none';
     publicGalleryContainerTab.style.display = 'none';
 
@@ -364,7 +421,23 @@ export function switchTab(tab) {
         generatorTab.classList.add('active');
         mainContainer.style.display = 'grid';
         mainContainer.style.gridTemplateColumns = `1fr 1fr`;
+        modelParameters.style.display = 'flex';
         document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+        if (current_active_tab !== 'generator') {
+            changeModel();
+            restoreModelDefaults();
+        }
+        updateGridVariables();
+    } else if (tab === 'editor') {
+        editorTab.classList.add('active');
+        mainContainer.style.display = 'grid';
+        mainContainer.style.gridTemplateColumns = `1fr 1fr`;
+        editorParameters.style.display = 'flex';
+        document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+        if (current_active_tab !== 'editor') {
+            changeModel();
+            restoreModelDefaults();
+        }
         updateGridVariables();
     } else if (tab === 'gallery') {
         galleryTab.classList.add('active');
@@ -400,56 +473,66 @@ export function updateResRatio() {
 
 export function restoreModelDefaults() {
     const checkpointName = document.getElementById('modelSelect').value;
-    if (checkpointName === 'sd_xl_base_1.0.safetensors') {
-        document.getElementById('schedulerSelect').value = "normal";
-        document.getElementById('samplerSelect').value = "euler";
-        document.getElementById('cfgInput').value = 8;
-        document.getElementById('stepsInput').value = 20;
-        document.getElementById('stepsRefineInput').value = 5;
-        document.getElementById('widthInput').value = 1024;
-        document.getElementById('heightInput').value = 1024;
-    } else if (checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
-        document.getElementById('schedulerSelect').value = "sgm_uniform";
-        document.getElementById('samplerSelect').value = "euler";
-        document.getElementById('cfgInput').value = 4;
-        document.getElementById('stepsInput').value = 20;
-        document.getElementById('widthInput').value = 1024;
-        document.getElementById('heightInput').value = 1024;
-    } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
-        document.getElementById('samplerSelect').value = "euler_ancestral";
-        document.getElementById('cfgInput').value = 1;
-        document.getElementById('stepsInput').value = 5;
-        document.getElementById('widthInput').value = 512;
-        document.getElementById('heightInput').value = 512;
-    } else if (checkpointName === 'flux1-dev-Q8_0.gguf') {
-        document.getElementById('schedulerSelect').value = "normal";
-        document.getElementById('samplerSelect').value = "euler";
-        document.getElementById('guidanceInput').value = 2;
-        document.getElementById('stepsInput').value = 25;
-        document.getElementById('widthInput').value = 1024;
-        document.getElementById('heightInput').value = 1024;
-    } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-        document.getElementById('schedulerSelect').value = "normal";
-        document.getElementById('samplerSelect').value = "euler_ancestral";
-        document.getElementById('cfgInput').value = 7;
-        document.getElementById('stepsInput').value = 20;
-        document.getElementById('ratioInput').value = 1;
-    } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
-        document.getElementById('schedulerSelect').value = 'normal';
-        document.getElementById('samplerSelect').value = 'lcm';
-        document.getElementById('cfgInput').value = 1;
-        document.getElementById('stepsInput').value = 16;
-        document.getElementById('widthInput').value = 1024;
-        document.getElementById('heightInput').value = 1024;
-    } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
-        document.getElementById('schedulerSelect').value = 'beta';
-        document.getElementById('samplerSelect').value = 'euler';
-        document.getElementById('cfgInput').value = 3.5;
-        document.getElementById('stepsInput').value = 25;
-        document.getElementById('widthInput').value = 1024;
-        document.getElementById('heightInput').value = 1024;
+    const editorCheckpointName = document.getElementById('editorSelect').value;
+    if (document.getElementById('generatorTab')?.classList.contains('active')) {
+        if (checkpointName === 'sd_xl_base_1.0.safetensors') {
+            document.getElementById('schedulerSelect').value = "normal";
+            document.getElementById('samplerSelect').value = "euler";
+            document.getElementById('cfgInput').value = 8;
+            document.getElementById('stepsInput').value = 20;
+            document.getElementById('stepsRefineInput').value = 5;
+            document.getElementById('widthInput').value = 1024;
+            document.getElementById('heightInput').value = 1024;
+        } else if (checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
+            document.getElementById('schedulerSelect').value = "sgm_uniform";
+            document.getElementById('samplerSelect').value = "euler";
+            document.getElementById('cfgInput').value = 4;
+            document.getElementById('stepsInput').value = 20;
+            document.getElementById('widthInput').value = 1024;
+            document.getElementById('heightInput').value = 1024;
+        } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
+            document.getElementById('samplerSelect').value = "euler_ancestral";
+            document.getElementById('cfgInput').value = 1;
+            document.getElementById('stepsInput').value = 5;
+            document.getElementById('widthInput').value = 512;
+            document.getElementById('heightInput').value = 512;
+        } else if (checkpointName === 'flux1-dev-Q8_0.gguf') {
+            document.getElementById('schedulerSelect').value = "normal";
+            document.getElementById('samplerSelect').value = "euler";
+            document.getElementById('guidanceInput').value = 2;
+            document.getElementById('stepsInput').value = 25;
+            document.getElementById('widthInput').value = 1024;
+            document.getElementById('heightInput').value = 1024;
+        } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+            document.getElementById('schedulerSelect').value = "normal";
+            document.getElementById('samplerSelect').value = "euler_ancestral";
+            document.getElementById('cfgInput').value = 7;
+            document.getElementById('stepsInput').value = 20;
+            document.getElementById('ratioInput').value = 1;
+        } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+            document.getElementById('schedulerSelect').value = 'normal';
+            document.getElementById('samplerSelect').value = 'lcm';
+            document.getElementById('cfgInput').value = 1;
+            document.getElementById('stepsInput').value = 16;
+            document.getElementById('widthInput').value = 1024;
+            document.getElementById('heightInput').value = 1024;
+        } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+            document.getElementById('schedulerSelect').value = 'beta';
+            document.getElementById('samplerSelect').value = 'euler';
+            document.getElementById('cfgInput').value = 3.5;
+            document.getElementById('stepsInput').value = 25;
+            document.getElementById('widthInput').value = 1024;
+            document.getElementById('heightInput').value = 1024;
+        }
+    } else if (document.getElementById('editorTab')?.classList.contains('active')) {
+        if (editorCheckpointName === 'colorizing') {
+            document.getElementById('schedulerSelect').value = "karras";
+            document.getElementById('samplerSelect').value = "dpmpp_sde";
+            document.getElementById('cfgInput').value = 1.98;
+            document.getElementById('stepsInput').value = 5;
+            document.getElementById('blendInput').value = 0.7;
+        }
     }
-
 }
 
 window.loadImages = galleryLoad;
@@ -475,11 +558,14 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);
-document.getElementById('galleryTab').addEventListener('click', () => {
-    switchTab('gallery');
-});
 document.getElementById('generatorTab').addEventListener('click', () => {
     switchTab('generator');
+});
+document.getElementById('editorTab').addEventListener('click', () => {
+    switchTab('editor');
+});
+document.getElementById('galleryTab').addEventListener('click', () => {
+    switchTab('gallery');
 });
 document.getElementById('publicGalleryTab').addEventListener('click', () => {
     switchTab('publicGallery');
@@ -501,6 +587,12 @@ Rbuttons.forEach(button => {
 
 const modelDefaultBtn = document.getElementById('modelDefaults');
 modelDefaultBtn.addEventListener('click', () => {
+    restoreModelDefaults();
+    updateResRatio();
+});
+
+const editorDefaultBtn = document.getElementById('editorDefaults');
+editorDefaultBtn.addEventListener('click', () => {
     restoreModelDefaults();
     updateResRatio();
 });
@@ -639,6 +731,15 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>Width:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'colorizing') {
+                parameters.innerHTML += `<strong>Edition type:</strong> Colorizing`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Negative Prompt:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Blend:</strong> ${workflowData.blend}`;
             }
         } catch (e) {
             console.error("Error displaying metadata from workflow data:", e);
@@ -839,6 +940,12 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('stepsInput').value = workflowData.steps;
             document.getElementById('widthInput').value = workflowData.width;
             document.getElementById('heightInput').value = workflowData.height;
+        } else if (workflowData.checkpointName === 'colorizing') {
+            document.getElementById('modelSelect').value = 'colorizing';
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('cfgInput').value = workflowData.cfg;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('blendInput').value = workflowData.blend;
         }
         updateResRatio();
         lightboxCopyParametersBtn.dataset.workflowData = null;

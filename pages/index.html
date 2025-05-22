@@ -18,6 +18,7 @@
         <h1>Image Generation KUL Tool</h1>
         <div id="tabs">
             <button id="generatorTab" class="active">Generator</button>
+            <button id="editorTab">Image editor</button>
             <button id="galleryTab">Private Gallery</button>
             <button id="publicGalleryTab">Public Gallery</button>
             <button id="logoutButton" class="logout-button">Logout</button>
@@ -28,7 +29,7 @@
     <div id="mainContainer">
         <!-- Parameters Section -->
         <div id="parameters" class="container">
-            <div class="model-row">
+            <div id="modelParameters" class="model-row">
                 <label for="modelSelect">Model</label>
                 <select id="modelSelect">
                     <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
@@ -41,7 +42,20 @@
                 </select>
                 <button id="modelDefaults">Model Defaults</button>
             </div>
-            <div class="textarea-row">
+            <div id="editorParameters" class="model-row" style="display:none;">
+                <label for="imageInput" id="imageLabel">Image</label>
+                <input type="text" id="imageInput" placeholder="Enter image file name">
+                <label for="editorSelect">Edition type</label>
+                <select id="editorSelect">
+                    <option value="colorizing" selected>Colorizing</option>
+                    <!-- <option value="upscaling">Upscaling</option> -->
+                    <!-- <option value="inpainting">Inpainting</option> -->
+                    <!-- <option value="outpainting">Outpainting</option> -->
+                    <!-- <option value="refining">Refining</option> -->
+                </select>
+                <button id="editorDefaults">Editor defaults</button>
+            </div>
+            <div class="textarea-row" id="positivePromptBox">
                 <label for="positivePrompt">Positive Prompt</label>
                 <textarea id="positivePrompt" placeholder="Elvish sword"></textarea>
             </div>
@@ -50,7 +64,7 @@
                 <textarea id="negativePrompt" placeholder="Bad"></textarea>
             </div>
             <div class="row">
-                <label for="samplerSelect">Sampler</label>
+                <label for="samplerSelect" id="samplerLabel">Sampler</label>
                 <select id="samplerSelect">
 			    	<option value="euler">euler</option>
 			    	<option value="euler_cfg_pp">euler_cfg_pp</option>
@@ -91,6 +105,7 @@
                 <label for="schedulerSelect" id="schedulerLabel">Scheduler</label>
                 <select id="schedulerSelect">
 			    	<option value="normal">normal</option>
+                    <option value="karras">karras</option>
 			    	<option value="exponential">exponential</option>
 			    	<option value="sgm_uniform">sgm_uniform</option>
 			    	<option value="simple">simple</option>
@@ -102,13 +117,15 @@
             </div>
             <div class="row">
                 <label for="cfgInput" id="cfgLabel">CFG</label>
-                <input type="number" id="cfgInput" min="1" max="10" step="0.1" value="2" />
+                <input type="number" id="cfgInput" min="1" max="10" step="0.01" value="2" />
                 <label for="guidanceInput" id="guidanceLabel" hidden="true">Guidance</label>
                 <input type="number" id="guidanceInput" min="1" max="10" step="0.1" value="2" hidden="true" />
-                <label for="stepsInput">Steps</label>
+                <label for="stepsInput" id="stepsLabel">Steps</label>
                 <input type="number" id="stepsInput" min="1" max="70" step="1" value="25" />
                 <label id="stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
                 <input type="number" id="stepsRefineInput" min="1" max="70" step="1" value="20" hidden="true" />
+                <label for="blendInput" id="blendLabel" hidden="true">Blend</label>
+                <input type="number" id="blendInput" min="0" max="1" step="0.01" value="0.7" hidden="true" />
             </div>
             <div class="row">
                 <label for="widthInput" id="widthLabel">Width</label>
@@ -220,7 +237,6 @@
 
     <!-- Gallery Tab Content -->
     <div id="galleryContainerTab" class="container">
-        <h2>Full Gallery <button class="refresh-button"><span>&#x21BB;</span></button></h2>
         <div id="fullGallery">
             <!-- Full gallery images -->
         </div>
@@ -233,7 +249,6 @@
 
     <!-- Public Gallery Tab Content -->
     <div id="publicGalleryContainerTab" class="container" style="display:none;">
-        <h2>Public Gallery <button class="refresh-button"><span>&#x21BB;</span></button></h2>
         <div id="publicGallery"></div>
     </div>
 
