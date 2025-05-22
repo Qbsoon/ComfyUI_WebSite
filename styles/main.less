@@ -514,3 +514,70 @@ button {
         padding: 7px 10px;
     }
 }
+
+.image-comparison-container {
+    position: relative;
+    max-width: 100%;
+    height: auto;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.comparison-image {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.image-top {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    position: absolute;
+    z-index: 2;
+}
+
+.image-bottom {
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+.comparison-draggable-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%; // Initial division
+  width: 4px;
+  background-color: @primary-color;
+  cursor: ew-resize;
+  z-index: 3;
+  transform: translateX(-50%);
+  transition: background-color 0.2s ease-in-out;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background-color: @primary-color;
+    border: 2px solid @text-color;
+    .border-radius(50%);
+    .box-shadow(0 1px 3px rgba(0,0,0,0.4));
+    transition: transform 0.1s ease-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  }
+
+  &.dragging {
+    background-color: fade(@secondary-color, 15%);
+    &::after {
+      background-color: fade(@secondary-color, 15%); 
+      border-color: fade(darken(@text-color, 20%), 15%);
+      transform: translate(-50%, -50%) scale(0.4);
+    }
+  }
+}

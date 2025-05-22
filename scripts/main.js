@@ -315,7 +315,11 @@ async function generateImage(workflow) {
         fetchAndUpdateComfyUIQueueDisplay();
 	    const progressName = document.getElementById('progressName');
         const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+        let editorImgFN = null;
         const comfyQueueOutputValue = comfyQueueOutputEl.innerText.charAt(comfyQueueOutputEl.innerText.length-1);
+        if (document.getElementById('editorTab')?.classList.contains('active')) {
+            editorImgFN = document.getElementById('imageInput').value;
+        }
         if (comfyQueueOutputValue > 0) {
             progressName.innerText = 'Queued...';
         } else {
@@ -365,6 +369,8 @@ async function generateImage(workflow) {
         }
         // Wydobycie adresu URL obrazu z odpowiedzi
         const imageUrl = result.images[0].data;
+        if (document.getElementById('generatorTab')?.classList.contains('active')) {
+        }
     
         const img = document.createElement('img');
         img.src = imageUrl;
@@ -373,10 +379,80 @@ async function generateImage(workflow) {
         img.onerror = () => {
             alert('Failed to load the generated image. Please check the server response.');
         };
-    
-        // Wyświetlenie nowego obrazu
+
         outputDiv.innerHTML = '';
-        outputDiv.appendChild(img);
+
+        if (editorImgFN) {
+            img.className = "comparison-image image-top";
+            img.alt = "After";
+            outputDiv.appendChild(img);
+
+            const imgBefore = document.createElement('img');
+            imgBefore.src = `gallery/${uid}/${editorImgFN}`;
+            imgBefore.className = "comparison-image image-bottom";
+            imgBefore.alt = "Before";
+            imgBefore.onerror = () => {
+                alert('Failed to load the generated image. Please check the server response.');
+            };
+
+            const draggableLine = document.createElement('div');
+            draggableLine.className = 'comparison-draggable-line';
+
+            let initialPercentage = 50;
+
+            img.style.clipPath = `polygon(0 0, ${initialPercentage}% 0, ${initialPercentage}% 100%, 0 100%)`;
+            draggableLine.style.left = `${initialPercentage}%`;
+
+            let isDragging = false;
+
+            draggableLine.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                draggableLine.classList.add('dragging');
+                
+                e.preventDefault(); // Prevents text selection during drag
+
+                const currentContainerRect = comparisonContainer.getBoundingClientRect();
+
+                function onMouseMove(moveEvent) {
+                    if (!isDragging) return;
+
+                    let newX = moveEvent.clientX - currentContainerRect.left;
+                    
+                    if (newX < 0) newX = 0;
+                    if (newX > currentContainerRect.width) newX = currentContainerRect.width;
+
+                    let percentage = (newX / currentContainerRect.width) * 100;
+                    
+                    percentage = Math.max(0, Math.min(100, percentage));
+
+                    draggableLine.style.left = `${percentage}%`;
+
+                    img.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
+                }
+
+                function onMouseUp() {
+                    if (isDragging) {
+                        isDragging = false;
+                        draggableLine.classList.remove('dragging');
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            const comparisonContainer = document.createElement('div');
+            comparisonContainer.className = 'image-comparison-container';
+            comparisonContainer.appendChild(imgBefore);
+            comparisonContainer.appendChild(img);
+            comparisonContainer.appendChild(draggableLine);
+            outputDiv.appendChild(comparisonContainer);
+        } else {
+            outputDiv.appendChild(img);
+        }
+        editorImgFN = null;
         updateGridVariables();
         updateQueueItemsIds();
     } catch (error) {
@@ -537,7 +613,7 @@ export function restoreModelDefaults() {
 
 window.loadImages = galleryLoad;
 
-// EventListenery
+// EventListeners
 
 document.getElementById('submitButton').addEventListener('click', async () => {
     if (queue >= queueLimit) {
