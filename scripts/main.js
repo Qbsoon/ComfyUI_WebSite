@@ -383,13 +383,13 @@ async function generateImage(workflow) {
         outputDiv.innerHTML = '';
 
         if (editorImgFN) {
-            img.className = "comparison-image image-top";
+            img.className = "comparison-image image-bottom";
             img.alt = "After";
             outputDiv.appendChild(img);
 
             const imgBefore = document.createElement('img');
             imgBefore.src = `gallery/${uid}/${editorImgFN}`;
-            imgBefore.className = "comparison-image image-bottom";
+            imgBefore.className = "comparison-image image-top";
             imgBefore.alt = "Before";
             imgBefore.onerror = () => {
                 alert('Failed to load the generated image. Please check the server response.');
@@ -611,6 +611,17 @@ export function restoreModelDefaults() {
     }
 }
 
+export function restoreModelDefaultPrompts() {
+    const checkpointName = document.getElementById('modelSelect').value;
+    const editorCheckpointName = document.getElementById('editorSelect').value;
+    if (document.getElementById('editorTab')?.classList.contains('active')) {
+        if (editorCheckpointName === 'colorizing') {
+            document.getElementById('positivePrompt').value = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
+            document.getElementById('negativePrompt').value = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";
+        }
+    }
+}
+
 window.loadImages = galleryLoad;
 
 // EventListeners
@@ -673,6 +684,11 @@ editorDefaultBtn.addEventListener('click', () => {
     updateResRatio();
 });
 
+const editorDefaultPromptsBtn = document.getElementById('editorPrompts');
+editorDefaultPromptsBtn.addEventListener('click', () => {
+    restoreModelDefaultPrompts();
+});
+
 export async function init() {
     switchTab('generator');
     //updateGridVariables();
@@ -694,6 +710,7 @@ const closeBtn = document.getElementById('lightboxCloseButton');
 const deleteBtn = document.getElementById('lightboxDeleteButton');
 const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
 const lightboxCopyParametersBtn = document.getElementById('lightboxCopyParametersButton');
+const lightboxEditImageBtn = document.getElementById('lightboxEditImageButton');
 let currentImageToDeleteUrl = null;
 let currentLightboxImageOwnerUid = null;
 let currentLightboxImageFilename = null;
@@ -730,6 +747,10 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             lightboxCopyParametersBtn.dataset.workflowData = JSON.stringify(workflowData);
         } else {
             console.warn("Lightbox copy parameters button not found.");
+        }
+
+        if (lightboxEditImageBtn) {
+            lightboxEditImageBtn.dataset.filename = currentLightboxImageFilename;
         }
     }
     const prompts = document.getElementById('lightboxPrompts');
@@ -963,7 +984,6 @@ if (lightboxCopyParametersBtn) {
             console.error('Error parsing workflow data:', error);
             return;
         }
-        console.log(workflowData);
         document.getElementById('modelSelect').value = workflowData.checkpointName;
         changeModel()
         document.getElementById('positivePrompt').value = workflowData.promptP;
@@ -1017,7 +1037,10 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('widthInput').value = workflowData.width;
             document.getElementById('heightInput').value = workflowData.height;
         } else if (workflowData.checkpointName === 'colorizing') {
+            switchTab('editor');
             document.getElementById('modelSelect').value = 'colorizing';
+            document.getElementById('positivePrompt').value = workflowData.promptP;
+            document.getElementById('negativePrompt').value = workflowData.promptN;
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
             document.getElementById('cfgInput').value = workflowData.cfg;
             document.getElementById('stepsInput').value = workflowData.steps;
@@ -1025,6 +1048,21 @@ if (lightboxCopyParametersBtn) {
         }
         updateResRatio();
         lightboxCopyParametersBtn.dataset.workflowData = null;
+    });
+}
+
+if (lightboxEditImageBtn) {
+    lightboxEditImageBtn.addEventListener('click', () => {
+        let filename = null;
+        try {
+            filename = lightboxEditImageBtn.dataset.filename;
+        } catch (error) {
+            console.error('Error getting filename for editing:', error);
+            return;
+        }
+        closeLightbox();
+        switchTab('editor');
+        document.getElementById('imageInput').value = filename;
     });
 }
 
