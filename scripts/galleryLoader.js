@@ -117,7 +117,8 @@ function getComfyMetadata(workflowData, checkpointName) {
                 scheduler: workflowData["2"].inputs.scheduler,
                 cfg: workflowData["2"].inputs.cfg,
                 steps: workflowData["2"].inputs.steps,
-                blend: workflowData["161"].inputs.blend_percentage
+                blend: workflowData["161"].inputs.blend_percentage,
+                editof: workflowData["174"].inputs.image
             }
             return metadataObject;
         }

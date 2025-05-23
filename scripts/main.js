@@ -385,7 +385,6 @@ async function generateImage(workflow) {
         if (editorImgFN) {
             img.className = "comparison-image image-bottom";
             img.alt = "After";
-            outputDiv.appendChild(img);
 
             const imgBefore = document.createElement('img');
             imgBefore.src = `gallery/${uid}/${editorImgFN}`;
@@ -400,7 +399,7 @@ async function generateImage(workflow) {
 
             let initialPercentage = 50;
 
-            img.style.clipPath = `polygon(0 0, ${initialPercentage}% 0, ${initialPercentage}% 100%, 0 100%)`;
+            imgBefore.style.clipPath = `polygon(0 0, ${initialPercentage}% 0, ${initialPercentage}% 100%, 0 100%)`;
             draggableLine.style.left = `${initialPercentage}%`;
 
             let isDragging = false;
@@ -427,7 +426,7 @@ async function generateImage(workflow) {
 
                     draggableLine.style.left = `${percentage}%`;
 
-                    img.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
+                    imgBefore.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
                 }
 
                 function onMouseUp() {
@@ -717,6 +716,7 @@ let currentLightboxImageFilename = null;
 
 function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = false, filename = null) {
     if (lightbox && lightboxImage) {
+        lightboxImage.hidden = false;
         lightboxImage.src = imageUrl;
         lightbox.style.display = 'flex';
 
@@ -755,8 +755,84 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
     }
     const prompts = document.getElementById('lightboxPrompts');
     const parameters = document.getElementById('lightboxParameters');
+    const comparison = document.getElementById('lightboxComparison');
     if (workflowData) {
         try {
+            comparison.innerHTML = '';
+            const editors = ['colorizing'];
+            if (editors.includes(workflowData.checkpointName)) {
+                const imageBeforeUrl = workflowData.editof;
+                lightboxImage.hidden = true;
+                comparison.style.display = 'block';
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.onerror = () => {
+                    alert('Failed to load the generated image. Please check the server response.');
+                };
+                img.className = "comparison-image image-bottom";
+                img.alt = "After";
+            
+                const imgBefore = document.createElement('img');
+                imgBefore.src = `gallery/${imageBeforeUrl}`;
+                imgBefore.className = "comparison-image image-top";
+                imgBefore.alt = "Before";
+                imgBefore.onerror = () => {
+                    alert('Failed to load the generated image. Please check the server response.');
+                };
+            
+                const draggableLine = document.createElement('div');
+                draggableLine.className = 'comparison-draggable-line';
+            
+                let initialPercentage = 50;
+            
+                imgBefore.style.clipPath = `polygon(0 0, ${initialPercentage}% 0, ${initialPercentage}% 100%, 0 100%)`;
+                draggableLine.style.left = `${initialPercentage}%`;
+            
+                let isDragging = false;
+                
+                draggableLine.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    draggableLine.classList.add('dragging');
+
+                    e.preventDefault(); // Prevents text selection during drag
+                    
+                    const currentContainerRect = comparison.getBoundingClientRect();
+                    
+                    function onMouseMove(moveEvent) {
+                         if (!isDragging) return;
+                        
+                        let newX = moveEvent.clientX - currentContainerRect.left;
+
+                        if (newX < 0) newX = 0;
+                        if (newX > currentContainerRect.width) newX = currentContainerRect.width;
+                        
+                        let percentage = (newX / currentContainerRect.width) * 100;
+
+                        percentage = Math.max(0, Math.min(100, percentage));
+                        
+                        draggableLine.style.left = `${percentage}%`;
+                        
+                        imgBefore.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
+                    }
+                    
+                    function onMouseUp() {
+                        if (isDragging) {
+                            isDragging = false;
+                            draggableLine.classList.remove('dragging');
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                        }
+                    }
+                    
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+                
+                comparison.appendChild(imgBefore);
+                comparison.appendChild(img);
+                comparison.appendChild(draggableLine);
+            }
+
             parameters.innerHTML = '';
             if (imageOwnerUid && imageOwnerUid !== uid) {
                 parameters.innerHTML += `<strong>Shared by:</strong> ${imageOwnerUid}<br>`;
