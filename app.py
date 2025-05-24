@@ -526,6 +526,8 @@ def generate_iiif_manifest():
     user_gallery_path = os.path.join(GALLERY_BASE_DIR, str(uid))
     image_files = get_image_files(user_gallery_path)
 
+    image_files = [i_f for i_f in image_files if not i_f.startswith("upload")]
+
     public_manifest_data = load_public_manifest() 
     
     base_url_dynamic = request.host_url.rstrip('/')
@@ -958,6 +960,8 @@ def toggle_public_status():
 @login_required
 def generate_public_iiif_manifest():
     public_images_data = load_public_manifest()
+
+    public_images_data = [i_f for i_f in public_images_data if not i_f.get('original_filename').startswith("upload")]
     
     base_url_dynamic = request.host_url.rstrip('/')
     manifest_id = url_for('generate_public_iiif_manifest', _external=True)
