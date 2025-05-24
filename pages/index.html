@@ -45,6 +45,7 @@
             <div id="editorParameters" class="model-row" style="display:none;">
                 <label for="imageInput" id="imageLabel">Image</label>
                 <input type="text" id="imageInput" placeholder="Enter image file name">
+                <button id="imageUpload">Upload</button>
                 <label for="editorSelect">Edition type</label>
                 <select id="editorSelect">
                     <option value="colorizing" selected>Colorizing</option>
@@ -254,6 +255,8 @@
     <div id="publicGalleryContainerTab" class="container" style="display:none;">
         <div id="publicGallery"></div>
     </div>
+
+    <input type="file" id="uploadDialog" accept=".jpg, .jpeg, .png" style="display:none;" />
 
     <script type="module" src="scripts/main.js"></script>
 </body>

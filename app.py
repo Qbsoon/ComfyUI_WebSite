@@ -20,6 +20,7 @@ import threading
 import time
 import requests
 from urllib.parse import unquote_plus
+import re
 
 # --- Configuration for Queue Monitoring and Freeing ---
 MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174"
@@ -186,6 +187,8 @@ app.config['LDAP_USE_SSL'] = True
 app.config['LDAP_BASE_DN'] = 'dc=kpi,dc=kul,dc=pl'
 
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
+
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
 cert_path = '/etc/ssl/certs/ca-certificates.crt'
 ca_cert_path = os.environ.get('LDAP_CA_CERTS_FILE', cert_path)
@@ -1233,6 +1236,80 @@ def get_prompt_unique_id():
         PROMPT_UNIQUE_ID = hex(NEXT_PROMPT_UNIQUE_ID)
         NEXT_PROMPT_UNIQUE_ID += 1
     return jsonify({"success": True, "unique_id": PROMPT_UNIQUE_ID})
+
+
+# Upload image
+@app.route('/api/upload-image', methods=['POST'])
+@login_required
+def upload_editor_image():
+    app.logger.info("--- Editor Image Upload Endpoint Called ---")
+    if 'imageFile' not in request.files:
+        app.logger.warning("No imageFile part in request.files")
+        return jsonify({"success": False, "error": "No image file part in the request"}), 400
+
+    file = request.files['imageFile']
+
+    if file.filename == '':
+        app.logger.warning("No selected file for upload.")
+        return jsonify({"success": False, "error": "No selected file"}), 400
+
+    allowed_extensions = {'png', 'jpg', 'jpeg'}
+    original_filename = secure_filename(file.filename)
+    file_ext = original_filename.rsplit('.', 1)[1].lower() if '.' in original_filename else ''
+
+    if not file_ext or file_ext not in allowed_extensions:
+        app.logger.warning(f"Invalid file type uploaded: {original_filename} (ext: {file_ext})")
+        return jsonify({"success": False, "error": "Invalid file type. Only JPG, JPEG, PNG allowed."}), 400
+
+    user_gallery_dir = os.path.join(GALLERY_BASE_DIR, str(current_user.username))
+    os.makedirs(user_gallery_dir, exist_ok=True)
+
+    new_filename_base = "upload"
+    i = 0
+
+    try:
+        existing_files_in_gallery = os.listdir(user_gallery_dir)
+    except OSError:
+        app.logger.error(f"Could not list directory: {user_gallery_dir}")
+        existing_files_in_gallery = []
+
+    existing_upload_files = [
+        f for f in existing_files_in_gallery 
+        if f.lower().startswith(new_filename_base) and f.lower().endswith(f".{file_ext}")
+    ]
+
+    upload_numbers = []
+    for f_name in existing_upload_files:
+        match = re.match(rf"{new_filename_base}(\d+)\.{re.escape(file_ext)}", f_name, re.IGNORECASE)
+        if match:
+            try:
+                upload_numbers.append(int(match.group(1)))
+            except ValueError:
+                pass
+
+    if upload_numbers:
+        i = max(upload_numbers) + 1
+    
+    final_new_filename = f"{new_filename_base}{i}.{file_ext}"
+    
+    final_filename_to_save = final_new_filename
+
+    final_filepath = os.path.join(user_gallery_dir, final_filename_to_save)
+
+    try:
+        file.save(final_filepath)
+        app.logger.info(f"Successfully saved editor image: {final_filepath} for user {current_user.username}")
+        return jsonify({"success": True, "filename": final_filename_to_save})
+    except Exception as e:
+        app.logger.error(f"Error saving editor image {final_filepath}: {e}", exc_info=True)
+        return jsonify({"success": False, "error": "Server error while saving the file."}), 500
+    
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    app.logger.warning(f"Upload failed: File too large (413). Limit is {app.config.get('MAX_CONTENT_LENGTH') / (1024*1024)}MB.")
+    return jsonify(success=False, error="File is too large. Please upload a file smaller than {}MB.".format(app.config.get('MAX_CONTENT_LENGTH') // (1024*1024)), limit=app.config.get('MAX_CONTENT_LENGTH') // (1024*1024)), 413
+
 
 # General route to serve files in all other directories
 @app.route("/<path:directory>/<filename>")

@@ -1163,3 +1163,63 @@ if (customConfirmNoBtn) {
 }
 
 window.openLightbox = openLightbox;
+
+const imageUploadBtn = document.getElementById('imageUpload');
+const imageInput = document.getElementById('imageInput');
+const uploadDialog = document.getElementById('uploadDialog');
+
+if (imageUploadBtn) {
+    imageUploadBtn.addEventListener('click', () => {
+        uploadDialog.click();
+    });
+}
+
+uploadDialog.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+        console.log("No file selected.");
+        return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+        alert('Invalid file type. Please select a JPG, JPEG, or PNG file.');
+        uploadDialog.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('imageFile', file);
+
+    try {
+        const response = await fetch('/api/upload-image', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (response.status === 413) {
+            const errorData = await response.json();
+            alert(errorData.error || "File is too large. Server limit for file is " + errorData.limit + "MB.");
+            return;
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Server error during upload.' }));
+            throw new Error(errorData.error || `Upload failed with status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (result.success && result.filename) {
+            if (imageInput) {
+                imageInput.value = result.filename;
+            }
+        } else {
+            throw new Error(result.error || 'Upload failed: No filename returned.');
+        }
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        alert(`Error uploading file: ${error.message}`);
+    } finally {
+        uploadDialog.value = '';
+    }
+});
