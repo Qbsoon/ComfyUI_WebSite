@@ -10,6 +10,8 @@ const queueLimit = 3;
 let updateTimeout;
 let isUpdating = false;
 
+const editors = ['colorizing'];
+
 function updateGridVariables(limit_start = null, limit_end = null) {
     clearTimeout(updateTimeout);
 
@@ -774,7 +776,6 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
     if (workflowData) {
         try {
             comparison.innerHTML = '';
-            const editors = ['colorizing'];
             if (editors.includes(workflowData.checkpointName)) {
                 const imageBeforeUrl = workflowData.editof;
                 lightboxImage.hidden = true;
@@ -1075,7 +1076,10 @@ if (lightboxCopyParametersBtn) {
             console.error('Error parsing workflow data:', error);
             return;
         }
-        document.getElementById('modelSelect').value = workflowData.checkpointName;
+
+        if (!editors.includes(workflowData.checkpointName)) {
+            document.getElementById('modelSelect').value = workflowData.checkpointName;
+        }
         changeModel()
         document.getElementById('positivePrompt').value = workflowData.promptP;
         document.getElementById('samplerSelect').value = workflowData.sampler;
@@ -1129,7 +1133,7 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('heightInput').value = workflowData.height;
         } else if (workflowData.checkpointName === 'colorizing') {
             switchTab('editor');
-            document.getElementById('modelSelect').value = 'colorizing';
+            document.getElementById('editorSelect').value = 'colorizing';
             document.getElementById('positivePrompt').value = workflowData.promptP;
             document.getElementById('negativePrompt').value = workflowData.promptN;
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
