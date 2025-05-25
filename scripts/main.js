@@ -7,26 +7,37 @@ const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
 const queueLimit = 3;
 
-function updateGridVariables(limit_start = null, limit_end = null) {
-    
-    const lastNum = Math.round(window.innerWidth / 202);
-    const fullGallery = document.getElementById('fullGallery');
-    const lastGallery = document.getElementById('lastGallery');
-    const publicGallery = document.getElementById('publicGallery');
-    fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-    lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-    publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-    const mainContainer = document.getElementById('mainContainer');
-    const galleryContainerTab = document.getElementById('galleryContainerTab');
-    const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+let updateTimeout;
+let isUpdating = false;
 
-    if (mainContainer.style.display === 'grid') {
-        loadImages('lastGallery', uid, null, lastNum);
-    } else if (galleryContainerTab.style.display === 'grid') {
-        loadImages('fullGallery', uid);
-    } else if (publicGalleryContainerTab.style.display === 'grid') {
-        loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest');
-    }
+function updateGridVariables(limit_start = null, limit_end = null) {
+    clearTimeout(updateTimeout);
+
+    updateTimeout = setTimeout(() => {
+        if(isUpdating) return;
+        isUpdating = true;
+        
+        const lastNum = Math.round(window.innerWidth / 202);
+        const fullGallery = document.getElementById('fullGallery');
+        const lastGallery = document.getElementById('lastGallery');
+        const publicGallery = document.getElementById('publicGallery');
+        fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        const mainContainer = document.getElementById('mainContainer');
+        const galleryContainerTab = document.getElementById('galleryContainerTab');
+        const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+
+        if (mainContainer.style.display === 'grid') {
+            loadImages('lastGallery', uid, null, lastNum).finally(() => { isUpdating = false;});
+        } else if (galleryContainerTab.style.display === 'grid') {
+            loadImages('fullGallery', uid).finally(() => { isUpdating = false;});
+        } else if (publicGalleryContainerTab.style.display === 'grid') {
+            loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest').finally(() => { isUpdating = false;});
+        } else {
+            isUpdating = false;
+        }
+    }, 100);
 }
 
 window.addEventListener('resize', updateGridVariables);
