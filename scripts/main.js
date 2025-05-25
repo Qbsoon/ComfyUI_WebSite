@@ -1139,6 +1139,16 @@ if (lightboxEditImageBtn) {
         closeLightbox();
         switchTab('editor');
         document.getElementById('imageInput').value = filename;
+        const img = document.createElement('img');
+        img.src = `gallery/${uid}/${filename}`;
+
+        img.onerror = () => {
+            alert('Failed to load the generated image. Please check the server response.');
+        };
+        img.alt = "Image to edit";
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = '';
+        outputDiv.appendChild(img);
     });
 }
 
@@ -1212,6 +1222,16 @@ uploadDialog.addEventListener('change', async (event) => {
         if (result.success && result.filename) {
             if (imageInput) {
                 imageInput.value = result.filename;
+                const img = document.createElement('img');
+                img.src = `gallery/${uid}/${result.filename}`;
+
+                img.onerror = () => {
+                    alert('Failed to load the generated image. Please check the server response.');
+                };
+                img.alt = "Uploaded Image";
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = '';
+                outputDiv.appendChild(img);
             }
         } else {
             throw new Error(result.error || 'Upload failed: No filename returned.');
