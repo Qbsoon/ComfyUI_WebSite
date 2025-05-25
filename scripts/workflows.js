@@ -13,6 +13,15 @@ async function loadWorkflow(file) {
     }
 }
 
+function checkImageResolution(imagePath) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = imagePath;
+    });
+}
+
 export async function setWorkflow(uid) {
 	const promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 	const promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
@@ -135,6 +144,18 @@ export async function setWorkflow(uid) {
 			workflow["161"].inputs.blend = blendInput;
 			workflow["174"].inputs.image = `${uid}/${imageInput}`;
 			workflow["186"].inputs.filename_prefix = `${uid}/colorizing`;
+
+			checkImageResolution(`gallery/${uid}/${imageInput}`).then(resolution => {
+				if (resolution.width < 1024 && resolution.height < 1024) {
+					delete workflow["101"]
+					workflow["148"].inputs.image = ["174", 0];
+					workflow["161"].inputs.image_a = ["174", 0];
+					workflow["22"].inputs.width = resolution.width;
+					workflow["22"].inputs.height = resolution.height;
+				}
+			}).catch(error => {
+				console.error('Error checking image resolution:', error);
+			});
 		}
 	}
 	let response = await fetch('/api/prompt-unique-id')
