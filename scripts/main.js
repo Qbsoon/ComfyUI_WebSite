@@ -740,6 +740,10 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             deleteBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
         }
 
+        if (lightboxEditImageBtn) {
+            lightboxEditImageBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
+        }
+
         if (lightboxTogglePublicBtn) {
             lightboxTogglePublicBtn.dataset.filename = currentLightboxImageFilename;
             lightboxTogglePublicBtn.dataset.ownerUid = currentLightboxImageOwnerUid;
