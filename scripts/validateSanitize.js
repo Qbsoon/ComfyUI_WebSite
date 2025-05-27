@@ -18,9 +18,15 @@ export function validateInputs() {
     const model = document.getElementById('modelSelect').value;
     const editor = document.getElementById('editorSelect').value;
     const isEditing = document.getElementById('editorTab')?.classList.contains('active');
+    const fn = document.getElementById('imageInput').value.trim();
 
     if (isEditing && editor === 'upscaling') {
-        return true;
+        if (fn.startsWith("upscaling")) {
+            alert('Nie można upscale\'ować obrazu, który już jest wynikiem upscale\'owania.')
+            throw new Error('Validation failed on imageInput for upscaling');
+        } else {
+            return true;
+        }
     }
 
     if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
