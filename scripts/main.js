@@ -562,6 +562,11 @@ export function updateResRatio() {
     }
 }
 
+export function qRound(num, decimals = 0) {
+    const factor = Math.pow(10, decimals);
+    return Math.round(num * factor) / factor;
+}
+
 export function restoreModelDefaults() {
     const checkpointName = document.getElementById('modelSelect').value;
     const editorCheckpointName = document.getElementById('editorSelect').value;
@@ -933,7 +938,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
                 parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-                parameters.innerHTML += `<br><strong>Blend:</strong> ${workflowData.blend}`;
+                parameters.innerHTML += `<br><strong>Blend:</strong> ${qRound(workflowData.blend, 4)}`;
             } else if (workflowData.checkpointName === 'upscaling') {
                 prompts.hidden = true;
                 parameters.innerHTML += `<strong>Edition type:</strong> Upscaling`;
@@ -1146,7 +1151,7 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
             document.getElementById('cfgInput').value = workflowData.cfg;
             document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('blendInput').value = workflowData.blend;
+            document.getElementById('blendInput').value = qRound(workflowData.blend, 4);
         } else if (workflowData.ckeckPointName === 'upscaling') {
             switchTab('editor');
             document.getElementById('editorSelect').value = 'upscaling';
