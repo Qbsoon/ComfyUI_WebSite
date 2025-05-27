@@ -854,6 +854,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             }
 
             parameters.innerHTML = '';
+            prompts.hidden = false;
             if (imageOwnerUid && imageOwnerUid !== uid) {
                 parameters.innerHTML += `<strong>Shared by:</strong> ${imageOwnerUid}<br>`;
             }
@@ -934,6 +935,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>Blend:</strong> ${workflowData.blend}`;
             } else if (workflowData.checkpointName === 'upscaling') {
+                prompts.hidden = true;
                 parameters.innerHTML += `<strong>Edition type:</strong> Upscaling`;
             }
         } catch (e) {
