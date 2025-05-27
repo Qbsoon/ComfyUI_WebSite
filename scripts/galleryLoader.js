@@ -121,6 +121,11 @@ function getComfyMetadata(workflowData, checkpointName) {
                 editof: workflowData["174"].inputs.image
             }
             return metadataObject;
+        } else if (checkpointName === 'RealESRGAN_x4plus.pth') {
+            let metadataObject = {
+                checkpointName: 'upscaling',
+                editof: workflowData["1"].inputs.image
+            }
         }
     } catch (e) {
         console.error("Error extracting metadata from workflow data:", e);
@@ -271,8 +276,8 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         filterControlsDiv.style.gridColumn = '1 / -1'
         const filterModelSelect = document.createElement('select');
         filterModelSelect.appendChild(new Option('All Models', 'all'));
-        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'colorizing'];
-        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)', 'Colorizing'];
+        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'colorizing', 'upscaling'];
+        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)', 'Colorizing', 'Upscaling'];
         models.forEach((model, index) => {
             const option = new Option(modelNames[index], model);
             filterModelSelect.appendChild(option);

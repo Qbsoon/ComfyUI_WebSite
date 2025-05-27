@@ -476,6 +476,8 @@ def model_filename(model):
         return 'verusvision'
     if model=='colorizing':
         return 'colorizing'
+    if model=='upscaling':
+        return 'upscaling'
 
 # --- Endpoint generujący manifest IIIF ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
@@ -1165,6 +1167,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
         'hidream_i1_fast_fp8.safetensors',
         'VerusVision_1.0b_Transformer_fp8.safetensors',
         'control-lora-recolor-rank256.safetensors',
+        'RealESRGAN_x4plus.pth',
     ]
     for cp_name in checkpoints:
         # Check if the checkpoint name (as a string literal) is in the JSON string
@@ -1210,6 +1213,8 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
             positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
         elif checkpoint_name == 'control-lora-recolor-rank256.safetensors':
             positive_prompt = workflow_data.get("3", {}).get("inputs", {}).get("text", "")
+        elif checkpoint_name == 'RealESRGAN_x4plus.pth':
+            positive_prompt == ''
         # Add other checkpoint conditions as needed
 
 

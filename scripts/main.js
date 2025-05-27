@@ -7,39 +7,26 @@ const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
 const queueLimit = 3;
 
-let updateTimeout;
-let isUpdating = false;
-
-const editors = ['colorizing'];
-
 function updateGridVariables(limit_start = null, limit_end = null) {
-    clearTimeout(updateTimeout);
+    
+    const lastNum = Math.round(window.innerWidth / 202);
+    const fullGallery = document.getElementById('fullGallery');
+    const lastGallery = document.getElementById('lastGallery');
+    const publicGallery = document.getElementById('publicGallery');
+    fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+    lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+    publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+    const mainContainer = document.getElementById('mainContainer');
+    const galleryContainerTab = document.getElementById('galleryContainerTab');
+    const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
 
-    updateTimeout = setTimeout(() => {
-        if(isUpdating) return;
-        isUpdating = true;
-        
-        const lastNum = Math.round(window.innerWidth / 202);
-        const fullGallery = document.getElementById('fullGallery');
-        const lastGallery = document.getElementById('lastGallery');
-        const publicGallery = document.getElementById('publicGallery');
-        fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-        lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-        publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-        const mainContainer = document.getElementById('mainContainer');
-        const galleryContainerTab = document.getElementById('galleryContainerTab');
-        const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
-
-        if (mainContainer.style.display === 'grid') {
-            loadImages('lastGallery', uid, null, lastNum).finally(() => { isUpdating = false;});
-        } else if (galleryContainerTab.style.display === 'grid') {
-            loadImages('fullGallery', uid).finally(() => { isUpdating = false;});
-        } else if (publicGalleryContainerTab.style.display === 'grid') {
-            loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest').finally(() => { isUpdating = false;});
-        } else {
-            isUpdating = false;
-        }
-    }, 100);
+    if (mainContainer.style.display === 'grid') {
+        loadImages('lastGallery', uid, null, lastNum);
+    } else if (galleryContainerTab.style.display === 'grid') {
+        loadImages('fullGallery', uid);
+    } else if (publicGalleryContainerTab.style.display === 'grid') {
+        loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest');
+    }
 }
 
 window.addEventListener('resize', updateGridVariables);
@@ -200,10 +187,14 @@ function changeModel() {
     } else if (document.getElementById('editorTab')?.classList.contains('active')) {
         document.getElementById('positivePromptBox').hidden = true;
         document.getElementById('negativePromptBox').hidden = true;
+        document.getElementById('stepsInput').hidden = true;
+        document.getElementById('stepsLabel').hidden = true;
         document.getElementById('stepsRefineInput').hidden = true;
         document.getElementById('stepsRefineLabel').hidden = true;
         document.getElementById('schedulerSelect').hidden = true;
         document.getElementById('schedulerLabel').hidden = true;
+        document.getElementById('samplerSelect').hidden = true;
+        document.getElementById('samplerLabel').hidden = true;
         document.getElementById('cfgInput').hidden = true;
         document.getElementById('cfgLabel').hidden = true;
         document.getElementById('guidanceInput').hidden = true;
@@ -657,6 +648,7 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     generateImage(workflow);
 });
 document.getElementById('modelSelect').addEventListener('change', changeModel);
+document.getElementById('editorSelect').addEventListener('change', changeModel);
 document.getElementById('generatorTab').addEventListener('click', () => {
     switchTab('generator');
 });
@@ -742,10 +734,6 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             deleteBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
         }
 
-        if (lightboxEditImageBtn) {
-            lightboxEditImageBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
-        }
-
         if (lightboxTogglePublicBtn) {
             lightboxTogglePublicBtn.dataset.filename = currentLightboxImageFilename;
             lightboxTogglePublicBtn.dataset.ownerUid = currentLightboxImageOwnerUid;
@@ -776,6 +764,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
     if (workflowData) {
         try {
             comparison.innerHTML = '';
+            const editors = ['colorizing', 'upscaling'];
             if (editors.includes(workflowData.checkpointName)) {
                 const imageBeforeUrl = workflowData.editof;
                 lightboxImage.hidden = true;
@@ -929,6 +918,8 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>Blend:</strong> ${workflowData.blend}`;
+            } else if (workflowData.checkpointName === 'upscaling') {
+                parameters.innerHTML += `<strong>Edition type:</strong> Upscaling`;
             }
         } catch (e) {
             console.error("Error displaying metadata from workflow data:", e);
@@ -1076,11 +1067,8 @@ if (lightboxCopyParametersBtn) {
             console.error('Error parsing workflow data:', error);
             return;
         }
-
-        if (!editors.includes(workflowData.checkpointName)) {
-            document.getElementById('modelSelect').value = workflowData.checkpointName;
-        }
-        changeModel()
+        document.getElementById('modelSelect').value = workflowData.checkpointName;
+        //changeModel()
         document.getElementById('positivePrompt').value = workflowData.promptP;
         document.getElementById('samplerSelect').value = workflowData.sampler;
 
@@ -1133,14 +1121,18 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('heightInput').value = workflowData.height;
         } else if (workflowData.checkpointName === 'colorizing') {
             switchTab('editor');
-            document.getElementById('editorSelect').value = 'colorizing';
+            document.getElementById('modelSelect').value = 'colorizing';
             document.getElementById('positivePrompt').value = workflowData.promptP;
             document.getElementById('negativePrompt').value = workflowData.promptN;
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
             document.getElementById('cfgInput').value = workflowData.cfg;
             document.getElementById('stepsInput').value = workflowData.steps;
             document.getElementById('blendInput').value = workflowData.blend;
+        } else if (workflowData.ckeckPointName === 'upscaling') {
+            switchTab('editor');
+            document.getElementById('modelSelect').value = 'upscaling';
         }
+        changeModel();
         updateResRatio();
         lightboxCopyParametersBtn.dataset.workflowData = null;
     });

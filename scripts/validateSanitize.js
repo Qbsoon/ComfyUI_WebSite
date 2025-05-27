@@ -14,12 +14,17 @@ export function validateInputs() {
     const heightInput = parseInt(document.getElementById('heightInput').value);
     const ratioInput = parseFloat(document.getElementById('ratioInput').value);
     const blendInput = parseFloat(document.getElementById('blendInput').value);
-    var stepsMaxLimit = 70
-    const model = document.getElementById('modelSelect').value
-    const editor = document.getElementById('editorSelect').value
+    var stepsMaxLimit = 70;
+    const model = document.getElementById('modelSelect').value;
+    const editor = document.getElementById('editorSelect').value;
+    const isEditing = document.getElementById('editorTab')?.classList.contains('active');
+
+    if (isEditing && editor === 'upscaling') {
+        return true;
+    }
 
     if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
-        stepsMaxLimit = 10
+        stepsMaxLimit = 10;
     }
 
     if (!positivePrompt) {

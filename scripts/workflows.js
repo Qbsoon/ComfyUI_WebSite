@@ -156,6 +156,10 @@ export async function setWorkflow(uid) {
 			}).catch(error => {
 				console.error('Error checking image resolution:', error);
 			});
+		} else if (editor === 'upscaling') {
+			workflow = await loadWorkflow('upscaling.json')
+			workflow["1"].inputs.image = `${uid}/${imageInput}`;
+			workflow["6"].inputs.filename_prefix = `${uid}/upscaling`;
 		}
 	}
 	let response = await fetch('/api/prompt-unique-id')
