@@ -6,27 +6,39 @@ const FTP = window.location.origin;
 const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
 const queueLimit = 3;
+const editors = ['colorizing', 'upscaling'];
+
+let updateTimeout;
+let isUpdating = false;
 
 function updateGridVariables(limit_start = null, limit_end = null) {
-    
-    const lastNum = Math.round(window.innerWidth / 202);
-    const fullGallery = document.getElementById('fullGallery');
-    const lastGallery = document.getElementById('lastGallery');
-    const publicGallery = document.getElementById('publicGallery');
-    fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-    lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-    publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-    const mainContainer = document.getElementById('mainContainer');
-    const galleryContainerTab = document.getElementById('galleryContainerTab');
-    const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+    clearTimeout(updateTimeout);
 
-    if (mainContainer.style.display === 'grid') {
-        loadImages('lastGallery', uid, null, lastNum);
-    } else if (galleryContainerTab.style.display === 'grid') {
-        loadImages('fullGallery', uid);
-    } else if (publicGalleryContainerTab.style.display === 'grid') {
-        loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest');
-    }
+    updateTimeout = setTimeout(() => {
+        if(isUpdating) return;
+        isUpdating = true;
+        
+        const lastNum = Math.round(window.innerWidth / 202);
+        const fullGallery = document.getElementById('fullGallery');
+        const lastGallery = document.getElementById('lastGallery');
+        const publicGallery = document.getElementById('publicGallery');
+        fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        const mainContainer = document.getElementById('mainContainer');
+        const galleryContainerTab = document.getElementById('galleryContainerTab');
+        const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+
+        if (mainContainer.style.display === 'grid') {
+            loadImages('lastGallery', uid, null, lastNum).finally(() => { isUpdating = false;});
+        } else if (galleryContainerTab.style.display === 'grid') {
+            loadImages('fullGallery', uid).finally(() => { isUpdating = false;});
+        } else if (publicGalleryContainerTab.style.display === 'grid') {
+            loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest').finally(() => { isUpdating = false;});
+        } else {
+            isUpdating = false;
+        }
+    }, 100);
 }
 
 window.addEventListener('resize', updateGridVariables);
@@ -734,6 +746,10 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             deleteBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
         }
 
+        if (lightboxEditImageBtn) {
+            lightboxEditImageBtn.style.display = (currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
+        }
+
         if (lightboxTogglePublicBtn) {
             lightboxTogglePublicBtn.dataset.filename = currentLightboxImageFilename;
             lightboxTogglePublicBtn.dataset.ownerUid = currentLightboxImageOwnerUid;
@@ -764,7 +780,6 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
     if (workflowData) {
         try {
             comparison.innerHTML = '';
-            const editors = ['colorizing', 'upscaling'];
             if (editors.includes(workflowData.checkpointName)) {
                 const imageBeforeUrl = workflowData.editof;
                 lightboxImage.hidden = true;
@@ -1067,7 +1082,9 @@ if (lightboxCopyParametersBtn) {
             console.error('Error parsing workflow data:', error);
             return;
         }
-        document.getElementById('modelSelect').value = workflowData.checkpointName;
+        if (!editors.includes(workflowData.checkpointName)) {
+            document.getElementById('modelSelect').value = workflowData.checkpointName;
+        }
         //changeModel()
         document.getElementById('positivePrompt').value = workflowData.promptP;
         document.getElementById('samplerSelect').value = workflowData.sampler;
@@ -1121,7 +1138,7 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('heightInput').value = workflowData.height;
         } else if (workflowData.checkpointName === 'colorizing') {
             switchTab('editor');
-            document.getElementById('modelSelect').value = 'colorizing';
+            document.getElementById('editorSelect').value = 'colorizing';
             document.getElementById('positivePrompt').value = workflowData.promptP;
             document.getElementById('negativePrompt').value = workflowData.promptN;
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
@@ -1130,7 +1147,7 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('blendInput').value = workflowData.blend;
         } else if (workflowData.ckeckPointName === 'upscaling') {
             switchTab('editor');
-            document.getElementById('modelSelect').value = 'upscaling';
+            document.getElementById('editorSelect').value = 'upscaling';
         }
         changeModel();
         updateResRatio();
