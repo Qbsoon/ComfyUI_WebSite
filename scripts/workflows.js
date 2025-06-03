@@ -39,6 +39,8 @@ export async function setWorkflow(uid) {
 	const seed = Math.floor(Math.random() * 999999999999999)
 	const model = document.getElementById('modelSelect').value;
 	const editor = document.getElementById('editorSelect').value;
+	const lora = document.getElementById('loraSelect').value;
+	const loraStrength = parseFloat(document.getElementById('loraStrengthInput').value);
 
 	let workflow;
 
@@ -95,6 +97,14 @@ export async function setWorkflow(uid) {
 			workflow["15"].inputs.scheduler = scheduler;
 			workflow["15"].inputs.steps = steps;
 			workflow["18"].inputs.filename_prefix = `${uid}/flux`;
+			if (lora && lora !== 'none') {
+				workflow["98"].inputs.lora_name = lora;
+				workflow["98"].inputs.strength_model = loraStrength;
+				workflow["98"].inputs.strength_clip = loraStrength;
+				workflow["6"].inputs.model = ["98", 0];
+				workflow["11"].inputs.clip = ["98", 1];
+				workflow["15"].inputs.model = ["98", 0];
+			}
 		} else if (model === 'PixArt-Sigma-XL-2-2K-MS.pth') {
 			workflow = await loadWorkflow('pixart.json')
 			workflow["2"].inputs.ratio = ratio;

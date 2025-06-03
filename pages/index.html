@@ -40,6 +40,18 @@
                     <option value="VerusVision_1.0b_Transformer_fp8.safetensors">Verus Vision 1.0b Transformer (fp8)</option>
                     <!-- <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option> -->
                 </select>
+                <label for="loraSelect" id="loraLabel" hidden="true">LoRA</label>
+                <select id="loraSelect" hidden="true">
+                    <option value="none" selected>No LoRA</option>
+                    <option value="Textimprover-FLUX-V0.4.safetensors">Text Improver</option>
+                    <option value="aidmaDoubleExposure-v0.1.safetensors">Double Exposure</option>
+                    <option value="aidmaFLUXPro1.1-FLUX-v0.3.safetensors">FLUX Pro</option>
+                    <option value="aidmaMJv7-FLUX-v0.1.safetensors">Midjourney Style</option>
+                    <option value="aidmaPsychadelicChaosWorld-FLUX-v0.1.safetensors">Psychodelic</option>
+                    <option value="aidmaRealisticSkin-FLUX-v0.1.safetensors">Realistic Skin</option>
+                </select>
+                <label id="loraStrengthLabel" for="loraStrengthInput" hidden="true">LoRA Strength</label>
+                <input type="number" id="loraStrengthInput" min="0" max="1" step="0.01" value="0.7" hidden="true" />
                 <button id="modelDefaults">Model Defaults</button>
             </div>
             <div id="editorParameters" class="model-row" style="display:none;">

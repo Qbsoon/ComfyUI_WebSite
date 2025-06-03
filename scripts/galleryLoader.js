@@ -68,7 +68,9 @@ function getComfyMetadata(workflowData, checkpointName) {
                 guidance: workflowData["9"].inputs.guidance,
                 steps: workflowData["15"].inputs.steps,
                 width: workflowData["12"].inputs.width,
-                height: workflowData["12"].inputs.height
+                height: workflowData["12"].inputs.height,
+                lora: workflowData["98"].inputs.lora_name,
+                loraStrength: workflowData["98"].inputs.strength_model
             }
             return metadataObject;
         } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {

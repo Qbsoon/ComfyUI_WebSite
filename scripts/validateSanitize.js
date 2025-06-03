@@ -14,6 +14,8 @@ export function validateInputs() {
     const heightInput = parseInt(document.getElementById('heightInput').value);
     const ratioInput = parseFloat(document.getElementById('ratioInput').value);
     const blendInput = parseFloat(document.getElementById('blendInput').value);
+    const lora = document.getElementById('loraSelect').value;
+    const loraStrength = parseFloat(document.getElementById('loraStrengthInput').value);
     var stepsMaxLimit = 70;
     const model = document.getElementById('modelSelect').value;
     const editor = document.getElementById('editorSelect').value;
@@ -73,5 +75,9 @@ export function validateInputs() {
     if (editor === 'colorizing' && (isNaN(blendInput) || blendInput < 0.0 || blendInput > 1.0)) {
         alert('Blend musi być liczbą pomiędzy 0.0 a 1.0.');
         throw new Error('Validation failed on blendInput')
+    }
+    if (!isEditing && model === 'flux1-dev-Q8_0.gguf' && lora !== 'none' && (isNaN(loraStrength) || loraStrength < 0.0 || loraStrength > 1.0)) {
+        alert('LoRA Strength musi być liczbą pomiędzy 0.0 a 1.0.');
+        throw new Error('Validation failed on loraStrengthInput')
     }
 }

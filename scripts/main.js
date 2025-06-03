@@ -165,6 +165,10 @@ function changeModel() {
         document.getElementById('stepsInput').max = 70;
         document.getElementById('blendInput').hidden = true;
         document.getElementById('blendLabel').hidden = true;
+        document.getElementById('loraSelect').hidden = true;
+        document.getElementById('loraLabel').hidden = true;
+        document.getElementById('loraStrengthInput').hidden = true;
+        document.getElementById('loraStrengthLabel').hidden = true;
         
         if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
             document.getElementById('stepsRefineInput').hidden = false;
@@ -183,6 +187,10 @@ function changeModel() {
             document.getElementById('cfgLabel').hidden = true;
             document.getElementById('guidanceInput').hidden = false;
             document.getElementById('guidanceLabel').hidden = false;
+            document.getElementById('loraSelect').hidden = false;
+            document.getElementById('loraLabel').hidden = false;
+            document.getElementById('loraStrengthInput').hidden = false;
+            document.getElementById('loraStrengthLabel').hidden = false;
         } 
         if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
             document.getElementById('ratioLabel').hidden = false;
@@ -562,11 +570,6 @@ export function updateResRatio() {
     }
 }
 
-export function qRound(num, decimals = 0) {
-    const factor = Math.pow(10, decimals);
-    return Math.round(num * factor) / factor;
-}
-
 export function restoreModelDefaults() {
     const checkpointName = document.getElementById('modelSelect').value;
     const editorCheckpointName = document.getElementById('editorSelect').value;
@@ -599,6 +602,8 @@ export function restoreModelDefaults() {
             document.getElementById('stepsInput').value = 25;
             document.getElementById('widthInput').value = 1024;
             document.getElementById('heightInput').value = 1024;
+            document.getElementById('loraSelect').value = "none";
+            document.getElementById('loraStrengthInput').value = 0.7;
         } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
             document.getElementById('schedulerSelect').value = "normal";
             document.getElementById('samplerSelect').value = "euler_ancestral";
@@ -895,6 +900,10 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>Height:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
                 parameters.innerHTML += `<strong>Model:</strong> FLUX 1. Dev (Q8)`;
+                parameters.innerHTML += `<br><strong>Lora:</strong> ${workflowData.lora}`;
+                if (workflowData.lora !== 'none') {
+                    parameters.innerHTML += `<br><strong>Lora Strength:</strong> ${workflowData.loraStrength}`;
+                }
                 prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
                 parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
                 parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
@@ -938,7 +947,7 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
                 parameters.innerHTML += `<br><strong>CFG:</strong> ${workflowData.cfg}`;
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
-                parameters.innerHTML += `<br><strong>Blend:</strong> ${qRound(workflowData.blend, 4)}`;
+                parameters.innerHTML += `<br><strong>Blend:</strong> ${workflowData.blend}`;
             } else if (workflowData.checkpointName === 'upscaling') {
                 prompts.hidden = true;
                 parameters.innerHTML += `<strong>Edition type:</strong> Upscaling`;
@@ -1119,6 +1128,8 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('heightInput').value = workflowData.height;
         } else if (workflowData.checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
             document.getElementById('modelSelect').value = 'flux1-dev-Q8_0.gguf';
+            document.getElementById('loraSelect').value = workflowData.lora;
+            document.getElementById('loraStrengthInput').value = workflowData.loraStrength;
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
             document.getElementById('guidanceInput').value = workflowData.guidance;
             document.getElementById('stepsInput').value = workflowData.steps;
@@ -1151,7 +1162,7 @@ if (lightboxCopyParametersBtn) {
             document.getElementById('schedulerSelect').value = workflowData.scheduler;
             document.getElementById('cfgInput').value = workflowData.cfg;
             document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('blendInput').value = qRound(workflowData.blend, 4);
+            document.getElementById('blendInput').value = workflowData.blend;
         } else if (workflowData.ckeckPointName === 'upscaling') {
             switchTab('editor');
             document.getElementById('editorSelect').value = 'upscaling';
