@@ -6,7 +6,7 @@ const FTP = window.location.origin;
 const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
 const queueLimit = 3;
-const editors = ['colorizing', 'upscaling'];
+const editors = ['colorizing', 'upscaling', 'outpainting'];
 
 let updateTimeout;
 let isUpdating = false;
@@ -228,6 +228,20 @@ function changeModel() {
         document.getElementById('ratioOutput').hidden = true;
         document.getElementById('blendInput').hidden = true;
         document.getElementById('blendLabel').hidden = true;
+        document.getElementById('loraSelect').hidden = true;
+        document.getElementById('loraLabel').hidden = true;
+        document.getElementById('loraStrengthInput').hidden = true;
+        document.getElementById('loraStrengthLabel').hidden = true;
+        document.getElementById('featheringInput').hidden = true;
+        document.getElementById('featheringLabel').hidden = true;
+        document.getElementById('leftMask').hidden = true;
+        document.getElementById('leftMaskLabel').hidden = true;
+        document.getElementById('topMask').hidden = true;
+        document.getElementById('topMaskLabel').hidden = true;
+        document.getElementById('rightMask').hidden = true;
+        document.getElementById('rightMaskLabel').hidden = true;
+        document.getElementById('bottomMask').hidden = true;
+        document.getElementById('bottomMaskLabel').hidden = true;
         if (document.getElementById('editorSelect').value === 'colorizing') {
             document.getElementById('positivePromptBox').hidden = false;
             document.getElementById('positivePrompt').placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
@@ -244,6 +258,26 @@ function changeModel() {
             document.getElementById('stepsInput').max = 10;
             document.getElementById('blendInput').hidden = false;
             document.getElementById('blendLabel').hidden = false;
+        } else if (document.getElementById('editorSelect').value === 'outpainting') {
+            document.getElementById('positivePromptBox').hidden = false;
+            document.getElementById('samplerSelect').hidden = false;
+            document.getElementById('samplerLabel').hidden = false;
+            document.getElementById('schedulerSelect').hidden = false;
+            document.getElementById('schedulerLabel').hidden = false;
+            document.getElementById('guidanceInput').hidden = false;
+            document.getElementById('guidanceLabel').hidden = false;
+            document.getElementById('stepsInput').hidden = false;
+            document.getElementById('stepsLabel').hidden = false;
+            document.getElementById('featheringInput').hidden = false;
+            document.getElementById('featheringLabel').hidden = false;
+            document.getElementById('leftMask').hidden = false;
+            document.getElementById('leftMaskLabel').hidden = false;
+            document.getElementById('topMask').hidden = false;
+            document.getElementById('topMaskLabel').hidden = false;
+            document.getElementById('rightMask').hidden = false;
+            document.getElementById('rightMaskLabel').hidden = false;
+            document.getElementById('bottomMask').hidden = false;
+            document.getElementById('bottomMaskLabel').hidden = false;
         }
     }
 }
@@ -632,6 +666,16 @@ export function restoreModelDefaults() {
             document.getElementById('cfgInput').value = 1.98;
             document.getElementById('stepsInput').value = 5;
             document.getElementById('blendInput').value = 0.7;
+        } else if (editorCheckpointName === 'outpainting') {
+            document.getElementById('schedulerSelect').value = "normal";
+            document.getElementById('samplerSelect').value = "euler";
+            document.getElementById('guidanceInput').value = 30.0;
+            document.getElementById('stepsInput').value = 20;
+            document.getElementById('featheringInput').value = 24;
+            document.getElementById('leftMask').value = 0;
+            document.getElementById('topMask').value = 0;
+            document.getElementById('rightMask').value = 0;
+            document.getElementById('bottomMask').value = 0;
         }
     }
 }
@@ -951,6 +995,18 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             } else if (workflowData.checkpointName === 'upscaling') {
                 prompts.hidden = true;
                 parameters.innerHTML += `<strong>Edition type:</strong> Upscaling`;
+            } else if (workflowData.checkpointName === 'outpainting') {
+                parameters.innerHTML += `<strong>Edition type:</strong> Outpainting`;
+                prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>Guidance:</strong> ${workflowData.guidance}`;
+                parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>Feathering:</strong> ${workflowData.feathering}`;
+                parameters.innerHTML += `<br><strong>Left Mask:</strong> ${workflowData.leftMask}`;
+                parameters.innerHTML += `<br><strong>Top Mask:</strong> ${workflowData.topMask}`;
+                parameters.innerHTML += `<br><strong>Right Mask:</strong> ${workflowData.rightMask}`;
+                parameters.innerHTML += `<br><strong>Bottom Mask:</strong> ${workflowData.bottomMask}`;
             }
         } catch (e) {
             console.error("Error displaying metadata from workflow data:", e);
@@ -1166,6 +1222,19 @@ if (lightboxCopyParametersBtn) {
         } else if (workflowData.ckeckPointName === 'upscaling') {
             switchTab('editor');
             document.getElementById('editorSelect').value = 'upscaling';
+        } else if (workflowData.checkpointName === 'outpainting') {
+            switchTab('editor');
+            document.getElementById('editorSelect').value = 'outpainting';
+            document.getElementById('positivePrompt').value = workflowData.promptP;
+            document.getElementById('samplerSelect').value = workflowData.sampler;
+            document.getElementById('schedulerSelect').value = workflowData.scheduler;
+            document.getElementById('guidanceInput').value = workflowData.guidance;
+            document.getElementById('stepsInput').value = workflowData.steps;
+            document.getElementById('featheringInput').value = workflowData.feathering;
+            document.getElementById('leftMask').value = workflowData.leftMask;
+            document.getElementById('topMask').value = workflowData.topMask;
+            document.getElementById('rightMask').value = workflowData.rightMask;
+            document.getElementById('bottomMask').value = workflowData.bottomMask;
         }
         changeModel();
         updateResRatio();

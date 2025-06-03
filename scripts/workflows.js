@@ -41,6 +41,11 @@ export async function setWorkflow(uid) {
 	const editor = document.getElementById('editorSelect').value;
 	const lora = document.getElementById('loraSelect').value;
 	const loraStrength = parseFloat(document.getElementById('loraStrengthInput').value);
+	const leftMask = parseInt(document.getElementById('leftMask').value);
+	const topMask = parseInt(document.getElementById('topMask').value);
+	const rightMask = parseInt(document.getElementById('rightMask').value);
+	const bottomMask = parseInt(document.getElementById('bottomMask').value);
+	const featheringInput = parseInt(document.getElementById('featheringInput').value);
 
 	let workflow;
 
@@ -183,6 +188,21 @@ export async function setWorkflow(uid) {
 			workflow = await loadWorkflow('upscaling.json')
 			workflow["1"].inputs.image = `${uid}/${imageInput}`;
 			workflow["6"].inputs.filename_prefix = `${uid}/upscaling`;
+		} else if (editor === 'outpainting') {
+			workflow = await loadWorkflow('outpainting.json')
+			workflow["3"].inputs.seed = seed;
+			workflow["3"].inputs.steps = steps;
+			workflow["3"].inputs.sampler_name = sampler;
+			workflow["3"].inputs.scheduler = scheduler;
+			workflow["23"].inputs.text = promptP;
+			workflow["26"].inputs.guidance = guidance;
+			workflow["44"].inputs.left = leftMask;
+			workflow["44"].inputs.top = topMask;
+			workflow["44"].inputs.right = rightMask;
+			workflow["44"].inputs.bottom = bottomMask;
+			workflow["44"].inputs.feathering = featheringInput;
+			workflow["17"].inputs.image = `${uid}/${imageInput}`;
+			workflow["9"].inputs.filename_prefix = `${uid}/outpainting`;
 		}
 	}
 	let response = await fetch('/api/prompt-unique-id')

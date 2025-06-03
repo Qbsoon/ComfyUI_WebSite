@@ -16,7 +16,13 @@ export function validateInputs() {
     const blendInput = parseFloat(document.getElementById('blendInput').value);
     const lora = document.getElementById('loraSelect').value;
     const loraStrength = parseFloat(document.getElementById('loraStrengthInput').value);
+	const leftMask = parseInt(document.getElementById('leftMask').value);
+	const topMask = parseInt(document.getElementById('topMask').value);
+	const rightMask = parseInt(document.getElementById('rightMask').value);
+	const bottomMask = parseInt(document.getElementById('bottomMask').value);
+	const featheringInput = parseInt(document.getElementById('featheringInput').value);
     var stepsMaxLimit = 70;
+    var guidanceMaxLimit = 10.0;
     const model = document.getElementById('modelSelect').value;
     const editor = document.getElementById('editorSelect').value;
     const isEditing = document.getElementById('editorTab')?.classList.contains('active');
@@ -35,6 +41,10 @@ export function validateInputs() {
         stepsMaxLimit = 10;
     }
 
+    if (isEditing && editor === 'outpainting') {
+        guidanceMaxLimit = 50.0;
+    }
+
     if (!positivePrompt) {
         alert('Positive Prompt jest wymagany.');
         throw new Error('Validation failed on positivePrompt')
@@ -45,8 +55,8 @@ export function validateInputs() {
         throw new Error('Validation failed on cfgInput')
     }
 
-    if (isNaN(guidanceInput) || guidanceInput < 1.0 || guidanceInput > 10.0) {
-        alert('Guidance musi być liczbą pomiędzy 1.0 a 10.0.');
+    if (isNaN(guidanceInput) || guidanceInput < 1.0 || guidanceInput > guidanceMaxLimit) {
+        alert('Guidance musi być liczbą pomiędzy 1.0 a ' + guidanceMaxLimit + '.');
         throw new Error('Validation failed on guidanceInput')
     }
 
@@ -79,5 +89,13 @@ export function validateInputs() {
     if (!isEditing && model === 'flux1-dev-Q8_0.gguf' && lora !== 'none' && (isNaN(loraStrength) || loraStrength < -1.0 || loraStrength > 2.0)) {
         alert('LoRA Strength musi być liczbą pomiędzy -1.0 a 2.0.');
         throw new Error('Validation failed on loraStrengthInput')
+    }
+    if (isEditing && editor === 'outpainting' && ((leftMask < 0 || leftMask > 1024) || (topMask < 0 || topMask > 1024) || (rightMask < 0 || rightMask > 1024) || (bottomMask < 0 || bottomMask > 1024))) {
+        alert('Maski rozszerzenia muszą być liczbami całkowitymi pomiędzy 0 a 1024.');
+        throw new Error('Validation failed on outpainting mask inputs');
+    }
+    if (isEditing && editor === 'outpainting' && (featheringInput < 0 || featheringInput > 50)) {
+        alert('Feathering musi być liczbą całkowitą pomiędzy 0 a 50.');
+        throw new Error('Validation failed on featheringInput');
     }
 }

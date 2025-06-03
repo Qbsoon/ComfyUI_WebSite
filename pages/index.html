@@ -63,7 +63,7 @@
                     <option value="colorizing" selected>Colorizing</option>
                     <option value="upscaling">Upscaling</option>
                     <!-- <option value="inpainting">Inpainting</option> -->
-                    <!-- <option value="outpainting">Outpainting</option> -->
+                    <option value="outpainting">Outpainting</option>
                     <!-- <option value="refining">Refining</option> -->
                 </select>
                 <button id="editorDefaults">Editor defaults</button>
@@ -140,6 +140,18 @@
                 <input type="number" id="stepsRefineInput" min="1" max="70" step="1" value="20" hidden="true" />
                 <label for="blendInput" id="blendLabel" hidden="true">Blend</label>
                 <input type="number" id="blendInput" min="0" max="1" step="0.01" value="0.7" hidden="true" />
+                <label for="featheringInput" id="featheringLabel" hidden="true">Feathering</label>
+                <input type="number" id="featheringInput" min="0" max="50" step="1" value="24" hidden="true" />
+            </div>
+            <div class="row">
+                <label for ="leftMask" id="leftMaskLabel" hidden="true">Left</label>
+                <input type="number" id="leftMask" min="0" max="1024" step="1" value="0" hidden="true" />
+                <label for="topMask" id="topMaskLabel" hidden="true">Top</label>
+                <input type="number" id="topMask" min="0" max="1024" step="1" value="0" hidden="true" />
+                <label for="rightMask" id="rightMaskLabel" hidden="true">Right</label>
+                <input type="number" id="rightMask" min="0" max="1024" step="1" value="0" hidden="true" />
+                <label for="bottomMask" id="bottomMaskLabel" hidden="true">Bottom</label>
+                <input type="number" id="bottomMask" min="0" max="1024" step="1" value="0" hidden="true" />
             </div>
             <div class="row">
                 <label for="widthInput" id="widthLabel">Width</label>
