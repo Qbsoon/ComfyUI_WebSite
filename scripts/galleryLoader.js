@@ -86,9 +86,35 @@ function getComfyMetadata(workflowData, checkpointName) {
             }
             return metadataObject;
         } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+            let promptPcopy = workflowData["11"].inputs.text;
+			if (lora === 'Textimprover-FLUX-V0.4.safetensors') {
+				if (promptPcopy.endsWith('aidmaTextImprover')) {
+                    promptPcopy = promptPcopy.slice(0, -18);
+                }
+			} else if (lora === 'aidmaDoubleExposure-v0.1.safetensors') {
+                if (promptPcopy.endsWith('Double Exposure')) {
+                    promptPcopy = promptPcopy.slice(0, -16);
+                }
+			} else if (lora === 'aidmaFLUXPro1.1-FLUX-v0.3.safetensors') {
+                if (promptPcopy.endsWith('aidmafluxpro1.1')) {
+                    promptPcopy = promptPcopy.slice(0, -16);
+                }
+			} else if (lora === 'aidmaMJv7-FLUX-v0.1.safetensors') {
+                if (promptPcopy.endsWith('aidmamjv7')) {
+                    promptPcopy = promptPcopy.slice(0, -10);
+                }
+			} else if (lora === 'aidmaPsychadelicChaosWorld-FLUX-v0.1.safetensors') {
+                if (promptPcopy.endsWith('PsychadelicChaos')) {
+                    promptPcopy = promptPcopy.slice(0, -17);
+                }
+			} else if (lora === 'aidmaRealisticSkin-FLUX-v0.1.safetensors') {
+                if (promptPcopy.endsWith('aidmarealisticskin')) {
+                    promptPcopy = promptPcopy.slice(0, -19);
+                }
+			}
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["16"].inputs.text,
+                promptP: promptPcopy,
                 promptN: workflowData["40"].inputs.text,
                 sampler: workflowData["3"].inputs.sampler_name,
                 scheduler: workflowData["3"].inputs.scheduler,

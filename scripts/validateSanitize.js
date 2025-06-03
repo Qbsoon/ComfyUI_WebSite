@@ -76,8 +76,8 @@ export function validateInputs() {
         alert('Blend musi być liczbą pomiędzy 0.0 a 1.0.');
         throw new Error('Validation failed on blendInput')
     }
-    if (!isEditing && model === 'flux1-dev-Q8_0.gguf' && lora !== 'none' && (isNaN(loraStrength) || loraStrength < 0.0 || loraStrength > 1.0)) {
-        alert('LoRA Strength musi być liczbą pomiędzy 0.0 a 1.0.');
+    if (!isEditing && model === 'flux1-dev-Q8_0.gguf' && lora !== 'none' && (isNaN(loraStrength) || loraStrength < -1.0 || loraStrength > 2.0)) {
+        alert('LoRA Strength musi być liczbą pomiędzy -1.0 a 2.0.');
         throw new Error('Validation failed on loraStrengthInput')
     }
 }

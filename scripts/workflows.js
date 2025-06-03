@@ -105,6 +105,19 @@ export async function setWorkflow(uid) {
 				workflow["11"].inputs.clip = ["98", 1];
 				workflow["15"].inputs.model = ["98", 0];
 			}
+			if (lora === 'Textimprover-FLUX-V0.4.safetensors') {
+				workflow["11"].inputs.text += ' aidmaTextImprover';
+			} else if (lora === 'aidmaDoubleExposure-v0.1.safetensors') {
+				workflow["11"].inputs.text += ' Double Exposure';
+			} else if (lora === 'aidmaFLUXPro1.1-FLUX-v0.3.safetensors') {
+				workflow["11"].inputs.text += ' aidmafluxpro1.1';
+			} else if (lora === 'aidmaMJv7-FLUX-v0.1.safetensors') {
+				workflow["11"].inputs.text += ' aidmamjv7';
+			} else if (lora === 'aidmaPsychadelicChaosWorld-FLUX-v0.1.safetensors') {
+				workflow["11"].inputs.text += ' PsychadelicChaos';
+			} else if (lora === 'aidmaRealisticSkin-FLUX-v0.1.safetensors') {
+				workflow["11"].inputs.text += ' aidmarealisticskin';
+			}
 		} else if (model === 'PixArt-Sigma-XL-2-2K-MS.pth') {
 			workflow = await loadWorkflow('pixart.json')
 			workflow["2"].inputs.ratio = ratio;
