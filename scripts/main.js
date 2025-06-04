@@ -441,12 +441,12 @@ async function generateImage(workflow) {
         outputDiv.innerHTML = '';
 
         if (editorImgFN) {
-            img.className = "comparison-image image-bottom";
+            img.className = "comparison-image image-top";
             img.alt = "After";
-
+                    
             const imgBefore = document.createElement('img');
-            imgBefore.src = `gallery/${uid}/${editorImgFN}`;
-            imgBefore.className = "comparison-image image-top";
+            imgBefore.src = `gallery/${imageBeforeUrl}`;
+            imgBefore.className = "comparison-image image-bottom";
             imgBefore.alt = "Before";
             imgBefore.onerror = () => {
                 alert('Failed to load the generated image. Please check the server response.');
@@ -454,51 +454,139 @@ async function generateImage(workflow) {
 
             const draggableLine = document.createElement('div');
             draggableLine.className = 'comparison-draggable-line';
-
+        
             let initialPercentage = 50;
-
-            imgBefore.style.clipPath = `polygon(0 0, ${initialPercentage}% 0, ${initialPercentage}% 100%, 0 100%)`;
-            draggableLine.style.left = `${initialPercentage}%`;
-
-            let isDragging = false;
-
-            draggableLine.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                draggableLine.classList.add('dragging');
+            
+            if (document.getElementById('editorSelect').value === 'outpainting') {
+                img.style.opacity = initialPercentage / 100;
+                draggableLine.style.left = `${initialPercentage}%`;
+            
+                let isDragging = false;
+            
+                draggableLine.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    draggableLine.classList.add('dragging');
                 
-                e.preventDefault(); // Prevents text selection during drag
-
-                const currentContainerRect = comparisonContainer.getBoundingClientRect();
-
-                function onMouseMove(moveEvent) {
-                    if (!isDragging) return;
-
-                    let newX = moveEvent.clientX - currentContainerRect.left;
+                    e.preventDefault();
+                
+                    const currentContainerRect = comparison.getBoundingClientRect();
+                
+                    function onMouseMove(moveEvent) {
+                        if (!isDragging) return;
                     
-                    if (newX < 0) newX = 0;
-                    if (newX > currentContainerRect.width) newX = currentContainerRect.width;
-
-                    let percentage = (newX / currentContainerRect.width) * 100;
+                        let newX = moveEvent.clientX - currentContainerRect.left;
                     
-                    percentage = Math.max(0, Math.min(100, percentage));
-
-                    draggableLine.style.left = `${percentage}%`;
-
-                    imgBefore.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
-                }
-
-                function onMouseUp() {
-                    if (isDragging) {
-                        isDragging = false;
-                        draggableLine.classList.remove('dragging');
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
+                        if (newX < 0) newX = 0;
+                        if (newX > currentContainerRect.width) newX = currentContainerRect.width;
+                    
+                        let percentage = (newX / currentContainerRect.width) * 100;
+                    
+                        percentage = Math.max(0, Math.min(100, percentage));
+                    
+                        draggableLine.style.left = `${percentage}%`;
+                    
+                        img.style.opacity = percentage / 100;
                     }
-                }
+                
+                    function onMouseUp() {
+                        if (isDragging) {
+                            isDragging = false;
+                            draggableLine.classList.remove('dragging');
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                        }
+                    }
+                
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+            
+                img.onload = () => {
+                    const topMask = parseInt(workflowData.topMask || 0, 10);
+                    const bottomMask = parseInt(workflowData.bottomMask || 0, 10);
+                    const leftMask = parseInt(workflowData.leftMask || 0, 10);
+                    const rightMask = parseInt(workflowData.rightMask || 0, 10);
 
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
+                    const renderedWidth = img.offsetWidth;
+                    const renderedHeight = img.offsetHeight;
+                                        
+                    const scaleX = renderedWidth / img.naturalWidth;
+                    const scaleY = renderedHeight / img.naturalHeight;
+                                        
+                    const imgBeforeWidth = renderedWidth - (leftMask + rightMask) * scaleX;
+                    const imgBeforeHeight = renderedHeight - (topMask + bottomMask) * scaleY;
+                                        
+                    const imgBeforeLeft = leftMask * scaleX;
+                    const imgBeforeTop = topMask * scaleY;
+                                                            
+                    imgBefore.style.position = "absolute";
+                    imgBefore.style.width = `${imgBeforeWidth}px`;
+                    imgBefore.style.height = `${imgBeforeHeight}px`;
+                    imgBefore.style.left = `${imgBeforeLeft}px`;
+                    imgBefore.style.top = `${imgBeforeTop}px`;
+                                        
+                    comparison.style.position = "relative";
+                    comparison.style.width = `${renderedWidth}px`;
+                    comparison.style.height = `${renderedHeight}px`;
+                                        
+                    imgBefore.style.display = "block";
+                    img.style.display = "block";
+                                        
+                    console.log("imgBefore styles:", {
+                        top: imgBefore.style.top,
+                        left: imgBefore.style.left,
+                        width: imgBefore.style.width,
+                        height: imgBefore.style.height,
+                    });
+                    console.log("comparison styles:", {
+                        height: comparison.style.height,
+                        width: comparison.style.width,
+                    });
+                };
+            } else {
+                img.style.clipPath = `polygon(${initialPercentage}% 0, 100% 0, 100% 100%, ${initialPercentage}% 100%)`;
+                draggableLine.style.left = `${initialPercentage}%`;
+
+                let isDragging = false;
+
+                draggableLine.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    draggableLine.classList.add('dragging');
+
+                    e.preventDefault(); // Prevents text selection during drag
+
+                    const currentContainerRect = comparisonContainer.getBoundingClientRect();
+
+                    function onMouseMove(moveEvent) {
+                        if (!isDragging) return;
+
+                        let newX = moveEvent.clientX - currentContainerRect.left;
+
+                        if (newX < 0) newX = 0;
+                        if (newX > currentContainerRect.width) newX = currentContainerRect.width;
+
+                        let percentage = (newX / currentContainerRect.width) * 100;
+
+                        percentage = Math.max(0, Math.min(100, percentage));
+
+                        draggableLine.style.left = `${percentage}%`;
+
+                        img.style.clipPath = `polygon(${percentage}% 0, 100% 0, 100% 100%, ${percentage}% 100%)`;
+                    }
+
+                    function onMouseUp() {
+                        if (isDragging) {
+                            isDragging = false;
+                            draggableLine.classList.remove('dragging');
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                        }
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+            }
 
             const comparisonContainer = document.createElement('div');
             comparisonContainer.className = 'image-comparison-container';
@@ -843,12 +931,12 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
                 img.onerror = () => {
                     alert('Failed to load the generated image. Please check the server response.');
                 };
-                img.className = "comparison-image image-bottom";
+                img.className = "comparison-image image-top";
                 img.alt = "After";
             
                 const imgBefore = document.createElement('img');
                 imgBefore.src = `gallery/${imageBeforeUrl}`;
-                imgBefore.className = "comparison-image image-top";
+                imgBefore.className = "comparison-image image-bottom";
                 imgBefore.alt = "Before";
                 imgBefore.onerror = () => {
                     alert('Failed to load the generated image. Please check the server response.');
@@ -859,48 +947,136 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             
                 let initialPercentage = 50;
             
-                imgBefore.style.clipPath = `polygon(0 0, ${initialPercentage}% 0, ${initialPercentage}% 100%, 0 100%)`;
-                draggableLine.style.left = `${initialPercentage}%`;
-            
-                let isDragging = false;
-                
-                draggableLine.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    draggableLine.classList.add('dragging');
+                if (workflowData.checkpointName === 'outpainting') {
+                    img.style.opacity = initialPercentage / 100;
+                    draggableLine.style.left = `${initialPercentage}%`;
 
-                    e.preventDefault(); // Prevents text selection during drag
-                    
-                    const currentContainerRect = comparison.getBoundingClientRect();
-                    
-                    function onMouseMove(moveEvent) {
-                         if (!isDragging) return;
-                        
-                        let newX = moveEvent.clientX - currentContainerRect.left;
+                    let isDragging = false;
 
-                        if (newX < 0) newX = 0;
-                        if (newX > currentContainerRect.width) newX = currentContainerRect.width;
-                        
-                        let percentage = (newX / currentContainerRect.width) * 100;
+                    draggableLine.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        draggableLine.classList.add('dragging');
 
-                        percentage = Math.max(0, Math.min(100, percentage));
-                        
-                        draggableLine.style.left = `${percentage}%`;
-                        
-                        imgBefore.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
-                    }
-                    
-                    function onMouseUp() {
-                        if (isDragging) {
-                            isDragging = false;
-                            draggableLine.classList.remove('dragging');
-                            document.removeEventListener('mousemove', onMouseMove);
-                            document.removeEventListener('mouseup', onMouseUp);
+                        e.preventDefault();
+
+                        const currentContainerRect = comparison.getBoundingClientRect();
+
+                        function onMouseMove(moveEvent) {
+                            if (!isDragging) return;
+
+                            let newX = moveEvent.clientX - currentContainerRect.left;
+
+                            if (newX < 0) newX = 0;
+                            if (newX > currentContainerRect.width) newX = currentContainerRect.width;
+
+                            let percentage = (newX / currentContainerRect.width) * 100;
+
+                            percentage = Math.max(0, Math.min(100, percentage));
+
+                            draggableLine.style.left = `${percentage}%`;
+
+                            img.style.opacity = percentage / 100;
                         }
-                    }
-                    
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                });
+
+                        function onMouseUp() {
+                            if (isDragging) {
+                                isDragging = false;
+                                draggableLine.classList.remove('dragging');
+                                document.removeEventListener('mousemove', onMouseMove);
+                                document.removeEventListener('mouseup', onMouseUp);
+                            }
+                        }
+
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+
+                    img.onload = () => {
+                        const topMask = parseInt(workflowData.topMask || 0, 10);
+                        const bottomMask = parseInt(workflowData.bottomMask || 0, 10);
+                        const leftMask = parseInt(workflowData.leftMask || 0, 10);
+                        const rightMask = parseInt(workflowData.rightMask || 0, 10);
+
+                        const renderedWidth = img.offsetWidth;
+                        const renderedHeight = img.offsetHeight;
+                                        
+                        const scaleX = renderedWidth / img.naturalWidth;
+                        const scaleY = renderedHeight / img.naturalHeight;
+                                        
+                        const imgBeforeWidth = renderedWidth - (leftMask + rightMask) * scaleX;
+                        const imgBeforeHeight = renderedHeight - (topMask + bottomMask) * scaleY;
+                                        
+                        const imgBeforeLeft = leftMask * scaleX;
+                        const imgBeforeTop = topMask * scaleY;
+                                                            
+                        imgBefore.style.position = "absolute";
+                        imgBefore.style.width = `${imgBeforeWidth}px`;
+                        imgBefore.style.height = `${imgBeforeHeight}px`;
+                        imgBefore.style.left = `${imgBeforeLeft}px`;
+                        imgBefore.style.top = `${imgBeforeTop}px`;
+                                        
+                        comparison.style.position = "relative";
+                        comparison.style.width = `${renderedWidth}px`;
+                        comparison.style.height = `${renderedHeight}px`;
+                                        
+                        imgBefore.style.display = "block";
+                        img.style.display = "block";
+                                        
+                        console.log("imgBefore styles:", {
+                            top: imgBefore.style.top,
+                            left: imgBefore.style.left,
+                            width: imgBefore.style.width,
+                            height: imgBefore.style.height,
+                        });
+                        console.log("comparison styles:", {
+                            height: comparison.style.height,
+                            width: comparison.style.width,
+                        });
+                    };
+                } else {
+                    img.style.clipPath = `polygon(${initialPercentage}% 0, 100% 0, 100% 100%, ${initialPercentage}% 100%)`;
+                    draggableLine.style.left = `${initialPercentage}%`;
+
+                    let isDragging = false;
+
+                    draggableLine.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        draggableLine.classList.add('dragging');
+
+                        e.preventDefault();
+
+                        const currentContainerRect = comparison.getBoundingClientRect();
+
+                        function onMouseMove(moveEvent) {
+                            if (!isDragging) return;
+
+                            let newX = moveEvent.clientX - currentContainerRect.left;
+
+                            if (newX < 0) newX = 0;
+                            if (newX > currentContainerRect.width) newX = currentContainerRect.width;
+
+                            let percentage = (newX / currentContainerRect.width) * 100;
+
+                            percentage = Math.max(0, Math.min(100, percentage));
+
+                            draggableLine.style.left = `${percentage}%`;
+
+                            img.style.clipPath = `polygon(${percentage}% 0, 100% 0, 100% 100%, ${percentage}% 100%)`;
+                        }
+
+                        function onMouseUp() {
+                            if (isDragging) {
+                                isDragging = false;
+                                draggableLine.classList.remove('dragging');
+                                document.removeEventListener('mousemove', onMouseMove);
+                                document.removeEventListener('mouseup', onMouseUp);
+                            }
+                        }
+
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                }
                 
                 comparison.appendChild(imgBefore);
                 comparison.appendChild(img);
