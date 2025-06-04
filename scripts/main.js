@@ -445,7 +445,7 @@ async function generateImage(workflow) {
             img.alt = "After";
                     
             const imgBefore = document.createElement('img');
-            imgBefore.src = `gallery/${imageBeforeUrl}`;
+            imgBefore.src = `gallery/${uid}/${editorImgFN}`;
             imgBefore.className = "comparison-image image-bottom";
             imgBefore.alt = "Before";
             imgBefore.onerror = () => {
@@ -469,7 +469,7 @@ async function generateImage(workflow) {
                 
                     e.preventDefault();
                 
-                    const currentContainerRect = comparison.getBoundingClientRect();
+                    const currentContainerRect = comparisonContainer.getBoundingClientRect();
                 
                     function onMouseMove(moveEvent) {
                         if (!isDragging) return;
@@ -502,10 +502,10 @@ async function generateImage(workflow) {
                 });
             
                 img.onload = () => {
-                    const topMask = parseInt(workflowData.topMask || 0, 10);
-                    const bottomMask = parseInt(workflowData.bottomMask || 0, 10);
-                    const leftMask = parseInt(workflowData.leftMask || 0, 10);
-                    const rightMask = parseInt(workflowData.rightMask || 0, 10);
+	                const leftMask = parseInt(document.getElementById('leftMask').value);
+	                const topMask = parseInt(document.getElementById('topMask').value);
+	                const rightMask = parseInt(document.getElementById('rightMask').value);
+	                const bottomMask = parseInt(document.getElementById('bottomMask').value);
 
                     const renderedWidth = img.offsetWidth;
                     const renderedHeight = img.offsetHeight;
@@ -525,9 +525,9 @@ async function generateImage(workflow) {
                     imgBefore.style.left = `${imgBeforeLeft}px`;
                     imgBefore.style.top = `${imgBeforeTop}px`;
                                         
-                    comparison.style.position = "relative";
-                    comparison.style.width = `${renderedWidth}px`;
-                    comparison.style.height = `${renderedHeight}px`;
+                    comparisonContainer.style.position = "relative";
+                    comparisonContainer.style.width = `${renderedWidth}px`;
+                    comparisonContainer.style.height = `${renderedHeight}px`;
                                         
                     imgBefore.style.display = "block";
                     img.style.display = "block";
@@ -539,8 +539,8 @@ async function generateImage(workflow) {
                         height: imgBefore.style.height,
                     });
                     console.log("comparison styles:", {
-                        height: comparison.style.height,
-                        width: comparison.style.width,
+                        height: comparisonContainer.style.height,
+                        width: comparisonContainer.style.width,
                     });
                 };
             } else {
