@@ -1,36 +1,27 @@
-from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.routing import BaseConverter
-from werkzeug.utils import secure_filename
-import json
-from urllib.parse import quote, unquote
-from PIL import Image
-from quart_cors import cors
-import websockets
 import os
 import datetime
-import io
-import ldap3
-from ldap3.utils.log import set_library_log_detail_level, BASIC
-#from quart_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-#from quart_ldap3_login import LDAP3LoginManager
-from quart_auth    import QuartAuth, login_required, login_user, logout_user, current_user, AuthUser
-from ldap3         import Connection, Server, ALL
-import ssl
-import logging
-from logging.handlers import RotatingFileHandler
-import threading
 import time
-import requests
-from urllib.parse import unquote_plus
-import re
-import multiprocessing
+from quart import Quart, request, jsonify, Response, send_from_directory, render_template, redirect, url_for, session, websocket, render_template_string
+from quart_auth    import QuartAuth, login_required, login_user, logout_user, current_user, AuthUser
+from quart_cors import cors
+import logging
+import ldap3
+import uvicorn
+import threading
+import asyncio
 from multiprocessing import Lock
 from multiprocessing import shared_memory
+from werkzeug.routing import BaseConverter
+from werkzeug.utils import secure_filename
+import re
+import json
 import struct
-import uvicorn
-import asyncio
-from quart import Quart, request, jsonify, Response, send_from_directory, render_template, redirect, url_for, session, websocket, render_template_string
+from urllib.parse import quote, unquote, unquote_plus
+import websockets
+import requests
 import httpx
+import ssl
+from PIL import Image
 
 # --- Configuration for Queue Monitoring and Freeing ---
 MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174"
@@ -40,7 +31,8 @@ MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
 # --- End Configuration ---
 
-# --- Monitoring Script Functions (adapted for Flask logger) ---
+
+# --- Monitoring Script Functions ---
 _queue_lock = Lock()
 _prompt_lock = Lock()
 
@@ -52,7 +44,6 @@ def _open_shared(name: str, size: int, initial: int):
 		shm = shared_memory.SharedMemory(create=True, name=name, size=size)
 		created = True
 	if created:
-		# initialize only once
 		shm.buf[:4] = struct.pack("i", initial)
 	return shm
 
@@ -189,10 +180,14 @@ def background_queue_monitor_logic():
 
 # --- End Monitoring Script Functions ---
 
+
+# --- Quart Application Setup ---
 logging.getLogger('ldap3').setLevel(logging.DEBUG)
 
 app = Quart(__name__, template_folder='pages')
 cors(app)
+
+# --- End of Quart Application Setup ---
 
 
 # --- Logging Configuration ---
@@ -203,7 +198,7 @@ if not os.path.exists(log_directory):
 log_file = os.path.join(log_directory, "comfy_site.log")
 
 # Rotate logs: 10 MB per file, keep last 10 files
-file_handler = RotatingFileHandler(log_file, maxBytes=1024*1024*10, backupCount=9, encoding='utf-8')
+file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=1024*1024*10, backupCount=9, encoding='utf-8')
 
 # Format: 2025-05-18 10:00:00,123 INFO in app: Log message
 log_formatter = logging.Formatter(
@@ -228,19 +223,22 @@ app.logger.info('Site file logging configured (always active).')
 
 # --- End of Logging Configuration ---
 
+
+# --- Session reset ---
 @app.before_request
 def make_session_non_permanent():
 	session.permanent = False
 
+# --- Custom URL Converter for Regex ---
 class RegexConverter(BaseConverter):
 	def __init__(self, url_map, *items):
-		super(RegexConverter, self).__init__(url_map)
+		super().__init__(url_map)
 		self.regex = items[0]
-
 
 app.url_map.converters['regex'] = RegexConverter
 
-# --- Konfiguracja LDAP ---
+
+# --- LDAP Configuration ---
 app.config['LDAP_HOST'] = 'kpi.kul.pl'
 app.config['LDAP_PORT'] = 636
 app.config['LDAP_USE_SSL'] = True
@@ -256,33 +254,10 @@ app.config['LDAP_TLS_CA_CERTS_FILE'] = ca_cert_path
 
 app.config['LDAP_TLS_REQUIRE_CERT'] = ssl.CERT_REQUIRED
 
-#app.config['LDAP_USER_DN'] = os.environ.get('LDAP_USER_DN', 'ou=Users,dc=kpi,dc=kul,dc=pl')
 app.config['LDAP_USER_DN'] = 'ou=Users,dc=kpi,dc=kul,dc=pl'
 app.config['LDAP_USER_RDN_ATTR'] = 'uid'
 app.config['LDAP_USER_LOGIN_ATTR'] = 'uid'
 app.config['LDAP_USER_FULLNAME_ATTR'] = os.environ.get('LDAP_USER_FULLNAME_ATTR', 'cn')
-#app.config['LDAP_BIND_USER_DN'] = os.environ.get('LDAP_BIND_USER_DN', None)
-#app.config['LDAP_BIND_USER_PASSWORD'] = os.environ.get('LDAP_BIND_USER_PASSWORD', None)
-#app.config['LDAP_USER_SEARCH_FILTER'] = '(uid=%s)'
-#app.config['LDAP_GET_USER_ATTRIBUTES'] = ['dn']
-#app.config['LDAP_AUTHENTICATION_METHOD'] = 'SIMPLE'
-#app.config['LDAP_SEARCH_SCOPE'] = 'SUBTREE'
-
-#app.config['LDAP_GROUP_OBJECT_FILTER'] = '(objectClass=posixGroup)'
-#app.config['LDAP_GROUP_MEMBER_ATTR'] = 'memberUid'
-#app.config['LDAP_GROUP_DN'] = os.environ.get('LDAP_GROUP_DN', 'ou=Groups,dc=kpi,dc=kul,dc=pl')
-#app.config['LDAP_GROUP_DN'] = 'ou=Groups,dc=kpi,dc=kul,dc=pl'
-
-def _start_monitor():
-	threading.Thread(target=background_queue_monitor_logic, daemon=True).start()
-
-_start_monitor()
-
-class RegexConverter(BaseConverter):
-	def __init__(self, url_map, *items):
-		super().__init__(url_map)
-		self.regex = items[0]
-app.url_map.converters['regex'] = RegexConverter
 
 class User(AuthUser):
 	def __init__(self, identifier):
@@ -300,14 +275,15 @@ class User(AuthUser):
 	
 	@property
 	def identifier(self) -> str:
-		# override identifier if you’d rather use username internally
 		return self.username
 	
 login_manager = QuartAuth(app, user_class=User)
 login_manager.login_view = "login"
 
-# --- Funkcje obsługi użytkownika ---
+# --- End of LDAP Configuration ---
 
+
+# --- User Management ---
 @app.route('/login', methods=['GET', 'POST'])
 async def login():
 	if await current_user.is_authenticated:
@@ -428,13 +404,17 @@ async def logout():
 	app.logger.info("User logged out.")
 	return redirect(url_for('login'))
 
+# --- End of User Management ---
+
+
 GALLERY_BASE_DIR = "gallery"
 THUMBNAIL_SUBDIR = "thumbnails"
 THUMBNAIL_WIDTH = 200
 THUMBNAIL_FORMAT = "JPEG"
 THUMBNAIL_QUALITY = 85
 
-# --- Helper function dla Manifestu ---
+
+# --- Helper function for Manifest ---
 def get_image_files(directory):
 	"""Zwraca listę plików obrazów posortowaną wg daty modyfikacji (malejąco)."""
 	images_with_mtime = []
@@ -455,6 +435,8 @@ def get_image_files(directory):
 	sorted_filenames = [item[0] for item in images_with_mtime]
 	return sorted_filenames
 
+
+# --- Determining model filename prefix ---
 def model_filename(model):
 	if model=="sd_xl_base_1.0.safetensors":
 		return 'sdxl'
@@ -475,7 +457,8 @@ def model_filename(model):
 	if model=='outpainting':
 		return 'outpainting'
 
-# --- Endpoint generujący manifest IIIF ---
+
+# --- Endpoint generating IIIF manifest ---
 @app.route('/api/iiif-manifest', endpoint='generate_iiif_manifest')
 @login_required
 async def generate_iiif_manifest():
@@ -569,7 +552,6 @@ async def generate_iiif_manifest():
 		else:
 			image_files = None
 
-# --- Budowanie struktury manifestu IIIF ---
 	manifest = {
 		"@context": "http://iiif.io/api/presentation/2/context.json",
 		"@id": manifest_id,
@@ -666,14 +648,15 @@ async def generate_iiif_manifest():
 
 	return jsonify(manifest)
 
-# Route to render the main HTML file
+
+# --- Route to render the main HTML file ---
 @app.route("/")
 @login_required
 async def home():
    return await render_template("index.html", username=current_user.username)
 
 
-#@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>')
+# --- Route to serve the gallery files ---
 @app.route('/gallery/<path:subpath>')
 @login_required
 async def handle_gallery_file(subpath):
@@ -681,7 +664,6 @@ async def handle_gallery_file(subpath):
 	decoded_subpath = unquote(subpath) # np. "0/plik.png"
 	app.logger.debug(f"Decoded subpath for original: {decoded_subpath}")
 
-	# Zbuduj ścieżkę do oryginalnego pliku
 	original_path = os.path.join(GALLERY_BASE_DIR, decoded_subpath)
 
 	if os.path.isfile(original_path):
@@ -692,11 +674,9 @@ async def handle_gallery_file(subpath):
 		app.logger.warning(f"Original file not found at: {original_path}")
 		return "File not found", 404
 
-# Trasa dla MINIATUR
-# Regex pasujący tylko do "uid/thumbnails/filename"
-#@app.route('/gallery/<regex("^([0-9]+/thumbnails/[^/]+)$"):subpath>')
+
+# --- Thumbnails route ---
 @app.route('/thumbnails/<path:subpath>')
-#@app.route('/thumbnails/<regex("([0-9]+(\/[^\/])*)?[^\/$"):subpath>')
 @login_required
 async def handle_thumbnail(subpath):
 	decoded_subpath = unquote(subpath)
@@ -740,14 +720,14 @@ async def handle_thumbnail(subpath):
 		app.logger.error(f"Error during thumbnail generation for {original_path}: {e}")
 		return "Error generating thumbnail", 500
 
-#@app.route('/gallery/<path:subpath>/')
+
+# --- Main gallery route ---
 @app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>/')
 @login_required
 async def handle_gallery(subpath):
 	full_path = os.path.join("gallery", subpath)
 
 	if os.path.isdir(full_path):
-		# List files in the directory
 		files = os.listdir(full_path)
 		html_content = """
 		<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
@@ -808,9 +788,9 @@ async def handle_gallery(subpath):
 		return redirect("/gallery/"+subpath)
 
 	else:
-		# Path does not exist
 		return f"<h1>Path {subpath} not found</h1>", 404
 	
+
 # --- Endpoint to Delete an Image ---
 @app.route('/api/delete-image', methods=['POST'])
 @login_required
@@ -831,7 +811,6 @@ async def delete_image_endpoint():
 			app.logger.warning("Delete request missing UID or filename.")
 			return jsonify({"success": False, "error": "Missing uid or filename in request"}), 400
 
-		# Security Check: Ensure the UID from request matches the logged-in user
 		if str(uid_from_request) != str(current_user.username):
 			app.logger.error(f"SECURITY ALERT: User '{current_user.username}' attempted to delete image for UID '{uid_from_request}'.")
 			return jsonify({"success": False, "error": "Unauthorized action"}), 403
@@ -839,8 +818,7 @@ async def delete_image_endpoint():
 		if ".." in filename_from_request or "/" in filename_from_request or "\\" in filename_from_request:
 			app.logger.error(f"SECURITY ALERT: Invalid characters in filename for deletion: '{filename_from_request}'")
 			return jsonify({"success": False, "error": "Invalid filename"}), 400
-		
-		# Use the already available current_user.username for path construction for safety
+
 		user_gallery_dir = os.path.join(GALLERY_BASE_DIR, str(current_user.username))
 		original_image_path = os.path.join(user_gallery_dir, filename_from_request)
 		thumbnail_image_path = os.path.join(user_gallery_dir, THUMBNAIL_SUBDIR, filename_from_request)
@@ -871,7 +849,7 @@ async def delete_image_endpoint():
 		else:
 			app.logger.warning(f"Thumbnail image not found for deletion: {thumbnail_image_path}")
 
-		if deleted_original or deleted_thumbnail: # Consider it a success if at least one part was found and deleted
+		if deleted_original or deleted_thumbnail:
 			app.logger.info(f"Deletion process completed for {filename_from_request} (Original deleted: {deleted_original}, Thumbnail deleted: {deleted_thumbnail})")
 			return jsonify({"success": True, "message": "Image and/or thumbnail deleted successfully."})
 		elif not os.path.exists(original_image_path) and not os.path.exists(thumbnail_image_path):
@@ -884,6 +862,7 @@ async def delete_image_endpoint():
 	except Exception as e:
 		app.logger.error(f"Unexpected error in delete_image_endpoint: {e}", exc_info=True)
 		return jsonify({"success": False, "error": "An unexpected server error occurred."}), 500
+
 
 # --- Public Gallery ---
 PUBLIC_MANIFEST_DIR = "data"
@@ -919,7 +898,6 @@ async def toggle_public_status():
 	if not filename or not image_owner_uid:
 		return jsonify({"success": False, "error": "Missing filename or image owner UID"}), 400
 
-	# Security: Only the owner of an image can toggle its public status
 	if str(image_owner_uid) != str(current_user.username):
 		app.logger.warning(f"User {current_user.username} attempted to toggle public status for image owned by {image_owner_uid}")
 		return jsonify({"success": False, "error": "Unauthorized"}), 403
@@ -928,7 +906,7 @@ async def toggle_public_status():
 	image_entry = {"original_uid": str(image_owner_uid), "original_filename": filename}
 	
 	is_currently_public = False
-	# Check if already public by comparing original_uid and original_filename
+
 	for entry in public_manifest:
 		if entry.get("original_uid") == image_entry["original_uid"] and \
 		   entry.get("original_filename") == image_entry["original_filename"]:
@@ -936,7 +914,6 @@ async def toggle_public_status():
 			break
 
 	if is_currently_public:
-		# Remove from public
 		public_manifest = [
 			entry for entry in public_manifest
 			if not (entry.get("original_uid") == image_entry["original_uid"] and \
@@ -944,7 +921,6 @@ async def toggle_public_status():
 		]
 		action = "removed"
 	else:
-		# Add to public
 		image_entry["timestamp_published"] = datetime.datetime.utcnow().isoformat()
 		public_manifest.append(image_entry)
 		public_manifest.sort(key=lambda x: x.get("timestamp_published", ""), reverse=True)
@@ -1127,6 +1103,7 @@ async def generate_public_iiif_manifest():
 
 # --- End Public Gallery ---
 
+
 # --- Begin parse workflow functions ---
 def get_workflow_from_image_path(image_path):
 	if not os.path.exists(image_path):
@@ -1135,17 +1112,16 @@ def get_workflow_from_image_path(image_path):
 	
 	try:
 		with Image.open(image_path) as img:
-			# Ensure img.info exists and 'prompt' is a key
 			raw_workflow_json_string = img.info.get('prompt') if hasattr(img, 'info') and isinstance(img.info, dict) else None
 			
 			if not raw_workflow_json_string:
 				app.logger.debug(f"get_workflow_from_image_path: No 'prompt' metadata in img.info for {image_path}")
 				return None
 			return raw_workflow_json_string
-	except FileNotFoundError: # Should be caught by os.path.exists, but good for robustness
+	except FileNotFoundError:
 		app.logger.warning(f"get_workflow_from_image_path: Image file not found (FileNotFoundError): {image_path}")
 		return None
-	except Exception as e: # Catch other PIL errors, e.g., not an image file
+	except Exception as e:
 		app.logger.error(f"get_workflow_from_image_path: Error processing image {image_path}: {e}", exc_info=True)
 		return None
 
@@ -1153,7 +1129,6 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 	if not raw_workflow_json_string or not isinstance(raw_workflow_json_string, str):
 		return None
 	
-	# List of known checkpoint filenames
 	checkpoints = [
 		'sd3.5_large_fp8_scaled.safetensors',
 		'sd_xl_base_1.0.safetensors',
@@ -1167,7 +1142,6 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 		'flux1-fill-dev-Q8_0.gguf'
 	]
 	for cp_name in checkpoints:
-		# Check if the checkpoint name (as a string literal) is in the JSON string
 		if f'"{cp_name}"' in raw_workflow_json_string:
 			return cp_name
 	return None
@@ -1190,15 +1164,11 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
 	
 	positive_prompt = ""
 	try:
-		# Node IDs are based on your previous JS and Python logic
-		# Ensure these node IDs and input names are correct for your workflows
 		if checkpoint_name == 'sd_xl_base_1.0.safetensors':
 			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
 		elif checkpoint_name == 'sd3.5_large_fp8_scaled.safetensors':
-			# Assuming same node structure as sd_xl_base for positive prompt
 			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
 		elif checkpoint_name == 'sd_xl_turbo_1.0_fp16.safetensors':
-			# Assuming same node structure
 			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
 		elif checkpoint_name == 'FLUX1/flux1-dev-Q8_0.gguf':
 			positive_prompt = workflow_data.get("11", {}).get("inputs", {}).get("text", "")
@@ -1214,17 +1184,17 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
 			positive_prompt == ''
 		elif checkpoint_name == 'flux1-fill-dev-Q8_0.gguf':
 			positive_prompt = workflow_data.get("23", {}).get("inputs", {}).get("text", "")
-		# Add other checkpoint conditions as needed
 
 
 	except Exception as e:
 		app.logger.error(f"Error in py_get_positive_prompt_from_comfy_workflow for {checkpoint_name}: {e}", exc_info=True)
-		return "" # Return empty string on error
+		return ""
 	
-	# Ensure the result is a string and convert to lowercase
 	return str(positive_prompt).lower() if positive_prompt else ""
-# --- End Helper function ---
+# --- End Begin parse workflow functions ---
 
+
+# --- Server Queue Count ---
 @app.route('/api/get-server-queue-count', methods=['GET'])
 @login_required
 async def get_server_queue_count_endpoint():
@@ -1233,6 +1203,8 @@ async def get_server_queue_count_endpoint():
 		return jsonify({"success": False, "error": "Queue count not available.", "queue_count": -1}), 503
 	return jsonify({"success": True, "queue_count": cnt})
 
+
+# --- Unique ID for new prompts ---
 @app.route('/api/prompt-unique-id', methods=['GET'])
 @login_required
 async def get_prompt_unique_id():
@@ -1240,7 +1212,7 @@ async def get_prompt_unique_id():
 	return jsonify({"success": True, "unique_id": uid})
 
 
-# Upload image
+# --- Upload image ---
 @app.route('/api/upload-image', methods=['POST'])
 @login_required
 async def upload_editor_image():
@@ -1308,6 +1280,7 @@ async def upload_editor_image():
 		return jsonify({"success": False, "error": "Server error while saving the file."}), 500
 	
 
+# --- Error Handlers ---
 @app.errorhandler(413)
 async def request_entity_too_large(error):
 	app.logger.warning(f"Upload failed: File too large (413). Limit is {app.config.get('MAX_CONTENT_LENGTH') / (1024*1024)}MB.")
@@ -1317,12 +1290,15 @@ async def request_entity_too_large(error):
 async def _redirect_unauthorized(e):
 	return redirect(url_for('login'))
 
+# --- End of Error Handlers ---
+
+
+# --- ComfyUI Proxy ---
 @app.route('/cui/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
 @app.route('/cui/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
 @login_required
 async def proxy_to_comfy(path):
-	# build the exact suffix ("/api/userdata?dir=…" or "/assets/js/foo.js" etc)
-	suffix = request.full_path[len('/cui'):]  # e.g. "/api/userdata?dir=…"
+	suffix = request.full_path[len('/cui'):]
 	target = f"{MONITOR_SERVER_BASE_URL}{suffix}"
 	HOP_BY_HOP = {
 		'connection','keep-alive','proxy-authenticate',
@@ -1330,7 +1306,6 @@ async def proxy_to_comfy(path):
 		'transfer-encoding','upgrade'
 	}
 
-	# forward everything except true hop-by-hop
 	forward_headers = {
 		k:v for k,v in request.headers.items()
 		if k.lower() not in HOP_BY_HOP
@@ -1345,7 +1320,6 @@ async def proxy_to_comfy(path):
 			timeout=300.0
 		)
 
-	# return backend status/body and its non-hop-by-hop headers
 	response_headers = [
 		(k,v) for k,v in resp.headers.items()
 		if k.lower() not in HOP_BY_HOP
@@ -1392,6 +1366,10 @@ async def proxy_kjweb_async(path):
 		)
 	return Response(resp.content, status=resp.status_code, headers=resp.headers.items())
 
+# --- End of ComfyUI Proxy ---
+
+
+# --- Background Queue Monitor Threading ---
 _monitor_started = False
 def _ensure_monitor():
 	global _monitor_started
@@ -1401,7 +1379,8 @@ def _ensure_monitor():
 
 _ensure_monitor()
 
-# General route to serve files in all other directories
+
+# --- General route to serve files in all other directories ---
 @app.route("/<path:directory>/<filename>")
 @login_required
 async def serve_file(directory, filename):
@@ -1411,6 +1390,8 @@ async def serve_file(directory, filename):
 
 	return await send_from_directory(directory_path, filename)
 
+
+# --- Main entry point for the application ---
 if __name__ == "__main__":
 	_ensure_monitor()
 	uvicorn.run(
