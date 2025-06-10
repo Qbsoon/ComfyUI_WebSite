@@ -426,12 +426,14 @@ async function generateImage(workflow) {
             throw new Error('No image data returned from the server.');
         }
         // Wydobycie adresu URL obrazu z odpowiedzi
-        const imageUrl = result.images[0].data;
+        const imageUrl = result.images[0].data.replace('/cui//', '/cui/');
         if (document.getElementById('generatorTab')?.classList.contains('active')) {
         }
     
         const img = document.createElement('img');
         img.src = imageUrl;
+        console.log('Image URL:', imageUrl);
+        console.log('Image src:', img.src);
     
         // Obsługa błędów
         img.onerror = () => {
