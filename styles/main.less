@@ -64,11 +64,6 @@ body {
     }
 }
 
-#queueDiv {
-    display: flex;
-    gap: 10px;
-}
-
 #tabs {
     display: flex;
     gap: 10px;
@@ -118,6 +113,27 @@ body {
     .border-radius();
     padding: @container-padding;
     .box-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+input, select, button {
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    .border-radius();
+    margin-bottom: 20px;
+    display: block;
+    width: 100%;
+}
+
+button {
+    background-color: @primary-color;
+    color: @text-color;
+    cursor: pointer;
+
+    &:hover {
+        background-color: @secondary-color;
+    }
 }
 
 #parameters {
@@ -176,27 +192,6 @@ body {
     }
 }
 
-input, select, button {
-    margin: 5px 0;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    .border-radius();
-    margin-bottom: 20px;
-    display: block;
-    width: 100%;
-}
-
-button {
-    background-color: @primary-color;
-    color: @text-color;
-    cursor: pointer;
-
-    &:hover {
-        background-color: @secondary-color;
-    }
-}
-
 #lastGallery, #fullGallery, #publicGallery {
     display: grid;
     gap: @grid-gap;
@@ -219,24 +214,9 @@ button {
     }
 }
 
-#imageModal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-
-    #modalImage {
-        max-width: 90%;
-        max-height: 90%;
-        border: 2px solid @text-color;
-        .border-radius(10px);
-    }
+#queueDiv {
+    display: flex;
+    gap: 10px;
 }
 
 #output {
