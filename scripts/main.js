@@ -2,6 +2,7 @@ import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-clie
 import { galleryLoad } from './galleryLoader.js?cache-bust=1';
 import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 
+// Zmienne globalne
 const FTP = window.location.origin;
 const uid = document.body.dataset.username;
 let queue = parseInt(sessionStorage.getItem('comfyQueueCount') || '0');
@@ -11,35 +12,94 @@ const editors = ['colorizing', 'upscaling', 'outpainting'];
 let updateTimeout;
 let isUpdating = false;
 
-function updateGridVariables(limit_start = null, limit_end = null) {
-    clearTimeout(updateTimeout);
+let currentImageToDeleteUrl = null;
+let currentLightboxImageOwnerUid = null;
+let currentLightboxImageFilename = null;
 
-    updateTimeout = setTimeout(() => {
-        if(isUpdating) return;
-        isUpdating = true;
-        
-        const lastNum = Math.round(window.innerWidth / 202);
-        const fullGallery = document.getElementById('fullGallery');
-        const lastGallery = document.getElementById('lastGallery');
-        const publicGallery = document.getElementById('publicGallery');
-        fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-        lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-        publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
-        const mainContainer = document.getElementById('mainContainer');
-        const galleryContainerTab = document.getElementById('galleryContainerTab');
-        const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+// Odnośniki
+const mainContainer = document.getElementById('mainContainer');
+const galleryContainerTab = document.getElementById('galleryContainerTab');
+const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+const generatorTab = document.getElementById('generatorTab');
+const editorTab = document.getElementById('editorTab');
+const galleryTab = document.getElementById('galleryTab');
+const publicGalleryTab = document.getElementById('publicGalleryTab');
+const fullGallery = document.getElementById('fullGallery');
+const lastGallery = document.getElementById('lastGallery');
+const publicGallery = document.getElementById('publicGallery');
 
-        if (mainContainer.style.display === 'grid') {
-            loadImages('lastGallery', uid, null, lastNum).finally(() => { isUpdating = false;});
-        } else if (galleryContainerTab.style.display === 'grid') {
-            loadImages('fullGallery', uid).finally(() => { isUpdating = false;});
-        } else if (publicGalleryContainerTab.style.display === 'grid') {
-            loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest').finally(() => { isUpdating = false;});
-        } else {
-            isUpdating = false;
-        }
-    }, 100);
-}
+const progressBar = document.getElementById('progressBar');
+const progressName = document.getElementById('progressName');
+const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
+const outputDiv = document.getElementById('output');
+const queueDisplay = document.getElementById('queueDisplay');
+const imageInput = document.getElementById('imageInput');
+const queueOutput = document.getElementById('queueOutput');
+const modelParameters = document.getElementById('modelParameters');
+const editorParameters = document.getElementById('editorParameters');
+
+const submitButton = document.getElementById('submitButton');
+const logoutButton = document.getElementById('logoutButton');
+const modelDefaultBtn = document.getElementById('modelDefaults');
+const editorDefaultBtn = document.getElementById('editorDefaults');
+const editorDefaultPromptsBtn = document.getElementById('editorPrompts');
+const imageUploadBtn = document.getElementById('imageUpload');
+const uploadDialog = document.getElementById('uploadDialog');
+
+const lightbox = document.getElementById('simpleLightbox');
+const lightboxImage = document.getElementById('lightboxImage');
+const closeBtn = document.getElementById('lightboxCloseButton');
+const deleteBtn = document.getElementById('lightboxDeleteButton');
+const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
+const lightboxCopyParametersBtn = document.getElementById('lightboxCopyParametersButton');
+const lightboxEditImageBtn = document.getElementById('lightboxEditImageButton');
+const prompts = document.getElementById('lightboxPrompts');
+const parameters = document.getElementById('lightboxParameters');
+const comparison = document.getElementById('lightboxComparison');
+const customConfirmYesBtn = document.getElementById('customConfirmYes');
+const customConfirmNoBtn = document.getElementById('customConfirmNo');
+
+const modelSelect = document.getElementById('modelSelect');
+const editorSelect = document.getElementById('editorSelect');
+const positivePromptBox = document.getElementById('positivePromptBox');
+const negativePromptBox = document.getElementById('negativePromptBox');
+const positivePrompt = document.getElementById('positivePrompt');
+const negativePrompt = document.getElementById('negativePrompt');
+const stepsRefineInput = document.getElementById('stepsRefineInput');
+const stepsRefineLabel = document.getElementById('stepsRefineLabel');
+const schedulerSelect = document.getElementById('schedulerSelect');
+const schedulerLabel = document.getElementById('schedulerLabel');
+const samplerSelect = document.getElementById('samplerSelect');
+const samplerLabel = document.getElementById('samplerLabel');
+const cfgInput = document.getElementById('cfgInput');
+const cfgLabel = document.getElementById('cfgLabel');
+const guidanceInput = document.getElementById('guidanceInput');
+const guidanceLabel = document.getElementById('guidanceLabel');
+const ratioLabel = document.getElementById('ratioLabel');
+const ratioInput = document.getElementById('ratioInput');
+const widthInput = document.getElementById('widthInput');
+const widthLabel = document.getElementById('widthLabel');
+const heightInput = document.getElementById('heightInput');
+const heightLabel = document.getElementById('heightLabel');
+const ratioOutput = document.getElementById('ratioOutput');
+const stepsInput = document.getElementById('stepsInput');
+const stepsLabel = document.getElementById('stepsLabel');
+const blendInput = document.getElementById('blendInput');
+const blendLabel = document.getElementById('blendLabel');
+const loraSelect = document.getElementById('loraSelect');
+const loraLabel = document.getElementById('loraLabel');
+const loraStrengthInput = document.getElementById('loraStrengthInput');
+const loraStrengthLabel = document.getElementById('loraStrengthLabel');
+const featheringInput = document.getElementById('featheringInput');
+const featheringLabel = document.getElementById('featheringLabel');
+const leftMask = document.getElementById('leftMask');
+const leftMaskLabel = document.getElementById('leftMaskLabel');
+const topMask = document.getElementById('topMask');
+const topMaskLabel = document.getElementById('topMaskLabel');
+const rightMask = document.getElementById('rightMask');
+const rightMaskLabel = document.getElementById('rightMaskLabel');
+const bottomMask = document.getElementById('bottomMask');
+const bottomMaskLabel = document.getElementById('bottomMaskLabel');
 
 window.addEventListener('resize', updateGridVariables);
 
@@ -64,8 +124,6 @@ try {
 }
 
 function updateProgressBar(value, max) {
-    const progressBar = document.getElementById('progressBar');
-	const progressName = document.getElementById('progressName');
     const percentage = (value / max) * 100;
     progressBar.value = percentage;
 	if (percentage > 0 && percentage < 100) {
@@ -76,6 +134,52 @@ function updateProgressBar(value, max) {
 		progressName.innerText = '';
 	}
     updateQueueItemsIds();
+}
+
+// Odświeżenie zawartości i rozmiarów galerii
+function updateGridVariables(limit_start = null, limit_end = null) {
+    clearTimeout(updateTimeout);
+
+    updateTimeout = setTimeout(() => {
+        if(isUpdating) return;
+        isUpdating = true;
+        
+        const lastNum = Math.round(window.innerWidth / 202);
+        fullGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        lastGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+        publicGallery.style.gridTemplateColumns = `repeat(auto-fit, minmax(202px, 1fr))`;
+
+        if (mainContainer.style.display === 'grid') {
+            loadImages('lastGallery', uid, null, lastNum).finally(() => { isUpdating = false;});
+        } else if (galleryContainerTab.style.display === 'grid') {
+            loadImages('fullGallery', uid).finally(() => { isUpdating = false;});
+        } else if (publicGalleryContainerTab.style.display === 'grid') {
+            loadImages('publicGallery', null, null, null, '/api/public-iiif-manifest').finally(() => { isUpdating = false;});
+        } else {
+            isUpdating = false;
+        }
+    }, 100);
+}
+
+// Greatest common divider
+function gcd(a, b) {
+    if (b === 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+export function updateResRatio() {
+    const widthInputV = parseInt(widthInput.value);
+    const heightInputV = parseInt(heightInput.value);
+    if (!isNaN(widthInputV) && !isNaN(heightInputV) && widthInputV > 0 && heightInputV > 0) {
+        const divisor = gcd(widthInputV, heightInputV);
+        const ratioX = widthInputV / divisor;
+        const ratioY = heightInputV / divisor;
+        document.getElementById('ratioOutput').innerText = `Ratio: ${ratioX}:${ratioY}`;
+    } else {
+        document.getElementById('ratioOutput').innerText = 'Wrong resolution values';
+    }
 }
 
 let comfyQueuePollIntervalId = null; // For ComfyUI queue polling
@@ -100,7 +204,6 @@ async function fetchAndUpdateComfyUIQueueDisplay() {
 
         if (data.success) {
             const latestComfyUIServerQueueCount = data.queue_count;
-            const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
             if (comfyQueueOutputEl) {
                 if (latestComfyUIServerQueueCount === -1) {
                     comfyQueueOutputEl.innerText = "Server Queue: N/A";
@@ -135,150 +238,6 @@ function stopComfyQueuePolling() {
         clearInterval(comfyQueuePollIntervalId);
         comfyQueuePollIntervalId = null;
         console.log("Stopped ComfyUI server queue polling.");
-    }
-}
-
-function changeModel() {
-    if (document.getElementById('generatorTab')?.classList.contains('active')) {
-        // Default behavior, for SD3.5 & HDi1f
-        document.getElementById('positivePromptBox').hidden = false;
-        document.getElementById('negativePromptBox').hidden = false;
-        document.getElementById('positivePrompt').placeholder = "Elvish sword";
-        document.getElementById('negativePrompt').placeholder = "Bad";
-        document.getElementById('stepsRefineInput').hidden = true;
-        document.getElementById('stepsRefineLabel').hidden = true;
-        document.getElementById('schedulerSelect').hidden = false;
-        document.getElementById('schedulerLabel').hidden = false;
-        document.getElementById('cfgInput').hidden = false;
-        document.getElementById('cfgLabel').hidden = false;
-        document.getElementById('guidanceInput').hidden = true;
-        document.getElementById('guidanceLabel').hidden = true;
-        document.getElementById('ratioLabel').hidden = true;
-        document.getElementById('ratioInput').hidden = true;
-        document.getElementById('widthInput').hidden = false;
-        document.getElementById('widthLabel').hidden = false;
-        document.getElementById('heightInput').hidden = false;
-        document.getElementById('heightLabel').hidden = false;
-        document.getElementById('ratioOutput').hidden = false;
-        document.getElementById('stepsInput').hidden = false;
-        document.getElementById('stepsLabel').hidden = false;
-        document.getElementById('stepsInput').max = 70;
-        document.getElementById('blendInput').hidden = true;
-        document.getElementById('blendLabel').hidden = true;
-        document.getElementById('loraSelect').hidden = true;
-        document.getElementById('loraLabel').hidden = true;
-        document.getElementById('loraStrengthInput').hidden = true;
-        document.getElementById('loraStrengthLabel').hidden = true;
-        
-        if (document.getElementById('modelSelect').value === 'sd_xl_base_1.0.safetensors') {
-            document.getElementById('stepsRefineInput').hidden = false;
-            document.getElementById('stepsRefineLabel').hidden = false;
-        } 
-        if (document.getElementById('modelSelect').value === 'sd_xl_turbo_1.0_fp16.safetensors') {
-            document.getElementById('schedulerSelect').hidden = true;
-            document.getElementById('schedulerLabel').hidden = true;
-            document.getElementById('cfgInput').hidden = true;
-            document.getElementById('cfgLabel').hidden = true;
-            document.getElementById('stepsInput').max = 10;
-        } 
-        if (document.getElementById('modelSelect').value === 'flux1-dev-Q8_0.gguf') {
-            document.getElementById('negativePromptBox').hidden = true;
-            document.getElementById('cfgInput').hidden = true;
-            document.getElementById('cfgLabel').hidden = true;
-            document.getElementById('guidanceInput').hidden = false;
-            document.getElementById('guidanceLabel').hidden = false;
-            document.getElementById('loraSelect').hidden = false;
-            document.getElementById('loraLabel').hidden = false;
-            document.getElementById('loraStrengthInput').hidden = false;
-            document.getElementById('loraStrengthLabel').hidden = false;
-        } 
-        if (document.getElementById('modelSelect').value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-            document.getElementById('ratioLabel').hidden = false;
-            document.getElementById('ratioInput').hidden = false;
-            document.getElementById('widthInput').hidden = true;
-            document.getElementById('widthLabel').hidden = true;
-            document.getElementById('heightInput').hidden = true;
-            document.getElementById('heightLabel').hidden = true;
-            document.getElementById('ratioOutput').hidden = true;
-        }
-        if (document.getElementById('modelSelect').value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
-            document.getElementById('negativePromptBox').hidden = true;
-        }
-    } else if (document.getElementById('editorTab')?.classList.contains('active')) {
-        document.getElementById('positivePromptBox').hidden = true;
-        document.getElementById('negativePromptBox').hidden = true;
-        document.getElementById('stepsInput').hidden = true;
-        document.getElementById('stepsLabel').hidden = true;
-        document.getElementById('stepsRefineInput').hidden = true;
-        document.getElementById('stepsRefineLabel').hidden = true;
-        document.getElementById('schedulerSelect').hidden = true;
-        document.getElementById('schedulerLabel').hidden = true;
-        document.getElementById('samplerSelect').hidden = true;
-        document.getElementById('samplerLabel').hidden = true;
-        document.getElementById('cfgInput').hidden = true;
-        document.getElementById('cfgLabel').hidden = true;
-        document.getElementById('guidanceInput').hidden = true;
-        document.getElementById('guidanceLabel').hidden = true;
-        document.getElementById('ratioLabel').hidden = true;
-        document.getElementById('ratioInput').hidden = true;
-        document.getElementById('widthInput').hidden = true;
-        document.getElementById('widthLabel').hidden = true;
-        document.getElementById('heightInput').hidden = true;
-        document.getElementById('heightLabel').hidden = true;
-        document.getElementById('ratioOutput').hidden = true;
-        document.getElementById('blendInput').hidden = true;
-        document.getElementById('blendLabel').hidden = true;
-        document.getElementById('loraSelect').hidden = true;
-        document.getElementById('loraLabel').hidden = true;
-        document.getElementById('loraStrengthInput').hidden = true;
-        document.getElementById('loraStrengthLabel').hidden = true;
-        document.getElementById('featheringInput').hidden = true;
-        document.getElementById('featheringLabel').hidden = true;
-        document.getElementById('leftMask').hidden = true;
-        document.getElementById('leftMaskLabel').hidden = true;
-        document.getElementById('topMask').hidden = true;
-        document.getElementById('topMaskLabel').hidden = true;
-        document.getElementById('rightMask').hidden = true;
-        document.getElementById('rightMaskLabel').hidden = true;
-        document.getElementById('bottomMask').hidden = true;
-        document.getElementById('bottomMaskLabel').hidden = true;
-        if (document.getElementById('editorSelect').value === 'colorizing') {
-            document.getElementById('positivePromptBox').hidden = false;
-            document.getElementById('positivePrompt').placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
-            document.getElementById('negativePromptBox').hidden = false;
-            document.getElementById('negativePrompt').placeholder = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";
-            document.getElementById('samplerSelect').hidden = false;
-            document.getElementById('samplerLabel').hidden = false;
-            document.getElementById('schedulerSelect').hidden = false;
-            document.getElementById('schedulerLabel').hidden = false;
-            document.getElementById('cfgInput').hidden = false;
-            document.getElementById('cfgLabel').hidden = false;
-            document.getElementById('stepsInput').hidden = false;
-            document.getElementById('stepsLabel').hidden = false;
-            document.getElementById('stepsInput').max = 10;
-            document.getElementById('blendInput').hidden = false;
-            document.getElementById('blendLabel').hidden = false;
-        } else if (document.getElementById('editorSelect').value === 'outpainting') {
-            document.getElementById('positivePromptBox').hidden = false;
-            document.getElementById('samplerSelect').hidden = false;
-            document.getElementById('samplerLabel').hidden = false;
-            document.getElementById('schedulerSelect').hidden = false;
-            document.getElementById('schedulerLabel').hidden = false;
-            document.getElementById('guidanceInput').hidden = false;
-            document.getElementById('guidanceLabel').hidden = false;
-            document.getElementById('stepsInput').hidden = false;
-            document.getElementById('stepsLabel').hidden = false;
-            document.getElementById('featheringInput').hidden = false;
-            document.getElementById('featheringLabel').hidden = false;
-            document.getElementById('leftMask').hidden = false;
-            document.getElementById('leftMaskLabel').hidden = false;
-            document.getElementById('topMask').hidden = false;
-            document.getElementById('topMaskLabel').hidden = false;
-            document.getElementById('rightMask').hidden = false;
-            document.getElementById('rightMaskLabel').hidden = false;
-            document.getElementById('bottomMask').hidden = false;
-            document.getElementById('bottomMaskLabel').hidden = false;
-        }
     }
 }
 
@@ -326,8 +285,6 @@ async function getTaskNoByUniqueId(uniqueTaskId) {
     return foundIndex ? foundIndex + 1 : (foundIndex === 0 ? 1 : -1);
 }
 
-
-
 async function removeTaskByTaskId(task) {
     if (!task) {
         console.error("Task not found!");
@@ -366,17 +323,305 @@ async function updateQueueItemsIds() {
     }
 }
 
+function changeModel() {
+    if (generatorTab.classList.contains('active')) {
+        // Default behavior, for SD3.5 & HDi1f
+        positivePromptBox.hidden = false;
+        negativePromptBox.hidden = false;
+        positivePrompt.placeholder = "Elvish sword";
+        negativePrompt.placeholder = "Bad";
+        stepsRefineInput.hidden = true;
+        stepsRefineLabel.hidden = true;
+        schedulerSelect.hidden = false;
+        schedulerLabel.hidden = false;
+        cfgInput.hidden = false;
+        cfgLabel.hidden = false;
+        guidanceInput.hidden = true;
+        guidanceLabel.hidden = true;
+        ratioLabel.hidden = true;
+        ratioInput.hidden = true;
+        widthInput.hidden = false;
+        widthLabel.hidden = false;
+        heightInput.hidden = false;
+        heightLabel.hidden = false;
+        ratioOutput.hidden = false;
+        stepsInput.hidden = false;
+        stepsLabel.hidden = false;
+        stepsInput.max = 70;
+        blendInput.hidden = true;
+        blendLabel.hidden = true;
+        loraSelect.hidden = true;
+        loraLabel.hidden = true;
+        loraStrengthInput.hidden = true;
+        loraStrengthLabel.hidden = true;
+        featheringInput.hidden = true;
+        featheringLabel.hidden = true;
+        leftMask.hidden = true;
+        leftMaskLabel.hidden = true;
+        topMask.hidden = true;
+        topMaskLabel.hidden = true;
+        rightMask.hidden = true;
+        rightMaskLabel.hidden = true;
+        bottomMask.hidden = true;
+        bottomMaskLabel.hidden = true;
+
+        if (modelSelect.value === 'sd_xl_base_1.0.safetensors') {
+            stepsRefineInput.hidden = false;
+            stepsRefineLabel.hidden = false;
+        } 
+        if (modelSelect.value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+            schedulerSelect.hidden = true;
+            schedulerLabel.hidden = true;
+            cfgInput.hidden = true;
+            cfgLabel.hidden = true;
+            stepsInput.max = 10;
+        } 
+        if (modelSelect.value === 'flux1-dev-Q8_0.gguf') {
+            negativePromptBox.hidden = true;
+            cfgInput.hidden = true;
+            cfgLabel.hidden = true;
+            guidanceInput.hidden = false;
+            guidanceLabel.hidden = false;
+            loraSelect.hidden = false;
+            loraLabel.hidden = false;
+            loraStrengthInput.hidden = false;
+            loraStrengthLabel.hidden = false;
+        } 
+        if (modelSelect.value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+            ratioLabel.hidden = false;
+            ratioInput.hidden = false;
+            widthInput.hidden = true;
+            widthLabel.hidden = true;
+            heightInput.hidden = true;
+            heightLabel.hidden = true;
+            ratioOutput.hidden = true;
+        }
+        if (modelSelect.value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+            negativePromptBox.hidden = true;
+        }
+    } else if (editorTab.classList.contains('active')) {
+        positivePromptBox.hidden = true;
+        negativePromptBox.hidden = true;
+        stepsInput.hidden = true;
+        stepsLabel.hidden = true;
+        stepsRefineInput.hidden = true;
+        stepsRefineLabel.hidden = true;
+        schedulerSelect.hidden = true;
+        schedulerLabel.hidden = true;
+        samplerSelect.hidden = true;
+        samplerLabel.hidden = true;
+        cfgInput.hidden = true;
+        cfgLabel.hidden = true;
+        guidanceInput.hidden = true;
+        guidanceLabel.hidden = true;
+        ratioLabel.hidden = true;
+        ratioInput.hidden = true;
+        widthInput.hidden = true;
+        widthLabel.hidden = true;
+        heightInput.hidden = true;
+        heightLabel.hidden = true;
+        ratioOutput.hidden = true;
+        blendInput.hidden = true;
+        blendLabel.hidden = true;
+        loraSelect.hidden = true;
+        loraLabel.hidden = true;
+        loraStrengthInput.hidden = true;
+        loraStrengthLabel.hidden = true;
+        featheringInput.hidden = true;
+        featheringLabel.hidden = true;
+        leftMask.hidden = true;
+        leftMaskLabel.hidden = true;
+        topMask.hidden = true;
+        topMaskLabel.hidden = true;
+        rightMask.hidden = true;
+        rightMaskLabel.hidden = true;
+        bottomMask.hidden = true;
+        bottomMaskLabel.hidden = true;
+        if (editorSelect.value === 'colorizing') {
+            positivePromptBox.hidden = false;
+            positivePrompt.placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
+            negativePromptBox.hidden = false;
+            negativePrompt.placeholder = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";
+            samplerSelect.hidden = false;
+            samplerLabel.hidden = false;
+            schedulerSelect.hidden = false;
+            schedulerLabel.hidden = false;
+            cfgInput.hidden = false;
+            cfgLabel.hidden = false;
+            stepsInput.hidden = false;
+            stepsLabel.hidden = false;
+            stepsInput.max = 10;
+            blendInput.hidden = false;
+            blendLabel.hidden = false;
+        } else if (editorSelect.value === 'outpainting') {
+            positivePromptBox.hidden = false;
+            samplerSelect.hidden = false;
+            samplerLabel.hidden = false;
+            schedulerSelect.hidden = false;
+            schedulerLabel.hidden = false;
+            guidanceInput.hidden = false;
+            guidanceLabel.hidden = false;
+            stepsInput.hidden = false;
+            stepsLabel.hidden = false;
+            featheringInput.hidden = false;
+            featheringLabel.hidden = false;
+            leftMask.hidden = false;
+            leftMaskLabel.hidden = false;
+            topMask.hidden = false;
+            topMaskLabel.hidden = false;
+            rightMask.hidden = false;
+            rightMaskLabel.hidden = false;
+            bottomMask.hidden = false;
+            bottomMaskLabel.hidden = false;
+        }
+    }
+}
+
+export function switchTab(tab) {
+    let current_active_tab = null;
+
+    if (generatorTab.classList.contains('active') && tab === 'generator') {
+        current_active_tab = 'generator';
+    } else if (editorTab.classList.contains('active') && tab === 'editor') {
+        current_active_tab = 'editor';
+    }
+    generatorTab.classList.remove('active');
+    editorTab.classList.remove('active');
+    galleryTab.classList.remove('active');
+    publicGalleryTab.classList.remove('active');
+    mainContainer.style.display = 'none';
+    modelParameters.style.display = 'none';
+    editorParameters.style.display = 'none';
+    galleryContainerTab.style.display = 'none';
+    publicGalleryContainerTab.style.display = 'none';
+
+    if (tab === 'generator') {
+        generatorTab.classList.add('active');
+        mainContainer.style.display = 'grid';
+        mainContainer.style.gridTemplateColumns = `1fr 1fr`;
+        modelParameters.style.display = 'flex';
+        document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+        if (current_active_tab !== 'generator') {
+            changeModel();
+            restoreModelDefaults();
+        }
+        updateGridVariables();
+    } else if (tab === 'editor') {
+        editorTab.classList.add('active');
+        mainContainer.style.display = 'grid';
+        mainContainer.style.gridTemplateColumns = `1fr 1fr`;
+        editorParameters.style.display = 'flex';
+        document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+        if (current_active_tab !== 'editor') {
+            changeModel();
+            restoreModelDefaults();
+        }
+        updateGridVariables();
+    } else if (tab === 'gallery') {
+        galleryTab.classList.add('active');
+        galleryContainerTab.style.display = 'grid';
+        updateGridVariables();
+    } else if (tab === 'publicGallery') {
+        publicGalleryTab.classList.add('active');
+        publicGalleryContainerTab.style.display = 'grid';
+        updateGridVariables();
+    }
+}
+
+export function restoreModelDefaults() {
+    const checkpointName = modelSelect.value;
+    const editorCheckpointName = editorSelect.value;
+    if (generatorTab.classList.contains('active')) {
+        if (checkpointName === 'sd_xl_base_1.0.safetensors') {
+            schedulerSelect.value = "normal";
+            samplerSelect.value = "euler";
+            cfgInput.value = 8;
+            stepsInput.value = 20;
+            stepsRefineInput.value = 5;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+        } else if (checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
+            schedulerSelect.value = "sgm_uniform";
+            samplerSelect.value = "euler";
+            cfgInput.value = 4;
+            stepsInput.value = 20;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+        } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
+            samplerSelect.value = "euler_ancestral";
+            cfgInput.value = 1;
+            stepsInput.value = 5;
+            widthInput.value = 512;
+            heightInput.value = 512;
+        } else if (checkpointName === 'flux1-dev-Q8_0.gguf') {
+            schedulerSelect.value = "normal";
+            samplerSelect.value = "euler";
+            guidanceInput.value = 2;
+            stepsInput.value = 25;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+            loraSelect.value = "none";
+            loraStrengthInput.value = 0.7;
+        } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+            schedulerSelect.value = "normal";
+            samplerSelect.value = "euler_ancestral";
+            cfgInput.value = 7;
+            stepsInput.value = 20;
+            ratioInput.value = 1;
+        } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
+            schedulerSelect.value = 'normal';
+            samplerSelect.value = 'lcm';
+            cfgInput.value = 1;
+            stepsInput.value = 16;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+        } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+            schedulerSelect.value = 'beta';
+            samplerSelect.value = 'euler';
+            cfgInput.value = 3.5;
+            stepsInput.value = 25;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+        }
+    } else if (editorTab.classList.contains('active')) {
+        if (editorCheckpointName === 'colorizing') {
+            schedulerSelect.value = "karras";
+            samplerSelect.value = "dpmpp_sde";
+            cfgInput.value = 1.98;
+            stepsInput.value = 5;
+            blendInput.value = 0.7;
+        } else if (editorCheckpointName === 'outpainting') {
+            schedulerSelect.value = "normal";
+            samplerSelect.value = "euler";
+            guidanceInput.value = 30.0;
+            stepsInput.value = 20;
+            featheringInput.value = 24;
+            leftMask.value = 0;
+            topMask.value = 0;
+            rightMask.value = 0;
+            bottomMask.value = 0;
+        }
+    }
+}
+
+export function restoreModelDefaultPrompts() {
+    const checkpointName = modelSelect.value;
+    const editorCheckpointName = editorSelect.value;
+    if (editorTab.classList.contains('active')) {
+        if (editorCheckpointName === 'colorizing') {
+            positivePrompt.value = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
+            negativePrompt.value = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";
+        }
+    }
+}
+
 async function generateImage(workflow) {
     try {
-        const outputDiv = document.getElementById('output');
-        const queueDisplay = document.getElementById('queueDisplay');
         fetchAndUpdateComfyUIQueueDisplay();
-	    const progressName = document.getElementById('progressName');
-        const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
         let editorImgFN = null;
         const comfyQueueOutputValue = comfyQueueOutputEl.innerText.charAt(comfyQueueOutputEl.innerText.length-1);
-        if (document.getElementById('editorTab')?.classList.contains('active')) {
-            editorImgFN = document.getElementById('imageInput').value;
+        if (editorTab.classList.contains('active')) {
+            editorImgFN = imageInput.value;
         }
         if (comfyQueueOutputValue > 0) {
             progressName.innerText = 'Queued...';
@@ -405,7 +650,7 @@ async function generateImage(workflow) {
             queue = queue - 1;
             sessionStorage.setItem('comfyQueueCount', queue.toString());
             await wait(500);
-            document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+            queueOutput.innerText = `Queue: ${queue}/${queueLimit}`;
             updateProgressBar(0, 100);
             progressName.innerText = 'Canceled by user';
         });
@@ -427,7 +672,7 @@ async function generateImage(workflow) {
         }
         // Wydobycie adresu URL obrazu z odpowiedzi
         const imageUrl = result.images[0].data.replace('/cui//', '/cui/');
-        if (document.getElementById('generatorTab')?.classList.contains('active')) {
+        if (generatorTab.classList.contains('active')) {
         }
     
         const img = document.createElement('img');
@@ -459,7 +704,7 @@ async function generateImage(workflow) {
         
             let initialPercentage = 50;
             
-            if (document.getElementById('editorSelect').value === 'outpainting') {
+            if (editorSelect.value === 'outpainting') {
                 img.style.opacity = initialPercentage / 100;
                 draggableLine.style.left = `${initialPercentage}%`;
             
@@ -504,10 +749,10 @@ async function generateImage(workflow) {
                 });
             
                 img.onload = () => {
-	                const leftMask = parseInt(document.getElementById('leftMask').value);
-	                const topMask = parseInt(document.getElementById('topMask').value);
-	                const rightMask = parseInt(document.getElementById('rightMask').value);
-	                const bottomMask = parseInt(document.getElementById('bottomMask').value);
+	                const leftMaskV = parseInt(leftMask.value);
+	                const topMaskV = parseInt(topMask.value);
+	                const rightMaskV = parseInt(rightMask.value);
+	                const bottomMaskV = parseInt(bottomMask.value);
 
                     const renderedWidth = img.offsetWidth;
                     const renderedHeight = img.offsetHeight;
@@ -515,11 +760,11 @@ async function generateImage(workflow) {
                     const scaleX = renderedWidth / img.naturalWidth;
                     const scaleY = renderedHeight / img.naturalHeight;
                                         
-                    const imgBeforeWidth = renderedWidth - (leftMask + rightMask) * scaleX;
-                    const imgBeforeHeight = renderedHeight - (topMask + bottomMask) * scaleY;
+                    const imgBeforeWidth = renderedWidth - (leftMaskV + rightMaskV) * scaleX;
+                    const imgBeforeHeight = renderedHeight - (topMaskV + bottomMaskV) * scaleY;
                                         
-                    const imgBeforeLeft = leftMask * scaleX;
-                    const imgBeforeTop = topMask * scaleY;
+                    const imgBeforeLeft = leftMaskV * scaleX;
+                    const imgBeforeTop = topMaskV * scaleY;
                                                             
                     imgBefore.style.position = "absolute";
                     imgBefore.style.width = `${imgBeforeWidth}px`;
@@ -613,179 +858,11 @@ async function generateImage(workflow) {
     document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
 }
 
-export function switchTab(tab) {
-    const generatorTab = document.getElementById('generatorTab');
-    const editorTab = document.getElementById('editorTab');
-    const galleryTab = document.getElementById('galleryTab');
-    const publicGalleryTab = document.getElementById('publicGalleryTab');
-    const mainContainer = document.getElementById('mainContainer');
-    const modelParameters = document.getElementById('modelParameters');
-    const editorParameters = document.getElementById('editorParameters');
-    const galleryContainerTab = document.getElementById('galleryContainerTab');
-    const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
-    let current_active_tab = null;
-
-    if (generatorTab.classList.contains('active') && tab === 'generator') {
-        current_active_tab = 'generator';
-    } else if (editorTab.classList.contains('active') && tab === 'editor') {
-        current_active_tab = 'editor';
-    }
-    generatorTab.classList.remove('active');
-    editorTab.classList.remove('active');
-    galleryTab.classList.remove('active');
-    publicGalleryTab.classList.remove('active');
-    mainContainer.style.display = 'none';
-    modelParameters.style.display = 'none';
-    editorParameters.style.display = 'none';
-    galleryContainerTab.style.display = 'none';
-    publicGalleryContainerTab.style.display = 'none';
-
-    if (tab === 'generator') {
-        generatorTab.classList.add('active');
-        mainContainer.style.display = 'grid';
-        mainContainer.style.gridTemplateColumns = `1fr 1fr`;
-        modelParameters.style.display = 'flex';
-        document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
-        if (current_active_tab !== 'generator') {
-            changeModel();
-            restoreModelDefaults();
-        }
-        updateGridVariables();
-    } else if (tab === 'editor') {
-        editorTab.classList.add('active');
-        mainContainer.style.display = 'grid';
-        mainContainer.style.gridTemplateColumns = `1fr 1fr`;
-        editorParameters.style.display = 'flex';
-        document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
-        if (current_active_tab !== 'editor') {
-            changeModel();
-            restoreModelDefaults();
-        }
-        updateGridVariables();
-    } else if (tab === 'gallery') {
-        galleryTab.classList.add('active');
-        galleryContainerTab.style.display = 'grid';
-        updateGridVariables();
-    } else if (tab === 'publicGallery') {
-        publicGalleryTab.classList.add('active');
-        publicGalleryContainerTab.style.display = 'grid';
-        updateGridVariables();
-    }
-}
-
-// Greatest common divider
-function gcd(a, b) {
-    if (b === 0) {
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
-export function updateResRatio() {
-    const widthInput = parseInt(document.getElementById('widthInput').value);
-    const heightInput = parseInt(document.getElementById('heightInput').value);
-    if (!isNaN(widthInput) && !isNaN(heightInput) && widthInput > 0 && heightInput > 0) {
-        const divisor = gcd(widthInput, heightInput);
-        const ratioX = widthInput / divisor;
-        const ratioY = heightInput / divisor;
-        document.getElementById('ratioOutput').innerText = `Ratio: ${ratioX}:${ratioY}`;
-    } else {
-        document.getElementById('ratioOutput').innerText = 'Wrong resolution values';
-    }
-}
-
-export function restoreModelDefaults() {
-    const checkpointName = document.getElementById('modelSelect').value;
-    const editorCheckpointName = document.getElementById('editorSelect').value;
-    if (document.getElementById('generatorTab')?.classList.contains('active')) {
-        if (checkpointName === 'sd_xl_base_1.0.safetensors') {
-            document.getElementById('schedulerSelect').value = "normal";
-            document.getElementById('samplerSelect').value = "euler";
-            document.getElementById('cfgInput').value = 8;
-            document.getElementById('stepsInput').value = 20;
-            document.getElementById('stepsRefineInput').value = 5;
-            document.getElementById('widthInput').value = 1024;
-            document.getElementById('heightInput').value = 1024;
-        } else if (checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
-            document.getElementById('schedulerSelect').value = "sgm_uniform";
-            document.getElementById('samplerSelect').value = "euler";
-            document.getElementById('cfgInput').value = 4;
-            document.getElementById('stepsInput').value = 20;
-            document.getElementById('widthInput').value = 1024;
-            document.getElementById('heightInput').value = 1024;
-        } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
-            document.getElementById('samplerSelect').value = "euler_ancestral";
-            document.getElementById('cfgInput').value = 1;
-            document.getElementById('stepsInput').value = 5;
-            document.getElementById('widthInput').value = 512;
-            document.getElementById('heightInput').value = 512;
-        } else if (checkpointName === 'flux1-dev-Q8_0.gguf') {
-            document.getElementById('schedulerSelect').value = "normal";
-            document.getElementById('samplerSelect').value = "euler";
-            document.getElementById('guidanceInput').value = 2;
-            document.getElementById('stepsInput').value = 25;
-            document.getElementById('widthInput').value = 1024;
-            document.getElementById('heightInput').value = 1024;
-            document.getElementById('loraSelect').value = "none";
-            document.getElementById('loraStrengthInput').value = 0.7;
-        } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-            document.getElementById('schedulerSelect').value = "normal";
-            document.getElementById('samplerSelect').value = "euler_ancestral";
-            document.getElementById('cfgInput').value = 7;
-            document.getElementById('stepsInput').value = 20;
-            document.getElementById('ratioInput').value = 1;
-        } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
-            document.getElementById('schedulerSelect').value = 'normal';
-            document.getElementById('samplerSelect').value = 'lcm';
-            document.getElementById('cfgInput').value = 1;
-            document.getElementById('stepsInput').value = 16;
-            document.getElementById('widthInput').value = 1024;
-            document.getElementById('heightInput').value = 1024;
-        } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
-            document.getElementById('schedulerSelect').value = 'beta';
-            document.getElementById('samplerSelect').value = 'euler';
-            document.getElementById('cfgInput').value = 3.5;
-            document.getElementById('stepsInput').value = 25;
-            document.getElementById('widthInput').value = 1024;
-            document.getElementById('heightInput').value = 1024;
-        }
-    } else if (document.getElementById('editorTab')?.classList.contains('active')) {
-        if (editorCheckpointName === 'colorizing') {
-            document.getElementById('schedulerSelect').value = "karras";
-            document.getElementById('samplerSelect').value = "dpmpp_sde";
-            document.getElementById('cfgInput').value = 1.98;
-            document.getElementById('stepsInput').value = 5;
-            document.getElementById('blendInput').value = 0.7;
-        } else if (editorCheckpointName === 'outpainting') {
-            document.getElementById('schedulerSelect').value = "normal";
-            document.getElementById('samplerSelect').value = "euler";
-            document.getElementById('guidanceInput').value = 30.0;
-            document.getElementById('stepsInput').value = 20;
-            document.getElementById('featheringInput').value = 24;
-            document.getElementById('leftMask').value = 0;
-            document.getElementById('topMask').value = 0;
-            document.getElementById('rightMask').value = 0;
-            document.getElementById('bottomMask').value = 0;
-        }
-    }
-}
-
-export function restoreModelDefaultPrompts() {
-    const checkpointName = document.getElementById('modelSelect').value;
-    const editorCheckpointName = document.getElementById('editorSelect').value;
-    if (document.getElementById('editorTab')?.classList.contains('active')) {
-        if (editorCheckpointName === 'colorizing') {
-            document.getElementById('positivePrompt').value = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
-            document.getElementById('negativePrompt').value = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";
-        }
-    }
-}
-
 window.loadImages = galleryLoad;
 
 // EventListeners
 
-document.getElementById('submitButton').addEventListener('click', async () => {
+submitButton.addEventListener('click', async () => {
     if (queue >= queueLimit) {
         alert('Queue limit reached. Please wait for the current tasks to finish.');
         return;
@@ -799,27 +876,27 @@ document.getElementById('submitButton').addEventListener('click', async () => {
     const workflow = await setWorkflow(uid);
     queue = queue + 1;
     sessionStorage.setItem('comfyQueueCount', queue.toString());
-    document.getElementById('queueOutput').innerText = `Queue: ${queue}/${queueLimit}`;
+    queueOutput.innerText = `Queue: ${queue}/${queueLimit}`;
     console.log(`Queue: ${queue}`);
     generateImage(workflow);
 });
-document.getElementById('modelSelect').addEventListener('change', changeModel);
-document.getElementById('editorSelect').addEventListener('change', changeModel);
-document.getElementById('generatorTab').addEventListener('click', () => {
+modelSelect.addEventListener('change', changeModel);
+editorSelect.addEventListener('change', changeModel);
+generatorTab.addEventListener('click', () => {
     switchTab('generator');
 });
-document.getElementById('editorTab').addEventListener('click', () => {
+editorTab.addEventListener('click', () => {
     switchTab('editor');
 });
-document.getElementById('galleryTab').addEventListener('click', () => {
+galleryTab.addEventListener('click', () => {
     switchTab('gallery');
 });
-document.getElementById('publicGalleryTab').addEventListener('click', () => {
+publicGalleryTab.addEventListener('click', () => {
     switchTab('publicGallery');
 });
-document.getElementById('widthInput').addEventListener('input', updateResRatio);
-document.getElementById('heightInput').addEventListener('input', updateResRatio);
-document.getElementById('logoutButton').addEventListener('click', () => {
+widthInput.addEventListener('input', updateResRatio);
+heightInput.addEventListener('input', updateResRatio);
+logoutButton.addEventListener('click', () => {
     stopComfyQueuePolling();
     sessionStorage.removeItem('comfyQueueCount');
     window.location.href = '/logout';
@@ -832,19 +909,16 @@ Rbuttons.forEach(button => {
     });
 });
 
-const modelDefaultBtn = document.getElementById('modelDefaults');
 modelDefaultBtn.addEventListener('click', () => {
     restoreModelDefaults();
     updateResRatio();
 });
 
-const editorDefaultBtn = document.getElementById('editorDefaults');
 editorDefaultBtn.addEventListener('click', () => {
     restoreModelDefaults();
     updateResRatio();
 });
 
-const editorDefaultPromptsBtn = document.getElementById('editorPrompts');
 editorDefaultPromptsBtn.addEventListener('click', () => {
     restoreModelDefaultPrompts();
 });
@@ -864,16 +938,6 @@ document.addEventListener('DOMContentLoaded', () => {
 window.init = init;
 
 // Lightbox
-const lightbox = document.getElementById('simpleLightbox');
-const lightboxImage = document.getElementById('lightboxImage');
-const closeBtn = document.getElementById('lightboxCloseButton');
-const deleteBtn = document.getElementById('lightboxDeleteButton');
-const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
-const lightboxCopyParametersBtn = document.getElementById('lightboxCopyParametersButton');
-const lightboxEditImageBtn = document.getElementById('lightboxEditImageButton');
-let currentImageToDeleteUrl = null;
-let currentLightboxImageOwnerUid = null;
-let currentLightboxImageFilename = null;
 
 function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = false, filename = null) {
     if (lightbox && lightboxImage) {
@@ -918,9 +982,6 @@ function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = f
             lightboxEditImageBtn.dataset.filename = currentLightboxImageFilename;
         }
     }
-    const prompts = document.getElementById('lightboxPrompts');
-    const parameters = document.getElementById('lightboxParameters');
-    const comparison = document.getElementById('lightboxComparison');
     if (workflowData) {
         try {
             comparison.innerHTML = '';
@@ -1228,7 +1289,7 @@ if (lightboxTogglePublicBtn) {
                     lightboxTogglePublicBtn.classList.remove('is-public');
                 }
                 // Refresh public gallery if it's the active tab
-                if (document.getElementById('publicGalleryTab')?.classList.contains('active')) {
+                if (publicGalleryTab.classList.contains('active')) {
                     updateGridVariables();
                 }
             } else {
@@ -1333,86 +1394,86 @@ if (lightboxCopyParametersBtn) {
             return;
         }
         if (!editors.includes(workflowData.checkpointName)) {
-            document.getElementById('modelSelect').value = workflowData.checkpointName;
+            modelSelect.value = workflowData.checkpointName;
         }
         //changeModel()
-        document.getElementById('positivePrompt').value = workflowData.promptP;
-        document.getElementById('samplerSelect').value = workflowData.sampler;
+        positivePrompt.value = workflowData.promptP;
+        samplerSelect.value = workflowData.sampler;
 
         if (workflowData.checkpointName === 'sd_xl_base_1.0.safetensors') {
-            document.getElementById('negativePrompt').value = workflowData.promptN;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('stepsRefineInput').value = workflowData.stepsRefiner;
-            document.getElementById('widthInput').value = workflowData.width;
-            document.getElementById('heightInput').value = workflowData.height;
+            negativePrompt.value = workflowData.promptN;
+            schedulerSelect.value = workflowData.scheduler;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            stepsRefineInput.value = workflowData.stepsRefiner;
+            widthInput.value = workflowData.width;
+            heightInput.value = workflowData.height;
         } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
-            document.getElementById('negativePrompt').value = workflowData.promptN;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('widthInput').value = workflowData.width;
-            document.getElementById('heightInput').value = workflowData.height;
+            negativePrompt.value = workflowData.promptN;
+            schedulerSelect.value = workflowData.scheduler;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            widthInput.value = workflowData.width;
+            heightInput.value = workflowData.height;
         } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
-            document.getElementById('negativePrompt').value = workflowData.promptN;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('widthInput').value = workflowData.width;
-            document.getElementById('heightInput').value = workflowData.height;
+            negativePrompt.value = workflowData.promptN;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            widthInput.value = workflowData.width;
+            heightInput.value = workflowData.height;
         } else if (workflowData.checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
-            document.getElementById('modelSelect').value = 'flux1-dev-Q8_0.gguf';
-            document.getElementById('loraSelect').value = workflowData.lora;
-            document.getElementById('loraStrengthInput').value = workflowData.loraStrength;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('guidanceInput').value = workflowData.guidance;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('widthInput').value = workflowData.width;
-            document.getElementById('heightInput').value = workflowData.height;
+            modelSelect.value = 'flux1-dev-Q8_0.gguf';
+            loraSelect.value = workflowData.lora;
+            loraStrengthInput.value = workflowData.loraStrength;
+            schedulerSelect.value = workflowData.scheduler;
+            guidanceInput.value = workflowData.guidance;
+            stepsInput.value = workflowData.steps;
+            widthInput.value = workflowData.width;
+            heightInput.value = workflowData.height;
         } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-            document.getElementById('negativePrompt').value = workflowData.promptN;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('ratioInput').value = workflowData.ratio;
+            negativePrompt.value = workflowData.promptN;
+            schedulerSelect.value = workflowData.scheduler;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            ratioInput.value = workflowData.ratio;
         } else if (workflowData.checkpointName === 'hidream_i1_fast_fp8.safetensors') {
-            document.getElementById('negativePrompt').value = workflowData.promptN;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('widthInput').value = workflowData.width;
-            document.getElementById('heightInput').value = workflowData.height;
+            negativePrompt.value = workflowData.promptN;
+            schedulerSelect.value = workflowData.scheduler;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            widthInput.value = workflowData.width;
+            heightInput.value = workflowData.height;
         } else if (workflowData.checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('widthInput').value = workflowData.width;
-            document.getElementById('heightInput').value = workflowData.height;
+            schedulerSelect.value = workflowData.scheduler;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            widthInput.value = workflowData.width;
+            heightInput.value = workflowData.height;
         } else if (workflowData.checkpointName === 'colorizing') {
             switchTab('editor');
-            document.getElementById('editorSelect').value = 'colorizing';
-            document.getElementById('positivePrompt').value = workflowData.promptP;
-            document.getElementById('negativePrompt').value = workflowData.promptN;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('cfgInput').value = workflowData.cfg;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('blendInput').value = workflowData.blend;
-        } else if (workflowData.ckeckPointName === 'upscaling') {
+            editorSelect.value = 'colorizing';
+            positivePrompt.value = workflowData.promptP;
+            negativePrompt.value = workflowData.promptN;
+            schedulerSelect.value = workflowData.scheduler;
+            cfgInput.value = workflowData.cfg;
+            stepsInput.value = workflowData.steps;
+            blendInput.value = workflowData.blend;
+        } else if (workflowData.checkpointName === 'upscaling') {
             switchTab('editor');
-            document.getElementById('editorSelect').value = 'upscaling';
+            editorSelect.value = 'upscaling';
         } else if (workflowData.checkpointName === 'outpainting') {
             switchTab('editor');
-            document.getElementById('editorSelect').value = 'outpainting';
-            document.getElementById('positivePrompt').value = workflowData.promptP;
-            document.getElementById('samplerSelect').value = workflowData.sampler;
-            document.getElementById('schedulerSelect').value = workflowData.scheduler;
-            document.getElementById('guidanceInput').value = workflowData.guidance;
-            document.getElementById('stepsInput').value = workflowData.steps;
-            document.getElementById('featheringInput').value = workflowData.feathering;
-            document.getElementById('leftMask').value = workflowData.leftMask;
-            document.getElementById('topMask').value = workflowData.topMask;
-            document.getElementById('rightMask').value = workflowData.rightMask;
-            document.getElementById('bottomMask').value = workflowData.bottomMask;
+            editorSelect.value = 'outpainting';
+            positivePrompt.value = workflowData.promptP;
+            samplerSelect.value = workflowData.sampler;
+            schedulerSelect.value = workflowData.scheduler;
+            guidanceInput.value = workflowData.guidance;
+            stepsInput.value = workflowData.steps;
+            featheringInput.value = workflowData.feathering;
+            leftMask.value = workflowData.leftMask;
+            topMask.value = workflowData.topMask;
+            rightMask.value = workflowData.rightMask;
+            bottomMask.value = workflowData.bottomMask;
         }
         changeModel();
         updateResRatio();
@@ -1439,14 +1500,10 @@ if (lightboxEditImageBtn) {
             alert('Failed to load the generated image. Please check the server response.');
         };
         img.alt = "Image to edit";
-        const outputDiv = document.getElementById('output');
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
     });
 }
-
-const customConfirmYesBtn = document.getElementById('customConfirmYes');
-const customConfirmNoBtn = document.getElementById('customConfirmNo');
 
 if (customConfirmYesBtn) {
     customConfirmYesBtn.addEventListener('click', () => {
@@ -1466,10 +1523,6 @@ if (customConfirmNoBtn) {
 }
 
 window.openLightbox = openLightbox;
-
-const imageUploadBtn = document.getElementById('imageUpload');
-const imageInput = document.getElementById('imageInput');
-const uploadDialog = document.getElementById('uploadDialog');
 
 if (imageUploadBtn) {
     imageUploadBtn.addEventListener('click', () => {
@@ -1522,7 +1575,6 @@ uploadDialog.addEventListener('change', async (event) => {
                     alert('Failed to load the generated image. Please check the server response.');
                 };
                 img.alt = "Uploaded Image";
-                const outputDiv = document.getElementById('output');
                 outputDiv.innerHTML = '';
                 outputDiv.appendChild(img);
             }
@@ -1589,7 +1641,6 @@ imageInput.addEventListener('drop', async (e) => {
                     alert('Failed to load the generated image. Please check the server response.');
                 };
                 img.alt = "Uploaded Image";
-                const outputDiv = document.getElementById('output');
                 outputDiv.innerHTML = '';
                 outputDiv.appendChild(img);
             }
