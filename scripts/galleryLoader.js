@@ -61,27 +61,35 @@ function getComfyMetadata(workflowData, checkpointName) {
             return metadataObject;
         } else if (checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
             let promptPcopy = workflowData["11"].inputs.text;
+            let lora = workflowData["98"].inputs.lora_name;
+            let loraDisplay = '';
 			if (lora === 'Textimprover-FLUX-V0.4.safetensors') {
+                loraDisplay = 'Text Improver';
 				if (promptPcopy.endsWith('aidmaTextImprover')) {
                     promptPcopy = promptPcopy.slice(0, -18);
                 }
 			} else if (lora === 'aidmaDoubleExposure-v0.1.safetensors') {
+                loraDisplay = 'Double Exposure';
                 if (promptPcopy.endsWith('Double Exposure')) {
                     promptPcopy = promptPcopy.slice(0, -16);
                 }
 			} else if (lora === 'aidmaFLUXPro1.1-FLUX-v0.3.safetensors') {
+                loraDisplay = 'FLUX Pro';
                 if (promptPcopy.endsWith('aidmafluxpro1.1')) {
                     promptPcopy = promptPcopy.slice(0, -16);
                 }
 			} else if (lora === 'aidmaMJv7-FLUX-v0.1.safetensors') {
+                loraDisplay = 'Midjourney style';
                 if (promptPcopy.endsWith('aidmamjv7')) {
                     promptPcopy = promptPcopy.slice(0, -10);
                 }
 			} else if (lora === 'aidmaPsychadelicChaosWorld-FLUX-v0.1.safetensors') {
+                loraDisplay = 'Psychodelic';
                 if (promptPcopy.endsWith('PsychadelicChaos')) {
                     promptPcopy = promptPcopy.slice(0, -17);
                 }
 			} else if (lora === 'aidmaRealisticSkin-FLUX-v0.1.safetensors') {
+                loraDisplay = 'Realistic Skin';
                 if (promptPcopy.endsWith('aidmarealisticskin')) {
                     promptPcopy = promptPcopy.slice(0, -19);
                 }
@@ -95,7 +103,7 @@ function getComfyMetadata(workflowData, checkpointName) {
                 steps: workflowData["15"].inputs.steps,
                 width: workflowData["12"].inputs.width,
                 height: workflowData["12"].inputs.height,
-                lora: workflowData["98"].inputs.lora_name,
+                lora: loraDisplay,
                 loraStrength: workflowData["98"].inputs.strength_model
             }
             return metadataObject;

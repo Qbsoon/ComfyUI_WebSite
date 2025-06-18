@@ -277,7 +277,7 @@ window.loadImages = galleryLoad;
 // EventListeners
 
 submitButton.addEventListener('click', async () => {
-    if (queue >= queueLimit) {
+    if (queue.queue >= queue.queueLimit) {
         alert('Queue limit reached. Please wait for the current tasks to finish.');
         return;
     }
@@ -288,10 +288,10 @@ submitButton.addEventListener('click', async () => {
         return;
     }
     const workflow = await setWorkflow(uid);
-    queue = queue + 1;
-    sessionStorage.setItem('comfyQueueCount', queue.toString());
-    queueOutput.innerText = `Queue: ${queue}/${queueLimit}`;
-    console.log(`Queue: ${queue}`);
+    queue.queue = queue.queue + 1;
+    sessionStorage.setItem('comfyQueueCount', queue.queue.toString());
+    queueOutput.innerText = `Queue: ${queue.queue}/${queue.queueLimit}`;
+    console.log(`Queue: ${queue.queue}`);
     generateImage(workflow);
 });
 modelSelect.addEventListener('change', changeModel);
