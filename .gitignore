@@ -1,3 +1,4 @@
 /gallery/*
 /data/public_manifest.json
 /logs
+__pycache__/

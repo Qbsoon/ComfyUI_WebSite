@@ -1,5 +1,6 @@
 import { lightboxVars, editors, uid } from './main.js';
-import { updateGridVariables, switchTab } from './main.js';
+import { updateGridVariables } from './main.js';
+import { switchTab } from './formUpdate.js';
 
 // Odnośniki
 const lightbox = document.getElementById('simpleLightbox');
