@@ -21,6 +21,7 @@
             <button id="editorTab">Image editor</button>
             <button id="galleryTab">Private Gallery</button>
             <button id="publicGalleryTab">Public Gallery</button>
+            <button id="helpTab">Help & Info</button>
             <button id="logoutButton" class="logout-button">Logout</button>
         </div>
     </div>
@@ -273,6 +274,136 @@
     <!-- Public Gallery Tab Content -->
     <div id="publicGalleryContainerTab" class="container" style="display:none;">
         <div id="publicGallery"></div>
+    </div>
+
+    <!-- Help&Info Tab Content -->
+    <div id="helpContainerTab" class="container" style="display:none;">
+        <h2>Help & Info</h2>
+
+        <section class="help-section">
+            <h3>Service Info</h3>
+            <p>This service is built upon ComfyUI, a powerful server for interacting with GenAI models, which allows for great customization.</p>
+            <p>It was built by AI student Jakub Grula with another AI student, Jan Zdyb, helping as a tester.</p>
+            <p>Server utilizes Nvidia RTX 4090 (24 GB VRAM).</p>
+        </section>
+
+        <section class="help-section">
+            <h3>Main Models</h3>
+            <ul class="model-list">
+                <li>
+                    <strong>Stable Diffusion 3.5 Large</strong><br>
+                    Weights used: fp8; Parameters: 8.1B; Size: 13.9 GB; Made by: Stability AI; Shared on: June 2024;<br>
+                    <a href="https://huggingface.co/stabilityai/stable-diffusion-3.5-large" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/SD35.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Stable Diffusion XL</strong><br>
+                    Weights used: fp16; Parameters: 3.5B; Size: 6.5 GB; Made by: Stability AI; Shared on: July 2023;<br>
+                    <a href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/SDXL.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Stable Diffusion XL Turbo</strong><br>
+                    Weights used: fp16; Parameters: 3.5B; Size: 6.5 GB; Made by: Stability AI; Shared on: November 2023;<br>
+                    <a href="https://huggingface.co/stabilityai/sdxl-turbo" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/SDXLTurbo.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>FLUX 1. Dev</strong><br>
+                    Weights used: Q8; Parameters: 12B; Size: 11.8 GB; Made by: Black Forest Labs; Shared on: August 2024;<br>
+                    <a href="https://huggingface.co/black-forest-labs/FLUX.1-dev" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/flux.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>HiDream I1 Fast</strong><br>
+                    Weights used: fp8; Parameters: 17B; Size: 15.9 GB; Made by: HiDream AI; Shared on: May 2025;<br>
+                    <a href="https://huggingface.co/HiDream-ai/HiDream-I1-Fast" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/HDi1f.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Verus Vision 1.0b Transformer</strong><br>
+                    Weights used: fp8; Parameters: 12B; Size: 11.1 GB; Made by: SG161222; Shared on: May 2024;<br>
+                    <a href="https://huggingface.co/SG161222/Verus_Vision_1.0b" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/verusvision.json" download class="help-button">Download workflow</a>
+                </li>
+            </ul>
+        </section>
+
+        <section class="help-section">
+            <h3>LoRA Models</h3>
+            <ul class="model-list">
+                <li>
+                    <strong>Text Improver</strong><br>
+                    <a href="https://civitai.com/models/793052/text-improver-flux" target="_blank" class="help-button">Source</a>
+                </li>
+                <li>
+                    <strong>Double Exposure</strong><br>
+                    <a href="https://civitai.com/models/579851/double-exposure-meets-photography-artstyle-xl" target="_blank" class="help-button">Source</a>
+                </li>
+                <li>
+                    <strong>FLUX Pro</strong><br>
+                    <a href="https://civitai.com/models/832683/flux-pro-11-style-lora-extreme-detailer-for-flux-illustrious" target="_blank" class="help-button">Source</a>
+                </li>
+                <li>
+                    <strong>Midjourney Style</strong><br>
+                    <a href="https://civitai.com/models/1470162/midjourney-v7-meets-flux-illustrious" target="_blank" class="help-button">Source</a>
+                </li>
+                <li>
+                    <strong>Psychodelic</strong><br>
+                    <a href="https://civitai.com/models/601245/flux-psychadelic-chaos-world-morph-sdxl" target="_blank" class="help-button">Source</a>
+                </li>
+                <li>
+                    <strong>Realistic Skin</strong><br>
+                    <a href="https://civitai.com/models/1157318/photorealistic-skin-no-plastic-flux" target="_blank" class="help-button">Source</a>
+                </li>
+            </ul>
+        </section>
+
+        <section class="help-section">
+            <h3>Editor Models</h3>
+            <ul class="model-list">
+                <li>
+                    <strong>Colorizing</strong><br>
+                    Juggernaut-XL_v9_RunDiffusionPhoto_v2<br>
+                    <a href="https://huggingface.co/RunDiffusion/Juggernaut-XL-v9" target="_blank" class="help-button">Huggingface</a>
+                    <a href="/dl_workflows/colorizing.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Upscaling (x2, x4, x8)</strong><br>
+                    Real-ESRGAN<br>
+                    <a href="https://huggingface.co/ai-forever/Real-ESRGAN" target="_blank" class="help-button">Huggingface</a>
+                    <a href="/dl_workflows/upscaling.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Upscaling (other values)</strong><br>
+                    ComfyUI built-in function using bicubic method<br>
+                    <a href="/dl_workflows/upscaling_bicubic.json" download class="help-button">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Outpainting</strong><br>
+                    Using main Flux model;<br>
+                    <a href="/dl_workflows/outpainting.json" download class="help-button">Download workflow</a>
+                </li>
+            </ul>
+        </section>
+
+        <section class="help-section">
+            <h3>Terms</h3>
+            <ul class="terms-list">
+                <li><strong>Positive prompt:</strong> What should the image be about</li>
+                <li><strong>Negative prompt:</strong> What should not be in the image</li>
+                <li><strong>Sampler:</strong> The specific denoising algorithm used to generate the image, it defines how noise is removed at each step</li>
+                <li><strong>Scheduler:</strong> The noise-variance schedule and step-size strategy that the sampler follows during diffusion</li>
+                <li><strong>CFG:</strong> Classifier Free Guidance, a value that controls how much the model should follow the prompt</li>
+                <li><strong>Guidance:</strong> CFG in Flux and Flux-like models</li>
+                <li><strong>Steps:</strong> Number of diffusion steps the model should take to generate the image</li>
+                <li><strong>Refiner Steps:</strong> Number of steps the refiner model should take to refine the image</li>
+                <li><strong>Blend:</strong> A value that controls how much the model should blend the image with the original image in colorizer</li>
+                <li><strong>Feathering:</strong> A value that controls how much the model should feather the edges of the image in outpainting</li>
+                <li><strong>Left, Top, Right, Bottom Mask:</strong> Values that control how many pixels should be added in outpainting</li>
+                <li><strong>Lora Strength:</strong> A value that controls how much the LoRA model should influence the image generation</li>
+            </ul>
+        </section>
     </div>
 
     <input type="file" id="uploadDialog" accept=".jpg, .jpeg, .png" style="display:none;" />

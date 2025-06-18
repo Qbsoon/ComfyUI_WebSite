@@ -32,6 +32,7 @@ const generatorTab = document.getElementById('generatorTab');
 const editorTab = document.getElementById('editorTab');
 const galleryTab = document.getElementById('galleryTab');
 const publicGalleryTab = document.getElementById('publicGalleryTab');
+const helpTab = document.getElementById('helpTab');
 const fullGallery = document.getElementById('fullGallery');
 const lastGallery = document.getElementById('lastGallery');
 const publicGallery = document.getElementById('publicGallery');
@@ -306,6 +307,9 @@ galleryTab.addEventListener('click', () => {
 });
 publicGalleryTab.addEventListener('click', () => {
     switchTab('publicGallery');
+});
+helpTab.addEventListener('click', () => {
+    switchTab('help');
 });
 widthInput.addEventListener('input', updateResRatio);
 heightInput.addEventListener('input', updateResRatio);

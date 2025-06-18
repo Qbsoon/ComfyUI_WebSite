@@ -5,10 +5,12 @@ import { updateGridVariables } from './main.js';
 const mainContainer = document.getElementById('mainContainer');
 const galleryContainerTab = document.getElementById('galleryContainerTab');
 const publicGalleryContainerTab = document.getElementById('publicGalleryContainerTab');
+const helpContainerTab = document.getElementById('helpContainerTab');
 const generatorTab = document.getElementById('generatorTab');
 const editorTab = document.getElementById('editorTab');
 const galleryTab = document.getElementById('galleryTab');
 const publicGalleryTab = document.getElementById('publicGalleryTab');
+const helpTab = document.getElementById('helpTab');
 
 const modelParameters = document.getElementById('modelParameters');
 const editorParameters = document.getElementById('editorParameters');
@@ -221,11 +223,13 @@ export function switchTab(tab) {
     editorTab.classList.remove('active');
     galleryTab.classList.remove('active');
     publicGalleryTab.classList.remove('active');
+    helpTab.classList.remove('active');
     mainContainer.style.display = 'none';
     modelParameters.style.display = 'none';
     editorParameters.style.display = 'none';
     galleryContainerTab.style.display = 'none';
     publicGalleryContainerTab.style.display = 'none';
+    helpContainerTab.style.display = 'none';
 
     if (tab === 'generator') {
         generatorTab.classList.add('active');
@@ -257,6 +261,9 @@ export function switchTab(tab) {
         publicGalleryTab.classList.add('active');
         publicGalleryContainerTab.style.display = 'grid';
         updateGridVariables();
+    } else if (tab === 'help') {
+        helpTab.classList.add('active');
+        helpContainerTab.style.display = 'grid';
     }
 }
 
