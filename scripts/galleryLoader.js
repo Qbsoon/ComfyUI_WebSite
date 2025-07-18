@@ -2,7 +2,8 @@ function findCheckpoint(workflowData) {
     if (!workflowData || typeof workflowData !== 'object') {
         return false;
     }
-    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'flux1-fill-dev-Q8_0.gguf']
+    console.log(workflowData);
+    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'flux1-fill-dev-Q8_0.gguf', 'flux1-kontext-dev-Q8_0.gguf']
     try {
         const jsonString = JSON.stringify(workflowData);
         for (let i = 0; i < checkpoints.length; i++) {
@@ -59,10 +60,13 @@ function getComfyMetadata(workflowData, checkpointName) {
                 height: workflowData["5"].inputs.height
             }
             return metadataObject;
-        } else if (checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf') {
+        } else if (checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf' || checkpointName === 'flux1-kontext-dev-Q8_0.gguf') {
             let promptPcopy = workflowData["11"].inputs.text;
-            let lora = workflowData["98"].inputs.lora_name;
-            let loraDisplay = '';
+            let lora = 'None';
+            if (workflowData["98"]) {
+                lora = workflowData["98"].inputs.lora_name;
+            }
+            let loraDisplay = 'None';
 			if (lora === 'Textimprover-FLUX-V0.4.safetensors') {
                 loraDisplay = 'Text Improver';
 				if (promptPcopy.endsWith('aidmaTextImprover')) {
@@ -94,6 +98,10 @@ function getComfyMetadata(workflowData, checkpointName) {
                     promptPcopy = promptPcopy.slice(0, -19);
                 }
 			}
+            let loraStrength = 0;
+            if (workflowData["98"]) {
+                loraStrength = workflowData["98"].inputs.strength_model;
+            }
             let metadataObject = {
                 checkpointName: checkpointName,
                 promptP: promptPcopy,
@@ -104,7 +112,7 @@ function getComfyMetadata(workflowData, checkpointName) {
                 width: workflowData["12"].inputs.width,
                 height: workflowData["12"].inputs.height,
                 lora: loraDisplay,
-                loraStrength: workflowData["98"].inputs.strength_model
+                loraStrength: loraStrength
             }
             return metadataObject;
         } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
