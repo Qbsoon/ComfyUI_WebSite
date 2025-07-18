@@ -46,6 +46,7 @@ export async function setWorkflow(uid) {
 	const rightMask = parseInt(document.getElementById('rightMask').value);
 	const bottomMask = parseInt(document.getElementById('bottomMask').value);
 	const featheringInput = parseInt(document.getElementById('featheringInput').value);
+	const upscaleMultiplier = parseFloat(document.getElementById('upscaleMultiplier').value);
 
 	let workflow;
 
@@ -185,7 +186,14 @@ export async function setWorkflow(uid) {
 				console.error('Error checking image resolution:', error);
 			});
 		} else if (editor === 'upscaling') {
-			workflow = await loadWorkflow('upscaling.json')
+			if (upscaleMultiplier == 2) {
+				workflow = await loadWorkflow('upscaling2.json')
+			} else if (upscaleMultiplier == 4) {
+				workflow = await loadWorkflow('upscaling4.json')
+			} else {
+				workflow = await loadWorkflow('upscaling.json')
+				workflow["2"].inputs.scale_by = upscaleMultiplier;
+			}
 			workflow["1"].inputs.image = `${uid}/${imageInput}`;
 			workflow["6"].inputs.filename_prefix = `${uid}/upscaling`;
 		} else if (editor === 'outpainting') {

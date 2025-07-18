@@ -3,7 +3,7 @@ function findCheckpoint(workflowData) {
         return false;
     }
     console.log(workflowData);
-    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'flux1-fill-dev-Q8_0.gguf', 'flux1-kontext-dev-Q8_0.gguf']
+    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'RealESRGAN_x2.pth', 'FreeUpscaling', 'flux1-fill-dev-Q8_0.gguf', 'flux1-kontext-dev-Q8_0.gguf']
     try {
         const jsonString = JSON.stringify(workflowData);
         for (let i = 0; i < checkpoints.length; i++) {
@@ -165,9 +165,19 @@ function getComfyMetadata(workflowData, checkpointName) {
                 editof: workflowData["174"].inputs.image
             }
             return metadataObject;
-        } else if (checkpointName === 'RealESRGAN_x4plus.pth') {
+        } else if (checkpointName === 'RealESRGAN_x4plus.pth' || checkpointName === 'RealESRGAN_x2.pth' || checkpointName === 'FreeUpscaling') {
+            let upscaleMultiplier = 2;
+            if (checkpointName === 'RealESRGAN_x4plus.pth') {
+                upscaleMultiplier = 4;
+            } else if (checkpointName === 'RealESRGAN_x2.pth') {
+                upscaleMultiplier = 2;
+            } else {
+                upscaleMultiplier = workflowData["2"].inputs.scale_by;
+            }
+                
             let metadataObject = {
                 checkpointName: 'upscaling',
+                upscaleMultiplier: upscaleMultiplier,
                 editof: workflowData["1"].inputs.image
             }
             return metadataObject;

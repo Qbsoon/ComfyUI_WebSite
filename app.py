@@ -1139,6 +1139,8 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 		'VerusVision_1.0b_Transformer_fp8.safetensors',
 		'control-lora-recolor-rank256.safetensors',
 		'RealESRGAN_x4plus.pth',
+		'RealESRGAN_x2.pth',
+		'FreeUpscaling',
 		'flux1-fill-dev-Q8_0.gguf'
 	]
 	for cp_name in checkpoints:
@@ -1180,8 +1182,6 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
 			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
 		elif checkpoint_name == 'control-lora-recolor-rank256.safetensors':
 			positive_prompt = workflow_data.get("3", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'RealESRGAN_x4plus.pth':
-			positive_prompt == ''
 		elif checkpoint_name == 'flux1-fill-dev-Q8_0.gguf':
 			positive_prompt = workflow_data.get("23", {}).get("inputs", {}).get("text", "")
 

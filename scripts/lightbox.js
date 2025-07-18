@@ -330,6 +330,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPub
             } else if (workflowData.checkpointName === 'upscaling') {
                 prompts.hidden = true;
                 parameters.innerHTML += `<strong>Edition type:</strong> Upscaling`;
+                parameters.innerHTML += `<br><strong>Upscale Multiplier:</strong> ${workflowData.upscaleMultiplier}`;
             } else if (workflowData.checkpointName === 'outpainting') {
                 parameters.innerHTML += `<strong>Edition type:</strong> Outpainting`;
                 prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;

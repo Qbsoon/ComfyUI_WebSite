@@ -27,13 +27,19 @@ export function validateInputs() {
     const editor = document.getElementById('editorSelect').value;
     const isEditing = document.getElementById('editorTab')?.classList.contains('active');
     const fn = document.getElementById('imageInput').value.trim();
+    const upscaleMultiplier = parseFloat(document.getElementById('upscaleMultiplier').value);
 
-    if (isEditing && editor === 'upscaling') {
-        if (fn.startsWith("upscaling")) {
-            alert('Nie można upscale\'ować obrazu, który już jest wynikiem upscale\'owania.')
-            throw new Error('Validation failed on imageInput for upscaling');
-        } else {
-            return true;
+    if (isEditing) {
+        if (editor === 'upscaling') {
+            if (heightInput*upscaleMultiplier > 4000 || widthInput*upscaleMultiplier > 4000) {
+                alert('obraz wynikowy nie może być większy niż 4000x4000 px.')
+                throw new Error('Validation failed on upscale dimensions');
+            }
+        } else if (editor === 'outpainting') {
+            if (heightInput+topMask+bottomMask > 4000 || widthInput+leftMask+rightMask > 4000) {
+                alert('obraz wynikowy nie może być większy niż 4000x4000 px.');
+                throw new Error('Validation failed on outpainting dimensions');
+            }
         }
     }
 
@@ -45,7 +51,7 @@ export function validateInputs() {
         guidanceMaxLimit = 50.0;
     }
 
-    if (!positivePrompt) {
+    if (!positivePrompt && (editor !== 'upscaling')) {
         alert('Positive Prompt jest wymagany.');
         throw new Error('Validation failed on positivePrompt')
     }
@@ -97,5 +103,9 @@ export function validateInputs() {
     if (isEditing && editor === 'outpainting' && (featheringInput < 0 || featheringInput > 50)) {
         alert('Feathering musi być liczbą całkowitą pomiędzy 0 a 50.');
         throw new Error('Validation failed on featheringInput');
+    }
+    if (isEditing && editor === 'upscaling' && (isNaN(upscaleMultiplier) || upscaleMultiplier < 1.0 || upscaleMultiplier > 10.0)) {
+        alert('Upscale Multiplier musi być liczbą pomiędzy 1.0 a 10.0.');
+        throw new Error('Validation failed on upscaleMultiplier');
     }
 }

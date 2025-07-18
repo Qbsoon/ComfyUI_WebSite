@@ -56,6 +56,8 @@ const rightMask = document.getElementById('rightMask');
 const rightMaskLabel = document.getElementById('rightMaskLabel');
 const bottomMask = document.getElementById('bottomMask');
 const bottomMaskLabel = document.getElementById('bottomMaskLabel');
+const upscaleMultiplier = document.getElementById('upscaleMultiplier');
+const upscaleMultiplierLabel = document.getElementById('upscaleMultiplierLabel');
 
 export function changeModel() {
     if (generatorTab.classList.contains('active')) {
@@ -98,6 +100,8 @@ export function changeModel() {
         rightMaskLabel.hidden = true;
         bottomMask.hidden = true;
         bottomMaskLabel.hidden = true;
+        upscaleMultiplier.hidden = true;
+        upscaleMultiplierLabel.hidden = true;
 
         if (modelSelect.value === 'sd_xl_base_1.0.safetensors') {
             stepsRefineInput.hidden = false;
@@ -171,6 +175,8 @@ export function changeModel() {
         rightMaskLabel.hidden = true;
         bottomMask.hidden = true;
         bottomMaskLabel.hidden = true;
+        upscaleMultiplier.hidden = true;
+        upscaleMultiplierLabel.hidden = true;
         if (editorSelect.value === 'colorizing') {
             positivePromptBox.hidden = false;
             positivePrompt.placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
@@ -207,6 +213,9 @@ export function changeModel() {
             rightMaskLabel.hidden = false;
             bottomMask.hidden = false;
             bottomMaskLabel.hidden = false;
+        } else if (editorSelect.value === 'upscaling') {
+            upscaleMultiplier.hidden = false;
+            upscaleMultiplierLabel.hidden = false;
         }
     }
 }
@@ -339,6 +348,8 @@ export function restoreModelDefaults() {
             topMask.value = 0;
             rightMask.value = 0;
             bottomMask.value = 0;
+        } else if (editorCheckpointName === 'upscaling') {
+            upscaleMultiplier.value = 2;
         }
     }
 }

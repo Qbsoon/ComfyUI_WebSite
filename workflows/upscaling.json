@@ -1,46 +1,41 @@
 {
 	"1": {
-    	"inputs": {
-    		"image": "ComfyUI_00002_.png"
-    	},
-    	"class_type": "LoadImage"
+		"inputs": {
+	  		"image": "a.jpg"
+		},
+		"class_type": "LoadImage"
   	},
   	"2": {
-    	"inputs": {
-      		"model_name": "RealESRGAN_x4plus.pth"
-    	},
-    	"class_type": "UpscaleModelLoader"
-  	},
-  	"3": {
-    	"inputs": {
-      		"upscale_model": [
-        		"2",
-        		0
-      		],
-      		"image": [
-        		"1",
-        		0
-      		]
-    	},
-    	"class_type": "ImageUpscaleWithModel"
+		"inputs": {
+	  		"upscale_method": "bicubic",
+	  		"scale_by": 2.0,
+	  		"image": [
+				"1",
+				0
+	  		]
+		},
+		"class_type": "ImageScaleBy",
+    	"_meta": {
+      		"title": "FreeUpscaling"
+    	}
   	},
   	"6": {
-    	"inputs": {
-      		"filename_prefix": "ComfyUI",
-      		"images": [
-        		"3",
-        		0
-      		]
-    	},
-    	"class_type": "SaveImage"
+		"inputs": {
+	  		"filename_prefix": "ComfyUI",
+	  		"images": [
+				"2",
+				0
+	  		]
+		},
+		"class_type": "SaveImage"
   	},
-    "99": {
-    	"inputs": {
-    		"value": ""
-    	},
-    	"class_type": "PrimitiveString",
-    	"_meta": {
-    		"title": "PromptID"
-    	}
-    }
+	"99": {
+		"inputs": {
+			"value": ""
+		},
+		"class_type": "PrimitiveString",
+		"_meta": {
+			"title": "PromptID"
+		}
+	}
 }
