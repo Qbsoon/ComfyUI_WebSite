@@ -334,7 +334,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPub
             } else if (workflowData.checkpointName === 'outpainting') {
                 parameters.innerHTML += `<strong>Edition type:</strong> Outpainting`;
                 prompts.innerHTML = `<strong>Positive Prompt:</strong> ${workflowData.promptP}`;
-                prompts.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>Sampler:</strong> ${workflowData.sampler}`;
                 parameters.innerHTML += `<br><strong>Scheduler:</strong> ${workflowData.scheduler}`;
                 parameters.innerHTML += `<br><strong>Guidance:</strong> ${workflowData.guidance}`;
                 parameters.innerHTML += `<br><strong>Steps:</strong> ${workflowData.steps}`;
