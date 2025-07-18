@@ -1272,7 +1272,7 @@ async def upload_editor_image():
 	final_filepath = os.path.join(user_gallery_dir, final_filename_to_save)
 
 	try:
-		file.save(final_filepath)
+		await file.save(final_filepath)
 		app.logger.info(f"Successfully saved editor image: {final_filepath} for user {current_user.username}")
 		return jsonify({"success": True, "filename": final_filename_to_save})
 	except Exception as e:
