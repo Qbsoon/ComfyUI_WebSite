@@ -1,7 +1,7 @@
 {
   "1": {
     "inputs": {
-      "image": "a.jpg"
+      "image": "ComfyUI_00002_.png"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -10,23 +10,34 @@
   },
   "2": {
     "inputs": {
-      "upscale_method": "bicubic",
-      "scale_by": 2.00,
+      "model_name": "RealESRGAN_x2.pth"
+    },
+    "class_type": "UpscaleModelLoader",
+    "_meta": {
+      "title": "Load Upscale Model"
+    }
+  },
+  "3": {
+    "inputs": {
+      "upscale_model": [
+        "2",
+        0
+      ],
       "image": [
         "1",
         0
       ]
     },
-    "class_type": "ImageScaleBy",
+    "class_type": "ImageUpscaleWithModel",
     "_meta": {
-      "title": "Upscale Image By"
+      "title": "Upscale Image (using Model)"
     }
   },
   "6": {
     "inputs": {
       "filename_prefix": "ComfyUI",
       "images": [
-        "2",
+        "3",
         0
       ]
     },
