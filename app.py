@@ -31,6 +31,9 @@ MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
 # --- End Configuration ---
 
+# --- Privileged Users ---
+privileged_users = ['qbsoon']
+# --- End of Privileged Users ---
 
 # --- Monitoring Script Functions ---
 _queue_lock = Lock()
@@ -1298,6 +1301,8 @@ async def _redirect_unauthorized(e):
 @app.route('/cui/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
 @login_required
 async def proxy_to_comfy(path):
+	if current_user.username not in privileged_users:
+		return redirect(url_for('home'))
 	suffix = request.full_path[len('/cui'):]
 	target = f"{MONITOR_SERVER_BASE_URL}{suffix}"
 	HOP_BY_HOP = {
