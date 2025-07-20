@@ -1301,7 +1301,7 @@ async def _redirect_unauthorized(e):
 @app.route('/cui/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'])
 @login_required
 async def proxy_to_comfy(path):
-	if current_user.username not in privileged_users:
+	if path == '' and current_user.username not in privileged_users:
 		return redirect(url_for('home'))
 	suffix = request.full_path[len('/cui'):]
 	target = f"{MONITOR_SERVER_BASE_URL}{suffix}"
