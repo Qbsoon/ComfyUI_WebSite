@@ -245,7 +245,7 @@ export function switchTab(tab) {
         mainContainer.style.display = 'grid';
         mainContainer.style.gridTemplateColumns = `1fr 1fr`;
         modelParameters.style.display = 'flex';
-        document.getElementById('queueOutput').innerText = `Queue: ${queue.queue}/${queue.queueLimit}`;
+        document.getElementById('queueOutput').innerText = `Your Queue: ${queue.queue}/${queue.queueLimit}`;
         if (current_active_tab !== 'generator') {
             changeModel();
             restoreModelDefaults();
@@ -256,7 +256,7 @@ export function switchTab(tab) {
         mainContainer.style.display = 'grid';
         mainContainer.style.gridTemplateColumns = `1fr 1fr`;
         editorParameters.style.display = 'flex';
-        document.getElementById('queueOutput').innerText = `Queue: ${queue.queue}/${queue.queueLimit}`;
+        document.getElementById('queueOutput').innerText = `Your Queue: ${queue.queue}/${queue.queueLimit}`;
         if (current_active_tab !== 'editor') {
             changeModel();
             restoreModelDefaults();

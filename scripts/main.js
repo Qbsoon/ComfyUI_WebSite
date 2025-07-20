@@ -1,9 +1,12 @@
 import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-client@latest/dist/main.module.mjs";
-import { galleryLoad } from './galleryLoader.js?cache-bust=1';
+import { galleryLoad } from './galleryLoader.js';
 import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 import { switchTab, changeModel, restoreModelDefaults, restoreModelDefaultPrompts } from './formUpdate.js';
 import { openLightbox, closeLightbox, showCustomConfirm, hideCustomConfirm, performDeleteImage, lightboxCopySet } from './lightbox.js';
 import { generateImage } from './generate.js';
+import i18next from 'https://cdn.jsdelivr.net/npm/i18next@25.3.2/+esm';
+import Backend from 'https://cdn.jsdelivr.net/npm/i18next-http-backend@3.0.2/+esm';
+import { updateLocale } from './localeUpdate.js';
 
 // Zmienne globalne
 const FTP = window.location.origin;
@@ -24,6 +27,22 @@ currentLightboxImageOwnerUid: null,
 currentLightboxImageFilename:  null
 };
 
+// Obsługa języków
+export { i18next }
+
+i18next.use(Backend).init({
+  lng: 'en',
+  fallbackLng: 'en',
+  backend: {
+    loadPath: '/locales/{{lng}}.json',
+  }
+});
+
+
+i18next.on('languageChanged', (lng) => {
+  updateLocale();
+});
+
 // Odnośniki
 const mainContainer = document.getElementById('mainContainer');
 const galleryContainerTab = document.getElementById('galleryContainerTab');
@@ -41,6 +60,7 @@ const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
 const outputDiv = document.getElementById('output');
 const imageInput = document.getElementById('imageInput');
 const queueOutput = document.getElementById('queueOutput');
+const langSelect = document.getElementById('languageSelect');
 
 const submitButton = document.getElementById('submitButton');
 const logoutButton = document.getElementById('logoutButton');
@@ -127,7 +147,7 @@ export function updateResRatio() {
         const divisor = gcd(widthInputV, heightInputV);
         const ratioX = widthInputV / divisor;
         const ratioY = heightInputV / divisor;
-        document.getElementById('ratioOutput').innerText = `Ratio: ${ratioX}:${ratioY}`;
+        document.getElementById('ratioOutput').innerText = `${i18next.t('ratioInput')}: ${ratioX}:${ratioY}`;
     } else {
         document.getElementById('ratioOutput').innerText = 'Wrong resolution values';
     }
@@ -157,9 +177,9 @@ export async function fetchAndUpdateComfyUIQueueDisplay() {
             const latestComfyUIServerQueueCount = data.queue_count;
             if (comfyQueueOutputEl) {
                 if (latestComfyUIServerQueueCount === -1) {
-                    comfyQueueOutputEl.innerText = "Server Queue: N/A";
+                    comfyQueueOutputEl.innerText = i18next.t('comfyQueueOutputUnknown');
                 } else {
-                    comfyQueueOutputEl.innerText = `Server Queue: ${latestComfyUIServerQueueCount}`;
+                    comfyQueueOutputEl.innerText = `${i18next.t('comfyQueueOutput')}: ${latestComfyUIServerQueueCount}`;
                 }
             }
         } else {
@@ -170,7 +190,7 @@ export async function fetchAndUpdateComfyUIQueueDisplay() {
         latestComfyUIServerQueueCount = -1;
         const comfyQueueOutputEl = document.getElementById('comfyQueueOutput');
         if (comfyQueueOutputEl) {
-            comfyQueueOutputEl.innerText = "Server Queue: Error";
+            comfyQueueOutputEl.innerText = i18next.t('comfyQueueOutputError');
         }
     }
 }
@@ -268,7 +288,7 @@ export async function updateQueueItemsIds() {
     for (let index = 0; index < queue.queueItems.length; index++) {
         const taskNoText = queue.queueItems[index].querySelector('.task-no-text');
         const serverQueueNo = await getTaskNoByUniqueId(taskNoText.id);
-        taskNoText.innerHTML = `Task #${index + 1}<br>TaskID: ${taskNoText.id}<br>Server Queue: ${serverQueueNo}`;
+        taskNoText.innerHTML = `${i18next.t('taskNo')}${index + 1}<br>${i18next.t('taskID')}: ${taskNoText.id}<br>${i18next.t('comfyQueueOutput')}: ${serverQueueNo}`;
     }
 }
 
@@ -278,7 +298,7 @@ window.loadImages = galleryLoad;
 
 submitButton.addEventListener('click', async () => {
     if (queue.queue >= queue.queueLimit) {
-        alert('Queue limit reached. Please wait for the current tasks to finish.');
+        alert(i18next.t('queueLimitAlert'));
         return;
     }
     try {
@@ -290,7 +310,7 @@ submitButton.addEventListener('click', async () => {
     const workflow = await setWorkflow(uid);
     queue.queue = queue.queue + 1;
     sessionStorage.setItem('comfyQueueCount', queue.queue.toString());
-    queueOutput.innerText = `Queue: ${queue.queue}/${queue.queueLimit}`;
+    queueOutput.innerText = `${i18next.t('queueOutput')}: ${queue.queue}/${queue.queueLimit}`;
     console.log(`Queue: ${queue.queue}`);
     generateImage(workflow);
 });
@@ -339,11 +359,16 @@ editorDefaultPromptsBtn.addEventListener('click', () => {
     restoreModelDefaultPrompts();
 });
 
+langSelect.addEventListener('change', (event) => {
+    i18next.changeLanguage(event.target.value);
+});
+
 export async function init() {
     switchTab('generator');
     //updateGridVariables();
     updateResRatio();
     restoreModelDefaults();
+    updateLocale();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -361,12 +386,12 @@ if (lightboxTogglePublicBtn) {
         const ownerUid = lightboxTogglePublicBtn.dataset.ownerUid;
 
         if (!filename || !ownerUid) {
-            alert("Error: Image details not found for toggling public status.");
+            alert(i18next.t('imageDetailsNotFoundAlert'));
             return;
         }
         // Ensure current logged-in user is the owner before sending request
         if (ownerUid !== uid) {
-            alert("You can only toggle the public status of your own images.");
+            alert(i18next.t('togglePublicForeignAlert'));
             return;
         }
 
@@ -379,10 +404,10 @@ if (lightboxTogglePublicBtn) {
             const result = await response.json();
             if (result.success) {
                 if (result.is_public) {
-                    lightboxTogglePublicBtn.textContent = 'Hide from public';
+                    lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOff');
                     lightboxTogglePublicBtn.classList.add('is-public');
                 } else {
-                    lightboxTogglePublicBtn.textContent = 'Show in public';
+                    lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOn');
                     lightboxTogglePublicBtn.classList.remove('is-public');
                 }
                 // Refresh public gallery if it's the active tab
@@ -390,11 +415,11 @@ if (lightboxTogglePublicBtn) {
                     updateGridVariables();
                 }
             } else {
-                alert(`Error: ${result.error || 'Failed to toggle public status.'}`);
+                alert(`${i18next.t('error')}: ${result.error || i18next.t('failedTogglePublicAlert')}`);
             }
         } catch (error) {
             console.error("Error toggling public status:", error);
-            alert("An error occurred. Please try again.");
+            alert(i18next.t('errorTryAgain'));
         }
     });
 }
@@ -409,7 +434,7 @@ if (deleteBtn) {
         if (lightboxVars.currentImageToDeleteUrl) {
             showCustomConfirm();
         } else {
-            alert("Could not determine which image to delete.");
+            alert(i18next.t('failedDetermineDeleteAlert'));
         }
     });
 }
@@ -459,9 +484,9 @@ if (lightboxEditImageBtn) {
         img.src = `gallery/${uid}/${filename}`;
 
         img.onerror = () => {
-            alert('Failed to load the generated image. Please check the server response.');
+            alert(i18next.t('failedLoadGeneratedAlert'));
         };
-        img.alt = "Image to edit";
+        img.alt = i18next.t('imageToEditAlt');
         outputDiv.innerHTML = '';
         outputDiv.appendChild(img);
     });
@@ -503,7 +528,7 @@ uploadDialog.addEventListener('change', async (event) => {
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!allowedTypes.includes(file.type.toLowerCase())) {
-        alert('Invalid file type. Please select a JPG, JPEG, or PNG file.');
+        alert(i18next.t('invalidFileTypeAlert'));
         uploadDialog.value = '';
         return;
     }
@@ -519,7 +544,7 @@ uploadDialog.addEventListener('change', async (event) => {
 
         if (response.status === 413) {
             const errorData = await response.json();
-            alert(errorData.error || "File is too large. Server limit for file is " + errorData.limit + "MB.");
+            alert(errorData.error || `${i18next.t('fileTooLargeAlert')} ${errorData.limit} + MB.`);
             return;
         }
 
@@ -536,9 +561,9 @@ uploadDialog.addEventListener('change', async (event) => {
                 img.src = `gallery/${uid}/${result.filename}`;
 
                 img.onerror = () => {
-                    alert('Failed to load the generated image. Please check the server response.');
+                    alert(i18next.t('failedLoadGeneratedAlert'));
                 };
-                img.alt = "Uploaded Image";
+                img.alt = i18next.t('uploadedAlt');
                 outputDiv.innerHTML = '';
                 outputDiv.appendChild(img);
             }
@@ -547,7 +572,7 @@ uploadDialog.addEventListener('change', async (event) => {
         }
     } catch (error) {
         console.error('Error uploading file:', error);
-        alert(`Error uploading file: ${error.message}`);
+        alert(`${i18next.t('errorUploadingAlert')}: ${error.message}`);
     } finally {
         uploadDialog.value = '';
     }
@@ -569,7 +594,7 @@ imageInput.addEventListener('drop', async (e) => {
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!allowedTypes.includes(file.type.toLowerCase())) {
-        alert('Invalid file type. Please select a JPG, JPEG, or PNG file.');
+        alert(i18next.t('invalidFileTypeAlert'));
         uploadDialog.value = '';
         return;
     }
@@ -585,7 +610,7 @@ imageInput.addEventListener('drop', async (e) => {
 
         if (response.status === 413) {
             const errorData = await response.json();
-            alert(errorData.error || "File is too large. Server limit for file is " + errorData.limit + "MB.");
+            alert(errorData.error || `${i18next.t('fileTooLargeAlert')} ${errorData.limit} + MB.`);
             return;
         }
 
@@ -602,9 +627,9 @@ imageInput.addEventListener('drop', async (e) => {
                 img.src = `gallery/${uid}/${result.filename}`;
 
                 img.onerror = () => {
-                    alert('Failed to load the generated image. Please check the server response.');
+                    alert(i18next.t('failedLoadGeneratedAlert'));
                 };
-                img.alt = "Uploaded Image";
+                img.alt = i18next.t('uploadedAlt');
                 outputDiv.innerHTML = '';
                 outputDiv.appendChild(img);
             }
@@ -613,7 +638,7 @@ imageInput.addEventListener('drop', async (e) => {
         }
     } catch (error) {
         console.error('Error uploading file:', error);
-        alert(`Error uploading file: ${error.message}`);
+        alert(`${i18next.t('errorUploadingAlert')}: ${error.message}`);
     } finally {
         uploadDialog.value = '';
     }

@@ -1,4 +1,4 @@
-import { queue, client, uid } from './main.js';
+import { queue, client, uid, i18next } from './main.js';
 import { getTaskIdByUniqueId, removeTaskByTaskId, updateQueueItemsIds, fetchAndUpdateComfyUIQueueDisplay, wait, updateGridVariables } from './main.js';
 
 // Odnośniki
@@ -29,9 +29,9 @@ export async function generateImage(workflow) {
             editorImgFN = imageInput.value;
         }
         if (comfyQueueOutputValue > 0) {
-            progressName.innerText = 'Queued...';
+            progressName.innerText = i18next.t('queuedGen');
         } else {
-            progressName.innerText = 'Processing...';
+            progressName.innerText = i18next.t('processingGen');
         }
         const queueItem = document.createElement('div');
         queueItem.className = 'queue-item';
@@ -42,7 +42,7 @@ export async function generateImage(workflow) {
         taskNoText.id = `${metaUniqueId}`;
         queueItem.appendChild(taskNoText);
         const queueItemDeleteBtn = document.createElement('button');
-        queueItemDeleteBtn.textContent = 'Cancel';
+        queueItemDeleteBtn.textContent = i18next.t('cancelGen');
         queueItemDeleteBtn.addEventListener('click', async () => {
             const taskId = await getTaskIdByUniqueId(metaUniqueId);
             removeTaskByTaskId(taskId);
@@ -55,9 +55,9 @@ export async function generateImage(workflow) {
             queue.queue = queue.queue - 1;
             sessionStorage.setItem('comfyQueueCount', queue.queue.toString());
             await wait(500);
-            queueOutput.innerText = `Queue: ${queue.queue}/${queue.queueLimit}`;
+            queueOutput.innerText = `${i18next.t('queueOutput')}: ${queue.queue}/${queue.queueLimit}`;
             updateProgressBar(0, 100);
-            progressName.innerText = 'Canceled by user';
+            progressName.innerText = i18next.t('cancelledGen');
         });
         queueItem.appendChild(queueItemDeleteBtn);
         queue.queueItems.push(queueItem);
@@ -87,21 +87,21 @@ export async function generateImage(workflow) {
     
         // Obsługa błędów
         img.onerror = () => {
-            alert('Failed to load the generated image. Please check the server response.');
+            alert(i18next.t('failedLoadGeneratedAlert'));
         };
 
         outputDiv.innerHTML = '';
 
         if (editorImgFN) {
             img.className = "comparison-image image-top";
-            img.alt = "After";
+            img.alt = i18next.t('imgAfterAlt');
                     
             const imgBefore = document.createElement('img');
             imgBefore.src = `gallery/${uid}/${editorImgFN}`;
             imgBefore.className = "comparison-image image-bottom";
-            imgBefore.alt = "Before";
+            imgBefore.alt = i18next.t('imgBeforeAlt');
             imgBefore.onerror = () => {
-                alert('Failed to load the generated image. Please check the server response.');
+                alert(i18next.t('failedLoadGeneratedAlert'));
             };
 
             const draggableLine = document.createElement('div');
@@ -254,22 +254,22 @@ export async function generateImage(workflow) {
         updateQueueItemsIds();
     } catch (error) {
         console.error('Error generating image:', error);
-        alert('Failed to generate image. Check the console for details.');
+        alert(i18next.t('failedGen'));
     }
     queue.queue = queue.queue - 1;
     queueDisplay.removeChild(queue.queueItems[0]);
     queue.queueItems.shift();
     sessionStorage.setItem('comfyQueueCount', queue.queue.toString());
-    document.getElementById('queueOutput').innerText = `Queue: ${queue.queue}/${queue.queueLimit}`;
+    document.getElementById('queueOutput').innerText = `${i18next.t('queueOutput')}: ${queue.queue}/${queue.queueLimit}`;
 }
 
 function updateProgressBar(value, max) {
     const percentage = (value / max) * 100;
     progressBar.value = percentage;
 	if (percentage > 0 && percentage < 100) {
-		progressName.innerText = `Progress: ${Math.round(percentage)}%`;
+		progressName.innerText = `${i18next.t('progressGen')}: ${Math.round(percentage)}%`;
 	} else if (percentage == 100) {
-		progressName.innerText = 'Image generated';
+		progressName.innerText = i18next.t('generatedGen');
 	} else {
 		progressName.innerText = '';
 	}

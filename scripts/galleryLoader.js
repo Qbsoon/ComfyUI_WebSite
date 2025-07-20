@@ -1,8 +1,9 @@
+import { i18next } from './main.js';
+
 function findCheckpoint(workflowData) {
     if (!workflowData || typeof workflowData !== 'object') {
         return false;
     }
-    console.log(workflowData);
     const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'RealESRGAN_x2.pth', 'FreeUpscaling', 'flux1-fill-dev-Q8_0.gguf', 'flux1-kontext-dev-Q8_0.gguf']
     try {
         const jsonString = JSON.stringify(workflowData);
@@ -346,7 +347,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         filterControlsDiv.className = 'filter-controls';
         filterControlsDiv.style.gridColumn = '1 / -1'
         const filterModelSelect = document.createElement('select');
-        filterModelSelect.appendChild(new Option('All Models', 'all'));
+        filterModelSelect.appendChild(new Option(i18next.t('filterAllModels'), 'all'));
         const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'colorizing', 'upscaling', 'outpainting'];
         const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)', 'Colorizing', 'Upscaling', 'Outpainting'];
         models.forEach((model, index) => {
@@ -366,8 +367,8 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         const filterKeywords = document.createElement('input');
         filterKeywords.type = 'text';
         filterKeywords.id = 'filterKeywords';
-        filterKeywords.placeholder = 'Filter keywords';
-        filterKeywords.title = 'Keywords should be separated by commas';
+        filterKeywords.placeholder = i18next.t('filterKeywordsPlaceholder');
+        filterKeywords.title = i18next.t('filterKeywordsTitle');
         const radioAll = document.createElement('input');
         radioAll.type = 'radio';
         radioAll.name = 'keywordsRadio';
@@ -412,9 +413,9 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         filterControlsDiv.appendChild(filterModelSelect);
         filterControlsDiv.appendChild(filterKeywords);
         filterControlsDiv.appendChild(radioAll);
-        filterControlsDiv.appendChild(document.createTextNode('All'));
+        filterControlsDiv.appendChild(document.createTextNode(i18next.t('filterKeywordsAll')));
         filterControlsDiv.appendChild(radioAny);
-        filterControlsDiv.appendChild(document.createTextNode('Any'));
+        filterControlsDiv.appendChild(document.createTextNode(i18next.t('filterKeywordsAny')));
         filterControlsDiv.appendChild(filterKeywordsBtn);
         filterControlsDiv.appendChild(filterRefreshBtn);
         outputDiv.appendChild(filterControlsDiv);
@@ -424,7 +425,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
     loadingMessage.id = 'loadingP';
     loadingMessage.style.textAlign = 'center';
     loadingMessage.style.marginTop = '20px';
-    loadingMessage.textContent = 'Loading gallery...';
+    loadingMessage.textContent = i18next.t('loadingGallery');
     loadingMessage.style.gridColumn = '1 / -1'; 
     outputDiv.appendChild(loadingMessage);
 
@@ -436,7 +437,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
             if (errorBody.includes("No images found") || response.status === 404) {
                 console.info(`Gallery for target #${target} is empty.`);
                 const emptyMessage = document.createElement('p');
-                emptyMessage.textContent = 'Gallery empty';
+                emptyMessage.textContent = i18next.t('galleryEmpty');
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.marginTop = '20px';
                 emptyMessage.style.gridColumn = '1 / -1'; 
@@ -447,7 +448,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                 return;
             } else if (response.status === 403) {
                  console.warn(`Unauthorized access to manifest for #${target}.`);
-                 outputDiv.innerHTML = '<p>You are not authorized to view this gallery.</p>';
+                 outputDiv.innerHTML = `<p>${i18next.t('unauthorizedGallery')}</p>`;
                  return;
             } else {
                 throw new Error(`Failed to fetch manifest: ${response.status} ${response.statusText}`);
@@ -459,7 +460,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
             if (model || keywords) {
                 console.info(`Gallery for target #${target} is empty after filtering.`);
                 const emptyMessage = document.createElement('p');
-                emptyMessage.textContent = 'No images found for selected filters';
+                emptyMessage.textContent = i18next.t('noImagesFound');
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.marginTop = '20px';
                 emptyMessage.style.gridColumn = '1 / -1'; 
@@ -471,7 +472,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
             } else {
                 console.info(`Gallery for target #${target} is empty.`);
                 const emptyMessage = document.createElement('p');
-                emptyMessage.textContent = 'Gallery empty';
+                emptyMessage.textContent = i18next.t('galleryEmpty');
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.marginTop = '20px';
                 emptyMessage.style.gridColumn = '1 / -1'; 
@@ -571,7 +572,7 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
             if (thumbnailUrl && fullImageUrl) {
                 const img = document.createElement('img');
                 img.src = thumbnailUrl;
-                img.alt = canvas.label || 'Gallery image';
+                img.alt = canvas.label || i18next.t('galleryImageAlt');
 
                 img.dataset.fullSrc = fullImageUrl;
 
@@ -620,6 +621,6 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
 
     } catch (error) {
         console.error(`Error processing data for target #${target}:`, error);
-        if (outputDiv) outputDiv.innerHTML = 'Error loading gallery.';
+        if (outputDiv) outputDiv.innerHTML = i18next.t('errorLoadingGallery');
     }
 }
