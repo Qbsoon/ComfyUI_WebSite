@@ -30,17 +30,12 @@ currentLightboxImageFilename:  null
 // Obsługa języków
 export { i18next }
 
-i18next.use(Backend).init({
-  lng: 'en',
-  fallbackLng: 'en',
-  backend: {
-    loadPath: '/locales/{{lng}}.json',
-  }
-});
-
-
 i18next.on('languageChanged', (lng) => {
   updateLocale();
+});
+
+i18next.on('initialized', () => {
+    updateLocale();
 });
 
 // Odnośniki
@@ -364,11 +359,17 @@ langSelect.addEventListener('change', (event) => {
 });
 
 export async function init() {
+    i18next.use(Backend).init({
+        lng: 'en',
+        fallbackLng: 'en',
+        backend: {
+            loadPath: '/locales/{{lng}}.json',
+        }
+    });
     switchTab('generator');
     //updateGridVariables();
     updateResRatio();
     restoreModelDefaults();
-    updateLocale();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

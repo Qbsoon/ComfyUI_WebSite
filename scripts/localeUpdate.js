@@ -90,6 +90,9 @@ const loTerm = document.getElementById('loTerm');
 
 export function updateLocale() {
     document.title = i18next.t('siteTitle');
+    if (queueOutput.innerText.includes('queueOutput')) { // On the site load for whatever reason the field contains queueOutput
+        queueOutput.innerText = i18next.t('queueOutput') + `${queueOutput.innerText.slice(11, queueOutput.innerText.length)}`;
+    }
     if (!queueOutput.innerText.includes(i18next.t('queueOutput'))) {
         if (i18next.language == 'en') {
             queueOutput.innerText = i18next.t('queueOutput') + `${queueOutput.innerText.slice(13, queueOutput.innerText.length)}`;
@@ -136,6 +139,9 @@ export function updateLocale() {
     bottomMaskLabel.innerText = i18next.t('bottomMask');
     widthLabel.innerText = i18next.t('widthInput');
     heightLabel.innerText = i18next.t('heightInput');
+    if (ratioOutput.innerText.includes('ratioInput')) { // On the site load for whatever reason the field contains ratioInput
+        ratioOutput.innerText = i18next.t('ratioOutput') + `${ratioOutput.innerText.slice(10, ratioOutput.innerText.length)}`;
+    }
     if (!ratioOutput.innerText.includes(i18next.t('ratioOutput'))) {
         if (i18next.language == 'en') {
             ratioOutput.innerText = i18next.t('ratioOutput') + `${ratioOutput.innerText.slice(9, ratioOutput.innerText.length)}`;
@@ -169,14 +175,14 @@ export function updateLocale() {
     serviceInfoP1.innerText = i18next.t('helpS1P1');
     serviceInfoP2.innerText = i18next.t('helpS1P2');
     serviceInfoP3.innerText = i18next.t('helpS1P3');
-    serviceInfoP4.innerText = i18next.t('helpS1P4');
+    serviceInfoP4.innerHTML = `${i18next.t('helpS1P4')} <a href="mailto:jakubgrula7@gmail.com" target="_blank">jakubgrula7@gmail.com</a>.`;
     for (let i = 0; i < dlworkflow.length; i++) {
         dlworkflow[i].innerText = i18next.t('helpS2T6');
     }
     imageGenerationModels.innerText = i18next.t('helpS2');
     sd35desc.innerText = `${i18next.t('helpS2T1')}: fp8; ${i18next.t('helpS2T2')}: 8.1B; ${i18next.t('helpS2T3')}: 13.9 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T51')};`
     sdxldesc.innerText = `${i18next.t('helpS2T1')}: fp16; ${i18next.t('helpS2T2')}: 3.5B; ${i18next.t('helpS2T3')}: 6.5 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T52')};`
-    sdxltdesc.innerText = `${i18next.t('helpS2T1')}: fp16; ${i18next.t('helpS2T2')}: 3.5B; ${i18next.t('helpS2T3')}: 6.5 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')} ${i18next.t('helpS2T53')};`
+    sdxltdesc.innerText = `${i18next.t('helpS2T1')}: fp16; ${i18next.t('helpS2T2')}: 3.5B; ${i18next.t('helpS2T3')}: 6.5 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T53')};`
     flux1desc.innerText = `${i18next.t('helpS2T1')}: Q8; ${i18next.t('helpS2T2')}: 12B; ${i18next.t('helpS2T3')}: 11.8 GB; ${i18next.t('helpS2T4')}: Black Forest Labs; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T54')};`
     hdi1fdesc.innerText = `${i18next.t('helpS2T1')}: fp8; ${i18next.t('helpS2T2')}: 17B; ${i18next.t('helpS2T3')}: 15.9 GB; ${i18next.t('helpS2T4')}: HiDream AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T55')};`
     vv1bdesc.innerText = `${i18next.t('helpS2T1')}: fp8; ${i18next.t('helpS2T2')}: 12B; ${i18next.t('helpS2T3')}: 11.1 GB; ${i18next.t('helpS2T4')}: SG161222; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T56')};`

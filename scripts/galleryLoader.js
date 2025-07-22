@@ -499,12 +499,12 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                         pagingControlsDiv.style.gridColumn = '1 / -1'; 
                     
                         const firstBtn = document.createElement('button');
-                        firstBtn.textContent = 'First';
+                        firstBtn.textContent = i18next.t('filterFirst');
                         firstBtn.disabled = currentPage === 1;
                         firstBtn.addEventListener('click', () => galleryLoad(target, uid, 1, null, customManifestUrl, model, keywords, keywordsRadio));
                     
                         const prevBtn = document.createElement('button');
-                        prevBtn.textContent = 'Previous';
+                        prevBtn.textContent = i18next.t('filterPrevious');
                         prevBtn.disabled = currentPage === 1;
                         prevBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage - 1, null, customManifestUrl, model, keywords, keywordsRadio));
                     
@@ -513,12 +513,12 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
                         pageInfo.style.margin = '0 10px'; 
                     
                         const nextBtn = document.createElement('button');
-                        nextBtn.textContent = 'Next';
+                        nextBtn.textContent = i18next.t('filterNext');
                         nextBtn.disabled = currentPage === totalPages;
                         nextBtn.addEventListener('click', () => galleryLoad(target, uid, currentPage + 1, null, customManifestUrl, model, keywords, keywordsRadio));
                     
                         const lastBtn = document.createElement('button');
-                        lastBtn.textContent = 'Last';
+                        lastBtn.textContent = i18next.t('filterLast');
                         lastBtn.disabled = currentPage === totalPages;
                         lastBtn.addEventListener('click', () => galleryLoad(target, uid, totalPages, null, customManifestUrl, model, keywords, keywordsRadio));
 
