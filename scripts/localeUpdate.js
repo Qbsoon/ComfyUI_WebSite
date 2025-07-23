@@ -38,14 +38,6 @@ const upscaleMultiplierLabel = document.getElementById('upscaleMultiplierLabel')
 const submitButton = document.getElementById('submitButton');
 const noGeneratedP = document.getElementById('noGeneratedP');
 const lastGalleryLabel = document.getElementById('lastGalleryLabel');
-const lightboxTogglePublicButton = document.getElementById('lightboxTogglePublicButton');
-const lightboxCloseButton = document.getElementById('lightboxCloseButton');
-const lightboxDeleteButton = document.getElementById('lightboxDeleteButton');
-const lightboxCopyParametersButton = document.getElementById('lightboxCopyParametersButton');
-const lightboxEditImageButton = document.getElementById('lightboxEditImageButton');
-const customConfirmMessage = document.getElementById('customConfirmMessage');
-const customConfirmYes = document.getElementById('customConfirmYes');
-const customConfirmNo = document.getElementById('customConfirmNo');
 const helpTitle = document.getElementById('helpTitle');
 const serviceInfo = document.getElementById('serviceInfo');
 const serviceInfoP1 = document.getElementById('serviceInfoP1');
@@ -154,22 +146,6 @@ export function updateLocale() {
     submitButton.innerText = i18next.t('submitButton');
     noGeneratedP.innerText = i18next.t('outputPlaceholder');
     lastGalleryLabel.innerHTML = i18next.t('lastGallery') + ` <button class="refresh-button"><span>&#x21BB;</span></button>`;
-    if (lightboxTogglePublicButton.innerText.includes("Pokaż")) {
-        lightboxTogglePublicButton.innerText = i18next.t('lightboxTogglePublicOn');
-    } else if (lightboxTogglePublicButton.innerText.includes("Ukryj")) {
-        lightboxTogglePublicButton.innerText = i18next.t('lightboxTogglePublicOff');
-    } else if (lightboxTogglePublicButton.innerText.includes("Show")) {
-        lightboxTogglePublicButton.innerText = i18next.t('lightboxTogglePublicOn');
-    } else if (lightboxTogglePublicButton.innerText.includes("Hide")) {
-        lightboxTogglePublicButton.innerText = i18next.t('lightboxTogglePublicOff');
-    }
-    lightboxCloseButton.innerText = i18next.t('lightboxClose');
-    lightboxDeleteButton.innerText = i18next.t('lightboxDelete');
-    lightboxCopyParametersButton.innerText = i18next.t('lightboxCopyParameters');
-    lightboxEditImageButton.innerText = i18next.t('lightboxEditImage');
-    customConfirmMessage.innerText = i18next.t('modalConfirm');
-    customConfirmYes.innerText = i18next.t('modalConfirmYes');
-    customConfirmNo.innerText = i18next.t('modalConfirmNo');
     helpTitle.innerText = i18next.t('helpHeader');
     serviceInfo.innerText = i18next.t('helpS1');
     serviceInfoP1.innerText = i18next.t('helpS1P1');

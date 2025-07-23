@@ -2,7 +2,7 @@ import { Client } from "https://cdn.jsdelivr.net/npm/@stable-canvas/comfyui-clie
 import { galleryLoad } from './galleryLoader.js';
 import { setWorkflow, validateInputs} from './workflows.js?cache-bust=1';
 import { switchTab, changeModel, restoreModelDefaults, restoreModelDefaultPrompts } from './formUpdate.js';
-import { openLightbox, closeLightbox, showCustomConfirm, hideCustomConfirm, performDeleteImage, lightboxCopySet } from './lightbox.js';
+import { openLightbox } from './lightbox.js';
 import { generateImage } from './generate.js';
 import i18next from 'https://cdn.jsdelivr.net/npm/i18next@25.3.2/+esm';
 import Backend from 'https://cdn.jsdelivr.net/npm/i18next-http-backend@3.0.2/+esm';
@@ -16,16 +16,9 @@ export const queue = {
     queueLimit: 3,
     queueItems: []
 };
-export const editors = ['colorizing', 'upscaling', 'outpainting'];
 
 let updateTimeout;
 let isUpdating = false;
-
-export const lightboxVars = {
-currentImageToDeleteUrl: null,
-currentLightboxImageOwnerUid: null,
-currentLightboxImageFilename:  null
-};
 
 // Obsługa języków
 export { i18next }
@@ -64,15 +57,6 @@ const editorDefaultBtn = document.getElementById('editorDefaults');
 const editorDefaultPromptsBtn = document.getElementById('editorPrompts');
 const imageUploadBtn = document.getElementById('imageUpload');
 const uploadDialog = document.getElementById('uploadDialog');
-
-const lightbox = document.getElementById('simpleLightbox');
-const closeBtn = document.getElementById('lightboxCloseButton');
-const deleteBtn = document.getElementById('lightboxDeleteButton');
-const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
-const lightboxCopyParametersBtn = document.getElementById('lightboxCopyParametersButton');
-const lightboxEditImageBtn = document.getElementById('lightboxEditImageButton');
-const customConfirmYesBtn = document.getElementById('customConfirmYes');
-const customConfirmNoBtn = document.getElementById('customConfirmNo');
 const Rbuttons = document.querySelectorAll('.refresh-button');
 
 const modelSelect = document.getElementById('modelSelect');
@@ -378,137 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.init = init;
-
-// Lightbox
-
-if (lightboxTogglePublicBtn) {
-    lightboxTogglePublicBtn.addEventListener('click', async () => {
-        const filename = lightboxTogglePublicBtn.dataset.filename;
-        const ownerUid = lightboxTogglePublicBtn.dataset.ownerUid;
-
-        if (!filename || !ownerUid) {
-            alert(i18next.t('imageDetailsNotFoundAlert'));
-            return;
-        }
-        // Ensure current logged-in user is the owner before sending request
-        if (ownerUid !== uid) {
-            alert(i18next.t('togglePublicForeignAlert'));
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/toggle-public-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename: filename, image_owner_uid: ownerUid })
-            });
-            const result = await response.json();
-            if (result.success) {
-                if (result.is_public) {
-                    lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOff');
-                    lightboxTogglePublicBtn.classList.add('is-public');
-                } else {
-                    lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOn');
-                    lightboxTogglePublicBtn.classList.remove('is-public');
-                }
-                // Refresh public gallery if it's the active tab
-                if (publicGalleryTab.classList.contains('active')) {
-                    updateGridVariables();
-                }
-            } else {
-                alert(`${i18next.t('error')}: ${result.error || i18next.t('failedTogglePublicAlert')}`);
-            }
-        } catch (error) {
-            console.error("Error toggling public status:", error);
-            alert(i18next.t('errorTryAgain'));
-        }
-    });
-}
-
-if (closeBtn) {
-  closeBtn.addEventListener('click', closeLightbox);
-}
-
-if (deleteBtn) {
-    deleteBtn.addEventListener('click', () => {
-        lightboxVars.currentImageToDeleteUrl = deleteBtn.dataset.imageUrl;
-        if (lightboxVars.currentImageToDeleteUrl) {
-            showCustomConfirm();
-        } else {
-            alert(i18next.t('failedDetermineDeleteAlert'));
-        }
-    });
-}
-
-if (lightbox) {
-  lightbox.addEventListener('click', (event) => {
-    if (event.target === lightbox) {
-      closeLightbox();
-    }
-  });
-}
-
-if (lightboxCopyParametersBtn) {
-    lightboxCopyParametersBtn.addEventListener('click', () => {
-        closeLightbox();
-        switchTab('generator');
-        let workflowData = null;
-        try {
-            workflowData = JSON.parse(lightboxCopyParametersBtn.dataset.workflowData);
-        } catch (error) {
-            console.error('Error parsing workflow data:', error);
-            return;
-        }
-        if (!editors.includes(workflowData.checkpointName)) {
-            modelSelect.value = workflowData.checkpointName;
-        }
-        lightboxCopySet(workflowData);
-        changeModel();
-        updateResRatio();
-        lightboxCopyParametersBtn.dataset.workflowData = null;
-    });
-}
-
-if (lightboxEditImageBtn) {
-    lightboxEditImageBtn.addEventListener('click', () => {
-        let filename = null;
-        try {
-            filename = lightboxEditImageBtn.dataset.filename;
-        } catch (error) {
-            console.error('Error getting filename for editing:', error);
-            return;
-        }
-        closeLightbox();
-        switchTab('editor');
-        document.getElementById('imageInput').value = filename;
-        const img = document.createElement('img');
-        img.src = `gallery/${uid}/${filename}`;
-
-        img.onerror = () => {
-            alert(i18next.t('failedLoadGeneratedAlert'));
-        };
-        img.alt = i18next.t('imageToEditAlt');
-        outputDiv.innerHTML = '';
-        outputDiv.appendChild(img);
-    });
-}
-
-if (customConfirmYesBtn) {
-    customConfirmYesBtn.addEventListener('click', () => {
-        if (lightboxTogglePublicBtn.classList.contains('is-public')) {
-            lightboxTogglePublicBtn.click();
-        }
-        performDeleteImage();
-    });
-} else {
-  console.warn("Custom confirm 'Yes' button not found.");
-}
-
-if (customConfirmNoBtn) {
-    customConfirmNoBtn.addEventListener('click', hideCustomConfirm);
-} else {
-  console.warn("Custom confirm 'No' button not found.");
-}
 
 window.openLightbox = openLightbox;
 

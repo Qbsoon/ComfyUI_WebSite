@@ -1,17 +1,11 @@
-import { lightboxVars, editors, uid, i18next } from './main.js';
-import { updateGridVariables } from './main.js';
-import { switchTab } from './formUpdate.js';
+import { uid, i18next } from './main.js';
+import { updateGridVariables, updateResRatio } from './main.js';
+import { switchTab, changeModel } from './formUpdate.js';
 
 // Odnośniki
-const lightbox = document.getElementById('simpleLightbox');
-const lightboxImage = document.getElementById('lightboxImage');
-const deleteBtn = document.getElementById('lightboxDeleteButton');
-const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
-const lightboxCopyParametersBtn = document.getElementById('lightboxCopyParametersButton');
-const lightboxEditImageBtn = document.getElementById('lightboxEditImageButton');
-const prompts = document.getElementById('lightboxPrompts');
-const parameters = document.getElementById('lightboxParameters');
-const comparison = document.getElementById('lightboxComparison');
+const publicGalleryTab = document.getElementById('publicGalleryTab');
+const outputDiv = document.getElementById('output');
+const imageInput = document.getElementById('imageInput');
 
 const modelSelect = document.getElementById('modelSelect');
 const editorSelect = document.getElementById('editorSelect');
@@ -35,49 +29,181 @@ const topMask = document.getElementById('topMask');
 const rightMask = document.getElementById('rightMask');
 const bottomMask = document.getElementById('bottomMask');
 
-export function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPublic = false, filename = null) {
-    if (lightbox && lightboxImage) {
-        lightboxImage.hidden = false;
-        lightboxImage.src = imageUrl;
-        lightbox.style.display = 'flex';
+const editors = ['colorizing', 'upscaling', 'outpainting'];
 
-        lightboxVars.currentLightboxImageOwnerUid = imageOwnerUid || uid;
-        lightboxVars.currentLightboxImageFilename = filename || imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-
-        if (deleteBtn) {
-            deleteBtn.dataset.imageUrl = imageUrl;
-            // Only show delete button if the current user owns the image in the lightbox
-            deleteBtn.style.display = (lightboxVars.currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
-        }
-
-        if (lightboxEditImageBtn) {
-            lightboxEditImageBtn.style.display = (lightboxVars.currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
-        }
-
-        if (lightboxTogglePublicBtn) {
-            lightboxTogglePublicBtn.dataset.filename = lightboxVars.currentLightboxImageFilename;
-            lightboxTogglePublicBtn.dataset.ownerUid = lightboxVars.currentLightboxImageOwnerUid;
-            if (isPublic) {
-                lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOff');
-                lightboxTogglePublicBtn.classList.add('is-public');
-            } else {
-                lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOn');
-                lightboxTogglePublicBtn.classList.remove('is-public');
-            }
-            // Only show toggle public button if the current user owns the image
-            lightboxTogglePublicBtn.style.display = (lightboxVars.currentLightboxImageOwnerUid === uid) ? 'inline-block' : 'none';
-        }
-
-        if (lightboxCopyParametersBtn) {
-            lightboxCopyParametersBtn.dataset.workflowData = JSON.stringify(workflowData);
-        } else {
-            console.warn("Lightbox copy parameters button not found.");
-        }
-
-        if (lightboxEditImageBtn) {
-            lightboxEditImageBtn.dataset.filename = lightboxVars.currentLightboxImageFilename;
-        }
+export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPublic = false, filename = null) {
+    if (filename == null) {
+        filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1)
     }
+
+    const lightbox = document.createElement('div');
+    lightbox.id = 'simpleLightbox';
+    lightbox.className = "lightbox-overlay";
+    lightbox.style.display = 'flex';
+
+    lightbox.addEventListener('click', (event) => {
+        if (event.target === lightbox) {
+            closeLightbox();
+        }
+    });
+
+    const prompts = document.createElement('div');
+    prompts.id = 'lightboxPrompts';
+    prompts.className = 'lightbox-nav left';
+
+    const lightboxMain = document.createElement('div');
+    lightboxMain.id = 'lightboxMainContent';
+
+    const lightboxButtonsUp = document.createElement('div');
+    lightboxButtonsUp.id = 'lightboxButtonContainerUpper';
+    lightboxButtonsUp.className = 'lightboxButtonContainer';
+
+    const lightboxTogglePublicBtn = document.createElement('button');
+    lightboxTogglePublicBtn.id = 'lightboxTogglePublicButton';
+    lightboxTogglePublicBtn.className = 'lightbox-action-button public';
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'lightboxCloseButton';
+    closeBtn.className = 'lightbox-action-button';
+    closeBtn.textContent = i18next.t('lightboxClose');
+    const deleteBtn = document.createElement('button');
+    deleteBtn.id = 'lightboxDeleteButton';
+    deleteBtn.className = 'lightbox-action-button delete';
+    deleteBtn.textContent = i18next.t('lightboxDelete');
+    deleteBtn.style.display = (imageOwnerUid === uid) ? 'inline-block' : 'none';
+
+    lightboxTogglePublicBtn.addEventListener('click', async () => {
+        if (!filename || !imageOwnerUid) {
+            alert(i18next.t('imageDetailsNotFoundAlert'));
+            return;
+        }
+        // Ensure current logged-in user is the owner before sending request
+        if (imageOwnerUid !== uid) {
+            alert(i18next.t('togglePublicForeignAlert'));
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/toggle-public-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filename, image_owner_uid: imageOwnerUid })
+            });
+            const result = await response.json();
+            if (result.success) {
+                if (result.is_public) {
+                    lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOff');
+                    lightboxTogglePublicBtn.classList.add('is-public');
+                } else {
+                    lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOn');
+                    lightboxTogglePublicBtn.classList.remove('is-public');
+                }
+                // Refresh public gallery if it's the active tab
+                if (publicGalleryTab.classList.contains('active')) {
+                    updateGridVariables();
+                }
+            } else {
+                alert(`${i18next.t('error')}: ${result.error || i18next.t('failedTogglePublicAlert')}`);
+            }
+        } catch (error) {
+            console.error("Error toggling public status:", error);
+            alert(i18next.t('errorTryAgain'));
+        }
+    });
+    closeBtn.addEventListener('click', closeLightbox);
+    deleteBtn.addEventListener('click', () => {
+        if (imageUrl) {
+            showDeleteConfirm(imageUrl);
+        } else {
+            alert(i18next.t('failedDetermineDeleteAlert'));
+        }
+    });
+
+    lightboxButtonsUp.appendChild(lightboxTogglePublicBtn);
+    lightboxButtonsUp.appendChild(closeBtn);
+    lightboxButtonsUp.appendChild(deleteBtn);
+
+    const lightboxImage = document.createElement('img');
+    lightboxImage.id = 'lightboxImage';
+    lightboxImage.className = 'lightbox-content';
+    lightboxImage.src = imageUrl;
+
+    const comparison = document.createElement('div');
+    comparison.id = 'lightboxComparison';
+    comparison.className = 'image-comparison-container';
+
+    const lightboxButtonsDn = document.createElement('div');
+    lightboxButtonsDn.id = 'lightboxButtonContainerLower';
+    lightboxButtonsDn.className = 'lightboxButtonContainer';
+
+    const lightboxCopyParametersBtn = document.createElement('button');
+    lightboxCopyParametersBtn.id = 'lightboxCopyParametersButton';
+    lightboxCopyParametersBtn.className = 'lightbox-action-button';
+    lightboxCopyParametersBtn.textContent = i18next.t('lightboxCopyParameters');
+    const lightboxEditImageBtn = document.createElement('button');
+    lightboxEditImageBtn.id = 'lightboxEditImageButton';
+    lightboxEditImageBtn.className = 'lightbox-action-button';
+    lightboxEditImageBtn.textContent = i18next.t('lightboxEditImage');
+
+    lightboxCopyParametersBtn.addEventListener('click', () => {
+        closeLightbox();
+        switchTab('generator');
+        if (!editors.includes(workflowData.checkpointName)) {
+            modelSelect.value = workflowData.checkpointName;
+        }
+        lightboxCopySet(workflowData);
+        changeModel();
+        updateResRatio();
+    });
+
+    lightboxEditImageBtn.addEventListener('click', () => {
+        closeLightbox();
+        switchTab('editor');
+        imageInput.value = filename;
+        const img = document.createElement('img');
+        img.src = `gallery/${uid}/${filename}`;
+    
+        img.onerror = () => {
+            alert(i18next.t('failedLoadGeneratedAlert'));
+        };
+        img.alt = i18next.t('imageToEditAlt');
+        outputDiv.innerHTML = '';
+        outputDiv.appendChild(img);
+    });
+
+    lightboxButtonsDn.appendChild(lightboxCopyParametersBtn);
+    lightboxButtonsDn.appendChild(lightboxEditImageBtn);
+
+    lightboxMain.appendChild(lightboxButtonsUp);
+    lightboxMain.appendChild(lightboxImage);
+    lightboxMain.appendChild(comparison);
+    lightboxMain.appendChild(lightboxButtonsDn);
+
+    const parameters = document.createElement('div');
+    parameters.id = 'lightboxParameters';
+    parameters.className = 'lightbox-nav right';
+
+    lightbox.appendChild(prompts);
+    lightbox.appendChild(lightboxMain);
+    lightbox.appendChild(parameters);
+
+    document.body.appendChild(lightbox);
+
+    if (lightboxEditImageBtn) {
+        lightboxEditImageBtn.style.display = (imageOwnerUid === uid) ? 'inline-block' : 'none';
+    }
+
+    if (lightboxTogglePublicBtn) {
+        if (isPublic) {
+            lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOff');
+            lightboxTogglePublicBtn.classList.add('is-public');
+        } else {
+            lightboxTogglePublicBtn.textContent = i18next.t('lightboxTogglePublicOn');
+            lightboxTogglePublicBtn.classList.remove('is-public');
+        }
+        // Only show toggle public button if the current user owns the image
+        lightboxTogglePublicBtn.style.display = (imageOwnerUid === uid) ? 'inline-block' : 'none';
+    }
+
     if (workflowData) {
         try {
             comparison.innerHTML = '';
@@ -356,28 +482,61 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = null, isPub
     }
 }
 
-export function showCustomConfirm() {
-    if (customConfirmModal) {
-        customConfirmModal.style.display = 'flex';
+export function showDeleteConfirm(imageDeleteUrl) {
+    const lightboxTogglePublicBtn = document.getElementById('lightboxTogglePublicButton');
+
+    const confirmModal = document.createElement('div');
+    confirmModal.id = "deleteConfirmModal";
+    confirmModal.className = "modal-overlay";
+
+    const modalContent = document.createElement('div');
+    modalContent.className = "modal-content";
+
+    const confirmMessage = document.createElement('p');
+    confirmMessage.textContent = i18next.t('modalConfirm');
+
+    const modalActions = document.createElement('div');
+    modalActions.className = "modal-actions";
+
+    const actionYes = document.createElement('button');
+    actionYes.className = "modal-button yes";
+    actionYes.textContent = i18next.t('modalConfirmYes');
+    actionYes.addEventListener('click', () => {
+        if (lightboxTogglePublicBtn.classList.contains('is-public')) {
+            lightboxTogglePublicBtn.click();
+        }
+        performDeleteImage(imageDeleteUrl);
+    });
+
+    const actionNo = document.createElement('button');
+    actionNo.class = "modal-button no";
+    actionNo.textContent = i18next.t('modalConfirmNo');
+    actionNo.addEventListener('click', hideDeleteConfirm);
+
+    modalActions.appendChild(actionYes);
+    modalActions.appendChild(actionNo);
+    modalContent.appendChild(confirmMessage);
+    modalContent.appendChild(modalActions);
+    confirmModal.appendChild(modalContent);
+    document.body.appendChild(confirmModal);
+}
+
+export function hideDeleteConfirm() {
+    const confirmModal = document.getElementById('deleteConfirmModal');
+    if (confirmModal) {
+        confirmModal.remove();
     }
 }
 
-export function hideCustomConfirm() {
-    if (customConfirmModal) {
-        customConfirmModal.style.display = 'none';
-    }
-    lightboxVars.currentImageToDeleteUrl = null;
-}
-
-export async function performDeleteImage() {
-    if (!lightboxVars.currentImageToDeleteUrl) {
+export async function performDeleteImage(imageDeleteUrl) {
+    if (!imageDeleteUrl) {
         console.error("No image URL set for deletion.");
-        hideCustomConfirm();
+        hideDeleteConfirm();
         return;
     }
 
     try {
-        const url = new URL(lightboxVars.currentImageToDeleteUrl);
+        const url = new URL(imageDeleteUrl);
         const pathParts = url.pathname.split('/');
         const filename = pathParts.pop();
 
@@ -400,21 +559,16 @@ export async function performDeleteImage() {
     } catch (error) {
         console.error('Error deleting image:', error);
     } finally {
-        hideCustomConfirm();
+        hideDeleteConfirm();
     }
 }
 
 export function closeLightbox() {
-  if (lightbox) {
-    lightbox.style.display = 'none';
-    lightboxImage.src = '';
-    if (lightboxImage) lightboxImage.src = '';
-    if (deleteBtn) deleteBtn.dataset.imageUrl = '';
-  }
+    const lightbox = document.getElementById('simpleLightbox');
+    lightbox?.remove();
 }
 
 export function lightboxCopySet(workflowData) {
-    
     positivePrompt.value = workflowData.promptP;
     samplerSelect.value = workflowData.sampler;
 
