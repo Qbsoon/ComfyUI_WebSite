@@ -98,7 +98,22 @@ function getComfyMetadata(workflowData, checkpointName) {
                 if (promptPcopy.endsWith('aidmarealisticskin')) {
                     promptPcopy = promptPcopy.slice(0, -19);
                 }
-			}
+			} else if (lora === 'ume_sky_v2.safetensors') {
+                loraDisplay = 'Ume Sky v2';
+                if (promptPcopy.endsWith('umesky')) {
+                    promptPcopy = promptPcopy.slice(0, -7);
+                }
+            } else if (lora === 'ume_modern_pixelart.safetensors') {
+                loraDisplay = 'Ume Modern Pixel Art';
+                if (promptPcopy.endsWith('umempart')) {
+                    promptPcopy = promptPcopy.slice(0, -9);
+                }
+            } else if (lora === 'ume_classic_impressionist.safetensors') {
+                loraDisplay = 'Ume Classic Impressionist';
+                if (promptPcopy.endsWith('impressionist')) {
+                    promptPcopy = promptPcopy.slice(0, -14);
+                }
+            }
             let loraStrength = 0;
             if (workflowData["98"]) {
                 loraStrength = workflowData["98"].inputs.strength_model;

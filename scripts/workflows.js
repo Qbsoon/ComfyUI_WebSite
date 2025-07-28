@@ -123,6 +123,12 @@ export async function setWorkflow(uid) {
 				workflow["11"].inputs.text += ' PsychadelicChaos';
 			} else if (lora === 'aidmaRealisticSkin-FLUX-v0.1.safetensors') {
 				workflow["11"].inputs.text += ' aidmarealisticskin';
+			} else if (lora === 'ume_sky_v2.safetensors') {
+				workflow["11"].inputs.text += ' umesky';
+			} else if (lora === 'ume_modern_pixelart.safetensors') {
+				workflow["11"].inputs.text += ' umempart';
+			} else if (lora === 'ume_classic_impressionist.safetensors') {
+				workflow["11"].inputs.text += ' impressionist';
 			}
 		} else if (model === 'PixArt-Sigma-XL-2-2K-MS.pth') {
 			workflow = await loadWorkflow('pixart.json')
