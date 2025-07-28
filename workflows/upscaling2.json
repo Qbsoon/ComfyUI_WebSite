@@ -11,7 +11,7 @@
     	},
     	"class_type": "UpscaleModelLoader"
   	},
-  	"3": {
+  	"10": {
     	"inputs": {
       		"upscale_model": [
         		"2",
@@ -24,11 +24,11 @@
     	},
     	"class_type": "ImageUpscaleWithModel"
   	},
-  	"6": {
+  	"98": {
     	"inputs": {
       		"filename_prefix": "ComfyUI",
       		"images": [
-        		"3",
+        		"10",
         		0
       		]
     	},

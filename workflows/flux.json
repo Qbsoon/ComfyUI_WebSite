@@ -13,126 +13,13 @@
 		},
 		"class_type": "UnetLoaderGGUF"
   	},
-  	"4": {
+  	"3": {
 		"inputs": {
 	  		"vae_name": "diffusion_pytorch_model.safetensors"
 		},
 		"class_type": "VAELoader"
   	},
-  	"6": {
-		"inputs": {
-	  		"model": [
-				"2",
-				0
-	  		],
-	  		"conditioning": [
-				"9",
-				0
-	  		]
-		},
-		"class_type": "BasicGuider"
-  	},
-  	"8": {
-		"inputs": {
-	  		"samples": [
-				"17",
-				0
-	  		],
-	  		"vae": [
-				"4",
-				0
-	  		]
-		},
-		"class_type": "VAEDecode"
-  	},
-  	"9": {
-		"inputs": {
-	 		"guidance": 2,
-	  		"conditioning": [
-				"11",
-				0
-	  		]
-		},
-		"class_type": "FluxGuidance"
-  	},
-  	"11": {
-		"inputs": {
-	  		"text": "",
-	  		"clip": [
-				"1",
-				0
-	  		]
-		},
-		"class_type": "CLIPTextEncode"
-  	},
-  	"12": {
-		"inputs": {
-	  		"width": 768,
-	  		"height": 1024,
-	  		"batch_size": 1
-		},
-		"class_type": "EmptySD3LatentImage"
-  	},
-  	"13": {
-		"inputs": {
-	  		"noise_seed": 0
-		},
-		"class_type": "RandomNoise"
-  	},
-  	"14": {
-		"inputs": {
-	  		"sampler_name": ""
-		},
-		"class_type": "KSamplerSelect"
-  	},
-  	"15": {
-		"inputs": {
-	  		"scheduler": "",
-	  		"steps": 0,
-	  		"denoise": 1,
-	  		"model": [
-				"2",
-				0
-	  		]
-		},
-		"class_type": "BasicScheduler"
-  	},
-  	"17": {
-		"inputs": {
-	  		"noise": [
-				"13",
-				0
-	  		],
-	  		"guider": [
-				"6",
-				0
-	  		],
-	  		"sampler": [
-				"14",
-				0
-	  		],
-	  		"sigmas": [
-				"15",
-				0
-	  		],
-	  		"latent_image": [
-				"12",
-				0
-	  		]
-		},
-		"class_type": "SamplerCustomAdvanced"
-  	},
-  	"18": {
-		"inputs": {
-	  		"filename_prefix": "",
-	  		"images": [
-				"8",
-				0
-	  		]
-		},
-		"class_type": "SaveImage"
-  	},
-  	"98": {
+  	"4": {
 		"inputs": {
 	  		"lora_name": "",
 	  		"strength_model": 1,
@@ -147,6 +34,119 @@
 			]
 		},
 		"class_type": "LoraLoader"
+  	},
+  	"8": {
+		"inputs": {
+	  		"text": "",
+	  		"clip": [
+				"1",
+				0
+	  		]
+		},
+		"class_type": "CLIPTextEncode"
+  	},
+  	"10": {
+		"inputs": {
+	  		"width": 768,
+	  		"height": 1024,
+	  		"batch_size": 1
+		},
+		"class_type": "EmptySD3LatentImage"
+  	},
+  	"11": {
+		"inputs": {
+	  		"noise_seed": 0
+		},
+		"class_type": "RandomNoise"
+  	},
+  	"12": {
+		"inputs": {
+	  		"scheduler": "",
+	  		"steps": 0,
+	  		"denoise": 1,
+	  		"model": [
+				"2",
+				0
+	  		]
+		},
+		"class_type": "BasicScheduler"
+  	},
+  	"13": {
+		"inputs": {
+	  		"sampler_name": ""
+		},
+		"class_type": "KSamplerSelect"
+  	},
+  	"14": {
+		"inputs": {
+	 		"guidance": 2,
+	  		"conditioning": [
+				"8",
+				0
+	  		]
+		},
+		"class_type": "FluxGuidance"
+  	},
+  	"15": {
+		"inputs": {
+	  		"model": [
+				"2",
+				0
+	  		],
+	  		"conditioning": [
+				"14",
+				0
+	  		]
+		},
+		"class_type": "BasicGuider"
+  	},
+  	"30": {
+		"inputs": {
+	  		"noise": [
+				"11",
+				0
+	  		],
+	  		"guider": [
+				"15",
+				0
+	  		],
+	  		"sampler": [
+				"13",
+				0
+	  		],
+	  		"sigmas": [
+				"12",
+				0
+	  		],
+	  		"latent_image": [
+				"10",
+				0
+	  		]
+		},
+		"class_type": "SamplerCustomAdvanced"
+  	},
+  	"50": {
+		"inputs": {
+	  		"samples": [
+				"30",
+				0
+	  		],
+	  		"vae": [
+				"3",
+				0
+	  		]
+		},
+		"class_type": "VAEDecode"
+  	},
+  	"98": {
+		"inputs": {
+	  		"filename_prefix": "",
+	  		"images": [
+				"50",
+				0
+	  		]
+		},
+		"class_type": "SaveImage"
   	},
   	"99": {
 		"inputs": {

@@ -1,164 +1,164 @@
 {
-  "6": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "11",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode"
-  },
-  "8": {
-    "inputs": {
-      "samples": [
-        "13",
-        0
-      ],
-      "vae": [
-        "10",
-        0
-      ]
-    },
-    "class_type": "VAEDecode"
-  },
-  "9": {
-    "inputs": {
-      "filename_prefix": "ComfyUI",
-      "images": [
-        "8",
-        0
-      ]
-    },
-    "class_type": "SaveImage"
-  },
-  "10": {
-    "inputs": {
-      "vae_name": "ae.safetensors"
-    },
-    "class_type": "VAELoader"
-  },
-  "11": {
-    "inputs": {
-      "clip_name1": "t5xxl_fp16.safetensors",
-      "clip_name2": "clip-vit-large-patch14.safetensors",
-      "type": "flux",
-      "device": "default"
-    },
-    "class_type": "DualCLIPLoader"
-  },
-  "12": {
-    "inputs": {
-      "unet_name": "VerusVision_1.0b_Transformer_fp8.safetensors",
-      "weight_dtype": "fp8_e4m3fn"
-    },
-    "class_type": "UNETLoader"
-  },
-  "13": {
-    "inputs": {
-      "noise": [
-        "25",
-        0
-      ],
-      "guider": [
-        "40",
-        0
-      ],
-      "sampler": [
-        "16",
-        0
-      ],
-      "sigmas": [
-        "17",
-        0
-      ],
-      "latent_image": [
-        "39",
-        0
-      ]
-    },
-    "class_type": "SamplerCustomAdvanced"
-  },
-  "16": {
-    "inputs": {
-      "sampler_name": "euler"
-    },
-    "class_type": "KSamplerSelect"
-  },
-  "17": {
-    "inputs": {
-      "scheduler": "beta",
-      "steps": 30,
-      "denoise": 1,
-      "model": [
-        "12",
-        0
-      ]
-    },
-    "class_type": "BasicScheduler"
-  },
-  "25": {
-    "inputs": {
-      "noise_seed": 362857772573984
-    },
-    "class_type": "RandomNoise"
-  },
-  "26": {
-    "inputs": {
-      "guidance": 3.5,
-      "conditioning": [
-        "6",
-        0
-      ]
-    },
-    "class_type": "FluxGuidance"
-  },
-  "39": {
-    "inputs": {
-      "width": 896,
-      "height": 1152,
-      "batch_size": 1
-    },
-    "class_type": "EmptySD3LatentImage"
-  },
-  "40": {
-    "inputs": {
-      "threshold": 1,
-      "cfg": 3.5,
-      "uncond_zero_scale": 0,
-      "cfg_start_pct": 0,
-      "model": [
-        "12",
-        0
-      ],
-      "positive": [
-        "26",
-        0
-      ],
-      "negative": [
-        "41",
-        0
-      ]
-    },
-    "class_type": "AdaptiveGuidance"
-  },
-  "41": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "11",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode"
-  },
-  "99": {
-    "inputs": {
-      "value": ""
-    },
-    "class_type": "PrimitiveString",
-    "_meta": {
-      "title": "PromptID"
-    }
-  }
+	"1": {
+		"inputs": {
+			"unet_name": "VerusVision_1.0b_Transformer_fp8.safetensors",
+			"weight_dtype": "fp8_e4m3fn"
+		},
+		"class_type": "UNETLoader"
+	},
+	"2": {
+		"inputs": {
+			"clip_name1": "t5xxl_fp16.safetensors",
+			"clip_name2": "clip-vit-large-patch14.safetensors",
+			"type": "flux",
+			"device": "default"
+		},
+		"class_type": "DualCLIPLoader"
+	},
+	"3": {
+		"inputs": {
+			"vae_name": "ae.safetensors"
+		},
+		"class_type": "VAELoader"
+	},
+	"8": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"2",
+				0
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"9": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"2",
+				0
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"10": {
+		"inputs": {
+			"width": 896,
+			"height": 1152,
+			"batch_size": 1
+		},
+		"class_type": "EmptySD3LatentImage"
+	},
+	"11": {
+		"inputs": {
+			"sampler_name": "euler"
+		},
+		"class_type": "KSamplerSelect"
+	},
+	"12": {
+		"inputs": {
+			"noise_seed": 362857772573984
+		},
+		"class_type": "RandomNoise"
+	},
+	"13": {
+		"inputs": {
+			"scheduler": "beta",
+			"steps": 30,
+			"denoise": 1,
+			"model": [
+				"1",
+				0
+			]
+		},
+		"class_type": "BasicScheduler"
+	},
+	"14": {
+		"inputs": {
+			"guidance": 3.5,
+			"conditioning": [
+				"8",
+				0
+			]
+		},
+		"class_type": "FluxGuidance"
+	},
+	"15": {
+		"inputs": {
+			"threshold": 1,
+			"cfg": 3.5,
+			"uncond_zero_scale": 0,
+			"cfg_start_pct": 0,
+			"model": [
+				"1",
+				0
+			],
+			"positive": [
+				"14",
+				0
+			],
+			"negative": [
+				"9",
+				0
+			]
+		},
+		"class_type": "AdaptiveGuidance"
+	},
+	"30": {
+		"inputs": {
+			"noise": [
+				"12",
+				0
+			],
+			"guider": [
+				"15",
+				0
+			],
+			"sampler": [
+				"11",
+				0
+			],
+			"sigmas": [
+				"13",
+				0
+			],
+			"latent_image": [
+				"10",
+				0
+			]
+		},
+		"class_type": "SamplerCustomAdvanced"
+	},
+	"50": {
+		"inputs": {
+			"samples": [
+				"30",
+				0
+			],
+			"vae": [
+				"3",
+				0
+			]
+		},
+		"class_type": "VAEDecode"
+	},
+	"98": {
+		"inputs": {
+			"filename_prefix": "ComfyUI",
+			"images": [
+				"50",
+				0
+			]
+		},
+		"class_type": "SaveImage"
+	},
+	"99": {
+		"inputs": {
+			"value": ""
+		},
+		"class_type": "PrimitiveString",
+		"_meta": {
+			"title": "PromptID"
+		}
+	}
 }

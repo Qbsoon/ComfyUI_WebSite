@@ -1,117 +1,117 @@
 {
-    "5": {
-      "inputs": {
-        "width": 512,
-        "height": 512,
-        "batch_size": 1
-      },
-      "class_type": "EmptyLatentImage"
-    },
-    "6": {
-      "inputs": {
-        "text": "",
-        "clip": [
-          "20",
-          1
-        ]
-      },
-      "class_type": "CLIPTextEncode"
-    },
-    "7": {
-      "inputs": {
-        "text": "",
-        "clip": [
-          "20",
-          1
-        ]
-      },
-      "class_type": "CLIPTextEncode"
-    },
-    "8": {
-      "inputs": {
-        "samples": [
-          "13",
-          0
-        ],
-        "vae": [
-          "20",
-          2
-        ]
-      },
-      "class_type": "VAEDecode"
-    },
-    "13": {
-      "inputs": {
-        "add_noise": true,
-        "noise_seed": 0,
-        "cfg": 1.0,
-        "model": [
-          "20",
-          0
-        ],
-        "positive": [
-          "6",
-          0
-        ],
-        "negative": [
-          "7",
-          0
-        ],
-        "sampler": [
-          "14",
-          0
-        ],
-        "sigmas": [
-          "22",
-          0
-        ],
-        "latent_image": [
-          "5",
-          0
-        ]
-      },
-      "class_type": "SamplerCustom"
-    },
-    "14": {
-      "inputs": {
-        "sampler_name": ""
-      },
-      "class_type": "KSamplerSelect"
-    },
-    "20": {
-      "inputs": {
-        "ckpt_name": "sd_xl_turbo_1.0_fp16.safetensors"
-      },
-      "class_type": "CheckpointLoaderSimple"
-    },
-    "22": {
-      "inputs": {
-        "steps": 0,
-        "denoise": 1,
-        "model": [
-          "20",
-          0
-        ]
-      },
-      "class_type": "SDTurboScheduler"
-    },
-    "19": {
-      "inputs": {
-        "filename_prefix": "",
-        "images": [
-          "8",
-          0
-        ]
-      },
-      "class_type": "SaveImage"
-    },
-    "99": {
-      "inputs": {
-        "value": ""
-      },
-      "class_type": "PrimitiveString",
-      "_meta": {
-        "title": "PromptID"
-      }
-    }
+	"1": {
+		"inputs": {
+			"ckpt_name": "sd_xl_turbo_1.0_fp16.safetensors"
+		},
+		"class_type": "CheckpointLoaderSimple"
+	},
+	"8": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"1",
+				1
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"9": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"1",
+				1
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"10": {
+		"inputs": {
+			"width": 512,
+			"height": 512,
+			"batch_size": 1
+		},
+		"class_type": "EmptyLatentImage"
+	},
+	"11": {
+		"inputs": {
+			"sampler_name": ""
+		},
+		"class_type": "KSamplerSelect"
+	},
+	"12": {
+		"inputs": {
+			"steps": 0,
+			"denoise": 1,
+			"model": [
+				"1",
+				0
+			]
+		},
+		"class_type": "SDTurboScheduler"
+	},
+	"30": {
+		"inputs": {
+			"add_noise": true,
+			"noise_seed": 0,
+			"cfg": 1.0,
+			"model": [
+				"1",
+				0
+			],
+			"positive": [
+				"8",
+				0
+			],
+			"negative": [
+				"9",
+				0
+			],
+			"sampler": [
+				"11",
+				0
+			],
+			"sigmas": [
+				"12",
+				0
+			],
+			"latent_image": [
+				"10",
+				0
+			]
+		},
+		"class_type": "SamplerCustom"
+	},
+	"50": {
+		"inputs": {
+			"samples": [
+				"30",
+				0
+			],
+			"vae": [
+				"1",
+				2
+			]
+		},
+		"class_type": "VAEDecode"
+	},
+	"98": {
+		"inputs": {
+			"filename_prefix": "",
+			"images": [
+				"50",
+				0
+			]
+		},
+		"class_type": "SaveImage"
+	},
+	"99": {
+		"inputs": {
+			"value": ""
+		},
+		"class_type": "PrimitiveString",
+		"_meta": {
+			"title": "PromptID"
+		}
+	}
 }

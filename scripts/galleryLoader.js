@@ -25,47 +25,47 @@ function getComfyMetadata(workflowData, checkpointName) {
         if (checkpointName === 'sd_xl_base_1.0.safetensors') {
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["6"].inputs.text,
-                promptN: workflowData["7"].inputs.text,
-                sampler: workflowData["10"].inputs.sampler_name,
-                scheduler: workflowData["10"].inputs.scheduler,
-                cfg: workflowData["10"].inputs.cfg,
-                steps: workflowData["10"].inputs.end_at_step,
-                stepsRefiner: parseInt(workflowData["10"].inputs.steps)-parseInt(workflowData["10"].inputs.end_at_step),
-                width: workflowData["5"].inputs.width,
-                height: workflowData["5"].inputs.height
+                promptP: workflowData["8"].inputs.text,
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                cfg: workflowData["30"].inputs.cfg,
+                steps: workflowData["30"].inputs.end_at_step,
+                stepsRefiner: parseInt(workflowData["30"].inputs.steps)-parseInt(workflowData["30"].inputs.end_at_step),
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height
             }
             return metadataObject;
         } else if (checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["6"].inputs.text,
-                promptN: workflowData["7"].inputs.text,
-                sampler: workflowData["3"].inputs.sampler_name,
-                scheduler: workflowData["3"].inputs.scheduler,
-                cfg: workflowData["3"].inputs.cfg,
-                steps: workflowData["3"].inputs.steps,
-                width: workflowData["5"].inputs.width,
-                height: workflowData["5"].inputs.height
+                promptP: workflowData["8"].inputs.text,
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                cfg: workflowData["30"].inputs.cfg,
+                steps: workflowData["30"].inputs.steps,
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height
             }
             return metadataObject;
         } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["6"].inputs.text,
-                promptN: workflowData["7"].inputs.text,
-                sampler: workflowData["14"].inputs.sampler_name,
-                cfg: workflowData["13"].inputs.cfg,
-                steps: workflowData["22"].inputs.steps,
-                width: workflowData["5"].inputs.width,
-                height: workflowData["5"].inputs.height
+                promptP: workflowData["8"].inputs.text,
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["11"].inputs.sampler_name,
+                cfg: workflowData["30"].inputs.cfg,
+                steps: workflowData["12"].inputs.steps,
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height
             }
             return metadataObject;
         } else if (checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf' || checkpointName === 'flux1-kontext-dev-Q8_0.gguf') {
-            let promptPcopy = workflowData["11"].inputs.text;
+            let promptPcopy = workflowData["8"].inputs.text;
             let lora = 'None';
-            if (workflowData["98"]) {
-                lora = workflowData["98"].inputs.lora_name;
+            if (workflowData["4"]) {
+                lora = workflowData["4"].inputs.lora_name;
             }
             let loraDisplay = 'None';
 			if (lora === 'Textimprover-FLUX-V0.4.safetensors') {
@@ -115,18 +115,18 @@ function getComfyMetadata(workflowData, checkpointName) {
                 }
             }
             let loraStrength = 0;
-            if (workflowData["98"]) {
-                loraStrength = workflowData["98"].inputs.strength_model;
+            if (workflowData["4"]) {
+                loraStrength = workflowData["4"].inputs.strength_model;
             }
             let metadataObject = {
                 checkpointName: checkpointName,
                 promptP: promptPcopy,
-                sampler: workflowData["14"].inputs.sampler_name,
-                scheduler: workflowData["15"].inputs.scheduler,
-                guidance: workflowData["9"].inputs.guidance,
-                steps: workflowData["15"].inputs.steps,
-                width: workflowData["12"].inputs.width,
-                height: workflowData["12"].inputs.height,
+                sampler: workflowData["13"].inputs.sampler_name,
+                scheduler: workflowData["12"].inputs.scheduler,
+                guidance: workflowData["14"].inputs.guidance,
+                steps: workflowData["12"].inputs.steps,
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height,
                 lora: loraDisplay,
                 loraStrength: loraStrength
             }
@@ -134,51 +134,51 @@ function getComfyMetadata(workflowData, checkpointName) {
         } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["5"].inputs.text,
-                promptN: workflowData["6"].inputs.text,
-                sampler: workflowData["4"].inputs.sampler_name,
-                scheduler: workflowData["4"].inputs.scheduler,
-                cfg: workflowData["4"].inputs.cfg,
-                steps: workflowData["4"].inputs.steps,
-                ratio: workflowData["2"].inputs.ratio
+                promptP: workflowData["8"].inputs.text,
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                cfg: workflowData["30"].inputs.cfg,
+                steps: workflowData["30"].inputs.steps,
+                ratio: workflowData["11"].inputs.ratio
             }
             return metadataObject;
         } else if (checkpointName === 'hidream_i1_fast_fp8.safetensors') {
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["16"].inputs.text,
-                promptN: workflowData["40"].inputs.text,
-                sampler: workflowData["3"].inputs.sampler_name,
-                scheduler: workflowData["3"].inputs.scheduler,
-                cfg: workflowData["3"].inputs.cfg,
-                steps: workflowData["3"].inputs.steps,
-                width: workflowData["53"].inputs.width,
-                height: workflowData["53"].inputs.height
+                promptP: workflowData["8"].inputs.text,
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                cfg: workflowData["30"].inputs.cfg,
+                steps: workflowData["30"].inputs.steps,
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height
             }
             return metadataObject;
         } else if (checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
             let metadataObject = {
                 checkpointName: checkpointName,
-                promptP: workflowData["6"].inputs.text,
-                sampler: workflowData["16"].inputs.sampler_name,
-                scheduler: workflowData["17"].inputs.scheduler,
-                cfg: workflowData["40"].inputs.cfg,
-                steps: workflowData["17"].inputs.steps,
-                width: workflowData["39"].inputs.width,
-                height: workflowData["39"].inputs.height
+                promptP: workflowData["8"].inputs.text,
+                sampler: workflowData["11"].inputs.sampler_name,
+                scheduler: workflowData["13"].inputs.scheduler,
+                cfg: workflowData["15"].inputs.cfg,
+                steps: workflowData["13"].inputs.steps,
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height
             }
             return metadataObject;
         } else if (checkpointName === 'control-lora-recolor-rank256.safetensors') {
             let metadataObject = {
                 checkpointName: 'colorizing',
-                promptP: workflowData["3"].inputs.text,
-                promptN: workflowData["4"].inputs.text,
-                sampler: workflowData["2"].inputs.sampler_name,
-                scheduler: workflowData["2"].inputs.scheduler,
-                cfg: workflowData["2"].inputs.cfg,
-                steps: workflowData["2"].inputs.steps,
-                blend: workflowData["161"].inputs.blend_percentage,
-                editof: workflowData["174"].inputs.image
+                promptP: workflowData["8"].inputs.text,
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                cfg: workflowData["30"].inputs.cfg,
+                steps: workflowData["30"].inputs.steps,
+                blend: workflowData["15"].inputs.blend_percentage,
+                editof: workflowData["4"].inputs.image
             }
             return metadataObject;
         } else if (checkpointName === 'RealESRGAN_x4plus.pth' || checkpointName === 'RealESRGAN_x2.pth' || checkpointName === 'FreeUpscaling') {
@@ -188,7 +188,7 @@ function getComfyMetadata(workflowData, checkpointName) {
             } else if (checkpointName === 'RealESRGAN_x2.pth') {
                 upscaleMultiplier = 2;
             } else {
-                upscaleMultiplier = workflowData["2"].inputs.scale_by;
+                upscaleMultiplier = workflowData["10"].inputs.scale_by;
             }
                 
             let metadataObject = {
@@ -200,17 +200,17 @@ function getComfyMetadata(workflowData, checkpointName) {
         } else if (checkpointName === 'flux1-fill-dev-Q8_0.gguf') {
             let metadataObject = {
                 checkpointName: 'outpainting',
-                promptP: workflowData["23"].inputs.text,
-                sampler: workflowData["3"].inputs.sampler_name,
-                scheduler: workflowData["3"].inputs.scheduler,
-                guidance: workflowData["26"].inputs.guidance,
-                steps: workflowData["3"].inputs.steps,
-                feathering: workflowData["44"].inputs.feathering,
-                leftMask: workflowData["44"].inputs.left,
-                topMask: workflowData["44"].inputs.top,
-                rightMask: workflowData["44"].inputs.right,
-                bottomMask: workflowData["44"].inputs.bottom,
-                editof: workflowData["17"].inputs.image
+                promptP: workflowData["8"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                guidance: workflowData["12"].inputs.guidance,
+                steps: workflowData["30"].inputs.steps,
+                feathering: workflowData["10"].inputs.feathering,
+                leftMask: workflowData["10"].inputs.left,
+                topMask: workflowData["10"].inputs.top,
+                rightMask: workflowData["10"].inputs.right,
+                bottomMask: workflowData["10"].inputs.bottom,
+                editof: workflowData["4"].inputs.image
             }
             return metadataObject;
         }

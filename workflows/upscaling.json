@@ -5,7 +5,7 @@
 		},
 		"class_type": "LoadImage"
   	},
-  	"2": {
+  	"10": {
 		"inputs": {
 	  		"upscale_method": "bicubic",
 	  		"scale_by": 2.0,
@@ -19,11 +19,11 @@
       		"title": "FreeUpscaling"
     	}
   	},
-  	"6": {
+  	"98": {
 		"inputs": {
 	  		"filename_prefix": "ComfyUI",
 	  		"images": [
-				"2",
+				"10",
 				0
 	  		]
 		},

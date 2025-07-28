@@ -1,5 +1,110 @@
 {
-	"3": {
+  	"1": {
+    	"inputs": {
+      		"unet_name": "flux1-fill-dev-Q8_0.gguf"
+    	},
+    	"class_type": "UnetLoaderGGUF"
+  	},
+  	"2": {
+    	"inputs": {
+      		"clip_name1": "clip_l.safetensors",
+      		"clip_name2": "t5xxl_fp16.safetensors",
+      		"type": "flux"
+    	},
+    	"class_type": "DualCLIPLoaderGGUF"
+  	},
+  	"3": {
+    	"inputs": {
+      		"vae_name": "ae.safetensors"
+    	},
+    	"class_type": "VAELoader"
+  	},
+  	"4": {
+    	"inputs": {
+      		"image": "ComfyUI_00037_.png"
+    	},
+    	"class_type": "LoadImage"
+  	},
+  	"8": {
+    	"inputs": {
+      		"text": "Desert",
+      		"clip": [
+        		"2",
+        		0
+      		]
+    	},
+    	"class_type": "CLIPTextEncode"
+  	},
+  	"9": {
+    	"inputs": {
+      		"text": "",
+      		"clip": [
+        		"2",
+        		0
+      		]
+    	},
+    	"class_type": "CLIPTextEncode"
+  	},
+  	"10": {
+    	"inputs": {
+      		"left": 400,
+      		"top": 0,
+      		"right": 400,
+      		"bottom": 400,
+      		"feathering": 24,
+      		"image": [
+        		"4",
+        		0
+      		]
+    	},
+    	"class_type": "ImagePadForOutpaint"
+  	},
+  	"11": {
+    	"inputs": {
+      		"model": [
+        		"1",
+        		0
+      		]
+    	},
+    	"class_type": "DifferentialDiffusion"
+  	},
+  	"12": {
+    	"inputs": {
+      		"guidance": 30,
+      		"conditioning": [
+        		"8",
+        		0
+      		]
+    	},
+    	"class_type": "FluxGuidance"
+  	},
+  	"13": {
+    	"inputs": {
+      		"noise_mask": false,
+      		"positive": [
+        		"12",
+        		0
+      		],
+      		"negative": [
+        		"9",
+        		0
+      		],
+      		"vae": [
+        		"3",
+        		0
+      		],
+      		"pixels": [
+        		"10",
+        		0
+      		],
+      		"mask": [
+        		"10",
+        		1
+      		]
+    	},
+    	"class_type": "InpaintModelConditioning"
+  	},
+	"30": {
     	"inputs": {
       		"seed": 0,
       		"steps": 20,
@@ -8,151 +113,46 @@
       		"scheduler": "normal",
       		"denoise": 1,
       		"model": [
-      			"39",
+      			"11",
       			0
       		],
       		"positive": [
-      		  	"38",
+      		  	"13",
       		  	0
       		],
       		"negative": [
-      		  	"38",
+      		  	"13",
       		 	1
       		],
       		"latent_image": [
-      		  	"38",
+      		  	"13",
       		 	2
       		]
     	},
     	"class_type": "KSampler"
   	},
-  	"7": {
-    	"inputs": {
-      		"text": "",
-      		"clip": [
-        		"34",
-        		0
-      		]
-    	},
-    	"class_type": "CLIPTextEncode"
-  	},
-  	"8": {
+  	"50": {
     	"inputs": {
       		"samples": [
-        		"3",
+        		"30",
         		0
       		],
       		"vae": [
-        		"32",
+        		"3",
         		0
       		]
     	},
     	"class_type": "VAEDecode"
   	},
-  	"9": {
+  	"98": {
     	"inputs": {
       		"filename_prefix": "ComfyUI",
       		"images": [
-        		"8",
+        		"50",
         		0
       		]
     	},
     	"class_type": "SaveImage"
-  	},
-  	"17": {
-    	"inputs": {
-      		"image": "ComfyUI_00037_.png"
-    	},
-    	"class_type": "LoadImage"
-  	},
-  	"23": {
-    	"inputs": {
-      		"text": "Desert",
-      		"clip": [
-        		"34",
-        		0
-      		]
-    	},
-    	"class_type": "CLIPTextEncode"
-  	},
-  	"26": {
-    	"inputs": {
-      		"guidance": 30,
-      		"conditioning": [
-        		"23",
-        		0
-      		]
-    	},
-    	"class_type": "FluxGuidance"
-  	},
-  	"31": {
-    	"inputs": {
-      		"unet_name": "flux1-fill-dev-Q8_0.gguf"
-    	},
-    	"class_type": "UnetLoaderGGUF"
-  	},
-  	"32": {
-    	"inputs": {
-      		"vae_name": "ae.safetensors"
-    	},
-    	"class_type": "VAELoader"
-  	},
-  	"34": {
-    	"inputs": {
-      		"clip_name1": "clip_l.safetensors",
-      		"clip_name2": "t5xxl_fp16.safetensors",
-      		"type": "flux"
-    	},
-    	"class_type": "DualCLIPLoaderGGUF"
-  	},
-  	"38": {
-    	"inputs": {
-      		"noise_mask": false,
-      		"positive": [
-        		"26",
-        		0
-      		],
-      		"negative": [
-        		"7",
-        		0
-      		],
-      		"vae": [
-        		"32",
-        		0
-      		],
-      		"pixels": [
-        		"44",
-        		0
-      		],
-      		"mask": [
-        		"44",
-        		1
-      		]
-    	},
-    	"class_type": "InpaintModelConditioning"
-  	},
-  	"39": {
-    	"inputs": {
-      		"model": [
-        		"31",
-        		0
-      		]
-    	},
-    	"class_type": "DifferentialDiffusion"
-  	},
-  	"44": {
-    	"inputs": {
-      		"left": 400,
-      		"top": 0,
-      		"right": 400,
-      		"bottom": 400,
-      		"feathering": 24,
-      		"image": [
-        		"17",
-        		0
-      		]
-    	},
-    	"class_type": "ImagePadForOutpaint"
   	},
   	"99": {
 		"inputs": {

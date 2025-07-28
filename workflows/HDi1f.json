@@ -1,121 +1,121 @@
 {
-  "3": {
-    "inputs": {
-      "seed": 33710539405862,
-      "steps": 16,
-      "cfg": 1,
-      "sampler_name": "lcm",
-      "scheduler": "normal",
-      "denoise": 1,
-      "model": [
-        "70",
-        0
-      ],
-      "positive": [
-        "16",
-        0
-      ],
-      "negative": [
-        "40",
-        0
-      ],
-      "latent_image": [
-        "53",
-        0
-      ]
-    },
-    "class_type": "KSampler"
-  },
-  "8": {
-    "inputs": {
-      "samples": [
-        "3",
-        0
-      ],
-      "vae": [
-        "55",
-        0
-      ]
-    },
-    "class_type": "VAEDecode"
-  },
-  "9": {
-    "inputs": {
-      "filename_prefix": "ComfyUI",
-      "images": [
-        "8",
-        0
-      ]
-    },
-    "class_type": "SaveImage"
-  },
-  "16": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "54",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode"
-  },
-  "40": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "54",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode"
-  },
-  "53": {
-    "inputs": {
-      "width": 1024,
-      "height": 1024,
-      "batch_size": 1
-    },
-    "class_type": "EmptySD3LatentImage"
-  },
-  "54": {
-    "inputs": {
-      "clip_name1": "clip_l_hidream.safetensors",
-      "clip_name2": "clip_g_hidream.safetensors",
-      "clip_name3": "t5xxl_fp8_e4m3fn_scaled.safetensors",
-      "clip_name4": "llama_3.1_8b_instruct_fp8_scaled.safetensors"
-    },
-    "class_type": "QuadrupleCLIPLoader"
-  },
-  "55": {
-    "inputs": {
-      "vae_name": "ae.safetensors"
-    },
-    "class_type": "VAELoader"
-  },
-  "70": {
-    "inputs": {
-      "shift": 3.0000000000000004,
-      "model": [
-        "76",
-        0
-      ]
-    },
-    "class_type": "ModelSamplingSD3"
-  },
-  "76": {
-    "inputs": {
-      "unet_name": "hidream_i1_fast_fp8.safetensors",
-      "weight_dtype": "default"
-    },
-    "class_type": "UNETLoader"
-  },
-  "99": {
-    "inputs": {
-      "value": ""
-    },
-    "class_type": "PrimitiveString",
-    "_meta": {
-      "title": "PromptID"
-    }
-  }
+	"1": {
+		"inputs": {
+			"unet_name": "hidream_i1_fast_fp8.safetensors",
+			"weight_dtype": "default"
+		},
+		"class_type": "UNETLoader"
+	},
+	"2": {
+		"inputs": {
+			"clip_name1": "clip_l_hidream.safetensors",
+			"clip_name2": "clip_g_hidream.safetensors",
+			"clip_name3": "t5xxl_fp8_e4m3fn_scaled.safetensors",
+			"clip_name4": "llama_3.1_8b_instruct_fp8_scaled.safetensors"
+		},
+		"class_type": "QuadrupleCLIPLoader"
+	},
+	"3": {
+		"inputs": {
+			"vae_name": "ae.safetensors"
+		},
+		"class_type": "VAELoader"
+	},
+	"8": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"2",
+				0
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"9": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"2",
+				0
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"10": {
+		"inputs": {
+			"width": 1024,
+			"height": 1024,
+			"batch_size": 1
+		},
+		"class_type": "EmptySD3LatentImage"
+	},
+	"11": {
+		"inputs": {
+			"shift": 3.0000000000000004,
+			"model": [
+				"1",
+				0
+			]
+		},
+		"class_type": "ModelSamplingSD3"
+	},
+	"30": {
+		"inputs": {
+			"seed": 33710539405862,
+			"steps": 16,
+			"cfg": 1,
+			"sampler_name": "lcm",
+			"scheduler": "normal",
+			"denoise": 1,
+			"model": [
+				"11",
+				0
+			],
+			"positive": [
+				"8",
+				0
+			],
+			"negative": [
+				"9",
+				0
+			],
+			"latent_image": [
+				"10",
+				0
+			]
+		},
+		"class_type": "KSampler"
+	},
+	"50": {
+		"inputs": {
+			"samples": [
+				"30",
+				0
+			],
+			"vae": [
+				"3",
+				0
+			]
+		},
+		"class_type": "VAEDecode"
+	},
+	"98": {
+		"inputs": {
+			"filename_prefix": "ComfyUI",
+			"images": [
+				"50",
+				0
+			]
+		},
+		"class_type": "SaveImage"
+	},
+	"99": {
+		"inputs": {
+			"value": ""
+		},
+		"class_type": "PrimitiveString",
+		"_meta": {
+			"title": "PromptID"
+		}
+	}
 }
