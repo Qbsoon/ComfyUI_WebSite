@@ -63,10 +63,11 @@ export async function generateImage(workflow) {
         queue.queueItems.push(queueItem);
         queueDisplay.appendChild(queue.queueItems[queue.queueItems.length - 1]);
         updateQueueItemsIds();
+        const hasIntermediate = workflow.hasOwnProperty('31');
         // Wysłanie zapytania do kolejki serwera ComfyUI
         console.log('Sending workflow');
         const result = await client.enqueue(workflow, {
-            progress: ({max,value}) => updateProgressBar(value, max),
+            progress: ({max,value}) => updateProgressBar(value, max, hasIntermediate),
         });
 
         console.log('Result received');
@@ -263,11 +264,22 @@ export async function generateImage(workflow) {
     document.getElementById('queueOutput').innerText = `${i18next.t('queueOutput')}: ${queue.queue}/${queue.queueLimit}`;
 }
 
-function updateProgressBar(value, max) {
+function updateProgressBar(value, max, hasIntermediate) {
     const percentage = (value / max) * 100;
     progressBar.value = percentage;
 	if (percentage > 0 && percentage < 100) {
 		progressName.innerText = `${i18next.t('progressGen')}: ${Math.round(percentage)}%`;
+        if (value % 4 == 0 && hasIntermediate) {
+            try {
+                outputDiv.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = `gallery/${uid}/intermediate.png`;
+                outputDiv.appendChild(img);
+            }
+            catch (error) {
+                console.error('Error updating intermediate result:', error);
+            }
+        }
 	} else if (percentage == 100) {
 		progressName.innerText = i18next.t('generatedGen');
 	} else {

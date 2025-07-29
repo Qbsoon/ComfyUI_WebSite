@@ -49,6 +49,7 @@ export async function setWorkflow(uid) {
 	const upscaleMultiplier = parseFloat(document.getElementById('upscaleMultiplier').value);
 
 	let workflow;
+	const intermediateSteps = Math.ceil(steps/4);
 
 	if (document.getElementById('generatorTab').classList.contains('active')) {
     	if (model === 'sd_xl_base_1.0.safetensors') {
@@ -83,6 +84,100 @@ export async function setWorkflow(uid) {
 			workflow["30"].inputs.scheduler = scheduler;
 			workflow["30"].inputs.seed = seed;
 			workflow["98"].inputs.filename_prefix = `${uid}/sd35`;
+			if (intermediateSteps > 1) {
+				workflow["30"] = {
+					"inputs": {
+						"add_noise": "enable",
+						"noise_seed": seed,
+						"steps": steps,
+						"cfg": cfg,
+						"sampler_name": sampler,
+						"scheduler": scheduler,
+						"start_at_step": 0,
+						"end_at_step": 4,
+						"return_with_leftover_noise": "enable",
+						"model": ["1",0],
+						"positive": ["8",0],
+						"negative": ["9",0],
+						"latent_image": ["10",0]
+					},
+					"class_type": "KSamplerAdvanced"
+				};
+				workflow["50"] = {
+					"class_type": "VAEDecode",
+					"inputs": {
+						"samples": ["30", 0],
+						"vae": ["1", 2]
+					}
+				};
+				workflow["70"] = {
+					"inputs": {
+						"filename": `${uid}/intermediate`,
+						"image": ["50",0]
+					},
+					"class_type": "OverrideImage"
+				};
+				for (let i = 1; i < intermediateSteps-1; i++) {
+					workflow[`${30+i}`] = {
+						"inputs": {
+							"add_noise": "disable",
+							"noise_seed": 0,
+							"steps": steps,
+							"cfg": cfg,
+							"sampler_name": sampler,
+							"scheduler": scheduler,
+							"start_at_step": i * 4,
+							"end_at_step": (i + 1) * 4,
+							"return_with_leftover_noise": "enable",
+							"model": ["1",0],
+							"positive": ["8",0],
+							"negative": ["9",0],
+							"latent_image": [`${30+i-1}`,0]
+						},
+						"class_type": "KSamplerAdvanced"
+					};
+					workflow[`${50+i}`] = {
+    				    "class_type": "VAEDecode",
+    				    "inputs": {
+    				        "samples": [`${30+i}`, 0],
+    				        "vae": ["1", 2]
+    				    }
+    				};
+					workflow[`${70+i}`] = {
+						"inputs": {
+							"filename": `${uid}/intermediate`,
+							"image": [`${50+i}`,0]
+						},
+						"class_type": "OverrideImage"
+					};
+				}
+				workflow[`${30+intermediateSteps-1}`] = {
+					"inputs": {
+						"add_noise": "disable",
+						"noise_seed": 0,
+						"steps": steps,
+						"cfg": cfg,
+						"sampler_name": sampler,
+						"scheduler": scheduler,
+						"start_at_step": (intermediateSteps - 1) * 4,
+						"end_at_step": 1000,
+						"return_with_leftover_noise": "disable",
+						"model": ["1",0],
+						"positive": ["8",0],
+						"negative": ["9",0],
+						"latent_image": [`${30+intermediateSteps-2}`,0]
+					},
+					"class_type": "KSamplerAdvanced"
+				};
+				workflow[`${50+intermediateSteps-1}`] = {
+				    "class_type": "VAEDecode",
+				    "inputs": {
+				        "samples": [`${30+intermediateSteps-1}`, 0],
+				        "vae": ["1", 2]
+				    }
+				};
+				workflow['98'].inputs.images = [`${50+intermediateSteps-1}`, 0];
+			}
     	} else if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
     	    workflow = await loadWorkflow('SDXLTurbo.json');
 			workflow["8"].inputs.text = promptP;
