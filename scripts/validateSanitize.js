@@ -30,6 +30,7 @@ export function validateInputs() {
     const isEditing = document.getElementById('editorTab')?.classList.contains('active');
     const fn = document.getElementById('imageInput').value.trim();
     const upscaleMultiplier = parseFloat(document.getElementById('upscaleMultiplier').value);
+    const shift = parseFloat(document.getElementById('shiftInput').value);
 
     if (isEditing) {
         if (editor === 'upscaling') {
@@ -90,13 +91,17 @@ export function validateInputs() {
         alert(i18next.t('validRatio'));
         throw new Error('Validation failed on ratioInput')
     }
+    if ((model === 'lumina_2.safetensors') && (isNaN(shift) || shift < 0.0 || shift > 10.0)) {
+        alert(i18next.t('validShift'));
+        throw new Error('Validation failed on shiftInput');
+    } 
     if (editor === 'colorizing' && (isNaN(blendInput) || blendInput < 0.0 || blendInput > 1.0)) {
         alert(i18next.t('validBlend'));
-        throw new Error('Validation failed on blendInput')
+        throw new Error('Validation failed on blendInput');
     }
     if (!isEditing && model === 'flux1-dev-Q8_0.gguf' && lora !== 'none' && (isNaN(loraStrength) || loraStrength < -1.0 || loraStrength > 2.0)) {
         alert(i18next.t('validLoraStrength'));
-        throw new Error('Validation failed on loraStrengthInput')
+        throw new Error('Validation failed on loraStrengthInput');
     }
     if (isEditing && editor === 'outpainting' && ((leftMask < 0 || leftMask > 1024) || (topMask < 0 || topMask > 1024) || (rightMask < 0 || rightMask > 1024) || (bottomMask < 0 || bottomMask > 1024))) {
         alert(i18next.t('validOutpaintMask'));

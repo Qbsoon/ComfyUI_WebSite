@@ -53,6 +53,7 @@ const langSelect = document.getElementById('languageSelect');
 const submitButton = document.getElementById('submitButton');
 const logoutButton = document.getElementById('logoutButton');
 const modelDefaultBtn = document.getElementById('modelDefaults');
+const modelDefaultPromptsBtn = document.getElementById('modelPrompts');
 const editorDefaultBtn = document.getElementById('editorDefaults');
 const editorDefaultPromptsBtn = document.getElementById('editorPrompts');
 const imageUploadBtn = document.getElementById('imageUpload');
@@ -335,6 +336,10 @@ editorDefaultBtn.addEventListener('click', () => {
 });
 
 editorDefaultPromptsBtn.addEventListener('click', () => {
+    restoreModelDefaultPrompts();
+});
+
+modelDefaultPromptsBtn.addEventListener('click', () => {
     restoreModelDefaultPrompts();
 });
 

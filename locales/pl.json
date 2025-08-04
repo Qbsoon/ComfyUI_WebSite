@@ -23,7 +23,8 @@
 	"upscaling": "Skalowanie",
 	"outpainting": "Poszerzanie",
 	"editorDefaults": "Domyślne edytora",
-	"editorPrompts": "Domyślne zapytania",
+	"defaultPrompts": "Domyślne zapytania",
+	"systemPrompt": "Nadrzędne zapytanie",
 	"positivePrompt": "Pozytywne zapytanie",
 	"negativePrompt": "Negatywne zapytanie",
 	"stepsInput": "Kroki",
@@ -70,6 +71,7 @@
 	"helpS2T54": "Sierpień 2024",
 	"helpS2T55": "Maj 2025",
 	"helpS2T56": "Maj 2024",
+	"helpS2T57": "Styczeń 2025",
 	"helpS2T6": "Pobierz workflow",
 	"helpS3": "Modele LoRA do Flux",
 	"helpS3T1": "Źródło",
@@ -110,6 +112,10 @@
 	"helpS611Desc": "Wartości, które określają, jak wiele pikseli należy dodać w rozszerzaniu",
 	"helpS612": "Siła LoRA",
 	"helpS612Desc": "Wartość, która określa wpływ modelu LoRA na generowanie obrazu",
+	"helpS613": "Shift",
+	"helpS613Desc": "Wpływa na zachowanie samplera, ustalając jak model przechodzi pomiędzy różnymi stanami podczas procesu generacji",
+	"helpS614": "Nadrzędne zapytanie",
+	"helpS614Desc": "Prompt wyższego poziomu, który definiuje zachowanie i styl modelu",
 	"taskNo": "Zadanie #",
 	"taskID": "ID zadania",
 	"queueLimitAlert": "Osiągnięto limit kolejki. Poczekaj na zakończenie obecnych zadań.",
@@ -169,5 +175,6 @@
 	"validLoraStrength": "Siła LoRA musi być liczbą pomiędzy -1.0 a 2.0.",
 	"validOutpaintMask": "Maska Rozszerzania musi być liczbą całkowitą pomiędzy 0 a 1024.",
 	"validFeathering": "Wygładzanie musi być liczbą całkowitą pomiędzy 0 a 50.",
-	"validUpscaleMultiplier": "Mnożnik skalowania musi być liczbą pomiędzy 1.0 a 4.0."
+	"validUpscaleMultiplier": "Mnożnik skalowania musi być liczbą pomiędzy 1.0 a 4.0.",
+	"validShift": "Shift musi być liczbą pomiędzy 0.0 a 10.0."
 }

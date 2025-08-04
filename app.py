@@ -453,6 +453,8 @@ def model_filename(model):
 		return 'hdi1f'
 	if model=='VerusVision_1.0b_Transformer_fp8.safetensors':
 		return 'verusvision'
+	if model=='lumina_2.safetensors':
+		return 'lumina2'
 	if model=='colorizing':
 		return 'colorizing'
 	if model=='upscaling':
@@ -1140,6 +1142,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 		'PixArt-Sigma-XL-2-2K-MS.pth',
 		'hidream_i1_fast_fp8.safetensors',
 		'VerusVision_1.0b_Transformer_fp8.safetensors',
+		'lumina_2.safetensors',
 		'control-lora-recolor-rank256.safetensors',
 		'RealESRGAN_x4plus.pth',
 		'RealESRGAN_x2.pth',
@@ -1169,24 +1172,7 @@ def py_get_positive_prompt_from_comfy_workflow(raw_workflow_json_string, checkpo
 	
 	positive_prompt = ""
 	try:
-		if checkpoint_name == 'sd_xl_base_1.0.safetensors':
-			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'sd3.5_large_fp8_scaled.safetensors':
-			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'sd_xl_turbo_1.0_fp16.safetensors':
-			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'FLUX1/flux1-dev-Q8_0.gguf':
-			positive_prompt = workflow_data.get("11", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'PixArt-Sigma-XL-2-2K-MS.pth':
-			positive_prompt = workflow_data.get("5", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'hidream_i1_fast_fp8.safetensors':
-			positive_prompt = workflow_data.get("16", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'VerusVision_1.0b_Transformer_fp8.safetensors':
-			positive_prompt = workflow_data.get("6", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'control-lora-recolor-rank256.safetensors':
-			positive_prompt = workflow_data.get("3", {}).get("inputs", {}).get("text", "")
-		elif checkpoint_name == 'flux1-fill-dev-Q8_0.gguf':
-			positive_prompt = workflow_data.get("23", {}).get("inputs", {}).get("text", "")
+		positive_prompt = workflow_data.get("8", {}).get("inputs", {}).get("text", "")
 
 
 	except Exception as e:

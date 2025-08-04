@@ -25,6 +25,7 @@ function checkImageResolution(imagePath) {
 export async function setWorkflow(uid) {
 	const promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
 	const promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
+	const promptS = sanitizeInput(document.getElementById('systemPrompt').value.trim());
     const cfg = parseFloat(document.getElementById('cfgInput').value);
     const steps = parseInt(document.getElementById('stepsInput').value);
     const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
@@ -47,6 +48,7 @@ export async function setWorkflow(uid) {
 	const bottomMask = parseInt(document.getElementById('bottomMask').value);
 	const featheringInput = parseInt(document.getElementById('featheringInput').value);
 	const upscaleMultiplier = parseFloat(document.getElementById('upscaleMultiplier').value);
+	const shift = parseFloat(document.getElementById('shiftInput').value);
 
 	let workflow;
 
@@ -165,6 +167,19 @@ export async function setWorkflow(uid) {
 			workflow["14"].inputs.guidance = cfg;
 			workflow["15"].inputs.cfg = cfg;
 			workflow["98"].inputs.filename_prefix = `${uid}/verusvision`;
+		} else if (model === 'lumina_2.safetensors') {
+			workflow = await loadWorkflow('lumina2.json')
+			workflow["8"].inputs.text = `${promptS} <Prompt Start> ${promptP}`;
+			workflow["9"].inputs.text = promptN;
+			workflow["10"].inputs.width = width;
+			workflow["10"].inputs.height = height;
+			workflow["11"].inputs.shift = shift;
+			workflow["30"].inputs.sampler_name = sampler;
+			workflow["30"].inputs.scheduler = scheduler;
+			workflow["30"].inputs.cfg = cfg;
+			workflow["30"].inputs.steps = steps;
+			workflow["30"].inputs.seed = seed;
+			workflow["98"].inputs.filename_prefix = `${uid}/lumina2`;
 		}
 	} else if (document.getElementById('editorTab').classList.contains('active')) {
 		if (editor === 'colorizing') {

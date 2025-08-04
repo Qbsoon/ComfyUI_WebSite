@@ -15,12 +15,17 @@ const helpTab = document.getElementById('helpTab');
 const modelParameters = document.getElementById('modelParameters');
 const editorParameters = document.getElementById('editorParameters');
 
+const modelPrompts = document.getElementById('modelPrompts');
+const editorPrompts = document.getElementById('editorPrompts');
+
 const modelSelect = document.getElementById('modelSelect');
 const editorSelect = document.getElementById('editorSelect');
 const positivePromptBox = document.getElementById('positivePromptBox');
 const negativePromptBox = document.getElementById('negativePromptBox');
+const systemPromptBox = document.getElementById('systemPromptBox');
 const positivePrompt = document.getElementById('positivePrompt');
 const negativePrompt = document.getElementById('negativePrompt');
+const systemPrompt = document.getElementById('systemPrompt');
 const stepsRefineInput = document.getElementById('stepsRefineInput');
 const stepsRefineLabel = document.getElementById('stepsRefineLabel');
 const schedulerSelect = document.getElementById('schedulerSelect');
@@ -58,12 +63,17 @@ const bottomMask = document.getElementById('bottomMask');
 const bottomMaskLabel = document.getElementById('bottomMaskLabel');
 const upscaleMultiplier = document.getElementById('upscaleMultiplier');
 const upscaleMultiplierLabel = document.getElementById('upscaleMultiplierLabel');
+const shiftInput = document.getElementById('shiftInput');
+const shiftLabel = document.getElementById('shiftLabel');
 
 export function changeModel() {
     if (generatorTab.classList.contains('active')) {
         // Default behavior, for SD3.5 & HDi1f
+        modelPrompts.hidden = true;
+        editorPrompts.hidden = true;
         positivePromptBox.hidden = false;
         negativePromptBox.hidden = false;
+        systemPromptBox.hidden = true;
         positivePrompt.placeholder = "Elvish sword";
         negativePrompt.placeholder = "Bad";
         stepsRefineInput.hidden = true;
@@ -102,6 +112,8 @@ export function changeModel() {
         bottomMaskLabel.hidden = true;
         upscaleMultiplier.hidden = true;
         upscaleMultiplierLabel.hidden = true;
+        shiftInput.hidden = true;
+        shiftLabel.hidden = true;
 
         if (modelSelect.value === 'sd_xl_base_1.0.safetensors') {
             stepsRefineInput.hidden = false;
@@ -136,6 +148,13 @@ export function changeModel() {
         }
         if (modelSelect.value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
             negativePromptBox.hidden = true;
+        }
+        if (modelSelect.value === 'lumina_2.safetensors') {
+            modelPrompts.hidden = false;
+            systemPromptBox.hidden = false;
+            systemPrompt.placeholder = "You are an assistant designed to generate superior images with the superior degree of image-text alignment based on textual prompts or user prompts";
+            shiftInput.hidden = false;
+            shiftLabel.hidden = false;
         }
     } else if (editorTab.classList.contains('active')) {
         positivePromptBox.hidden = true;
@@ -178,6 +197,7 @@ export function changeModel() {
         upscaleMultiplier.hidden = true;
         upscaleMultiplierLabel.hidden = true;
         if (editorSelect.value === 'colorizing') {
+            editorPrompts.hidden = false;
             positivePromptBox.hidden = false;
             positivePrompt.placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
             negativePromptBox.hidden = false;
@@ -330,6 +350,14 @@ export function restoreModelDefaults() {
             stepsInput.value = 25;
             widthInput.value = 1024;
             heightInput.value = 1024;
+        } else if (checkpointName === 'lumina_2.safetensors') {
+            schedulerSelect.value = 'simple';
+            samplerSelect.value = 'res_multistep';
+            cfgInput.value = 4.0;
+            stepsInput.value = 36;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+            shiftInput.value = 6.0;
         }
     } else if (editorTab.classList.contains('active')) {
         if (editorCheckpointName === 'colorizing') {
@@ -357,7 +385,11 @@ export function restoreModelDefaults() {
 export function restoreModelDefaultPrompts() {
     const checkpointName = modelSelect.value;
     const editorCheckpointName = editorSelect.value;
-    if (editorTab.classList.contains('active')) {
+    if (generatorTab.classList.contains('active')) {
+        if (checkpointName === 'lumina_2.safetensors') {
+            systemPrompt.value = "You are an assistant designed to generate superior images with the superior degree of image-text alignment based on textual prompts or user prompts";
+        }
+    } else if (editorTab.classList.contains('active')) {
         if (editorCheckpointName === 'colorizing') {
             positivePrompt.value = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
             negativePrompt.value = "vintage, grayscale, grain, blur  CGI, Unreal, Airbrushed, Digital, sepia, watermark";

@@ -23,7 +23,8 @@
 	"upscaling": "Upscaling",
 	"outpainting": "Outpainting",
 	"editorDefaults": "Editor Defaults",
-	"editorPrompts": "Default Prompts",
+	"defaultPrompts": "Default Prompts",
+	"systemPrompt": "System Prompt",
 	"positivePrompt": "Positive Prompt",
 	"negativePrompt": "Negative Prompt",
 	"stepsInput": "Steps",
@@ -70,6 +71,7 @@
 	"helpS2T54": "August 2024",
 	"helpS2T55": "May 2025",
 	"helpS2T56": "May 2024",
+	"helpS2T57": "January 2025",
 	"helpS2T6": "Download workflow",
 	"helpS3": "Flux LoRA Models",
 	"helpS3T1": "Source",
@@ -110,6 +112,10 @@
 	"helpS611Desc": "Values that control how many pixels should be added in outpainting",
 	"helpS612": "LoRA Strength",
 	"helpS612Desc": "A value that controls how much the LoRA model should influence the image generation",
+	"helpS613": "Shift",
+	"helpS613Desc": "It influences the behavior of the sampling algorithm, affecting how the model transitions between different states during the generation process",
+	"helpS614": "System Prompt",
+	"helpS614Desc": "A higher prompt that defines the model's behavior and style",
 	"taskNo": "Task #",
 	"taskID": "TaskID",
 	"queueLimitAlert": "Queue limit reached. Please wait for the current tasks to finish.",
@@ -169,5 +175,6 @@
 	"validLoraStrength": "LoRA Strength must be a number between -1.0 and 2.0.",
 	"validOutpaintMask": "Outpainting mask must be numbers between 0 and 1024.",
 	"validFeathering": "Feathering must be an integer between 0 and 50.",
-	"validUpscaleMultiplier": "Upscale Multiplier must be a number between 1.0 and 4.0."
+	"validUpscaleMultiplier": "Upscale Multiplier must be a number between 1.0 and 4.0.",
+	"validShift": "Shift must be a number between 0.0 and 10.0."
 }

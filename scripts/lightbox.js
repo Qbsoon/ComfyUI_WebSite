@@ -11,6 +11,7 @@ const modelSelect = document.getElementById('modelSelect');
 const editorSelect = document.getElementById('editorSelect');
 const positivePrompt = document.getElementById('positivePrompt');
 const negativePrompt = document.getElementById('negativePrompt');
+const systemPrompt = document.getElementById('systemPrompt');
 const stepsRefineInput = document.getElementById('stepsRefineInput');
 const schedulerSelect = document.getElementById('schedulerSelect');
 const samplerSelect = document.getElementById('samplerSelect');
@@ -28,6 +29,8 @@ const leftMask = document.getElementById('leftMask');
 const topMask = document.getElementById('topMask');
 const rightMask = document.getElementById('rightMask');
 const bottomMask = document.getElementById('bottomMask');
+const upscaleMultiplier = document.getElementById('upscaleMultiplier');
+const shiftInput = document.getElementById('shiftInput');
 
 const editors = ['colorizing', 'upscaling', 'outpainting'];
 
@@ -445,6 +448,18 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'lumina_2.safetensors') {
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Lumina Image 2`;
+                prompts.innerHTML = `<strong>${i18next.t('systemPrompt')}:</strong> ${workflowData.promptS}`;
+                prompts.innerHTML += `<br><strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS64')}:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS65')}:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS613')}:</strong> ${workflowData.shift}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'colorizing') {
                 parameters.innerHTML += `<strong>${i18next.t('editorSelect')}:</strong> ${i18next.t('colorizing')}`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
@@ -621,6 +636,15 @@ export function lightboxCopySet(workflowData) {
         stepsInput.value = workflowData.steps;
         widthInput.value = workflowData.width;
         heightInput.value = workflowData.height;
+    } else if (workflowData.checkpointName === 'lumina_2.safetensors') {
+        negativePrompt.value = workflowData.promptN;
+        systemPrompt.value = workflowData.promptS;
+        schedulerSelect.value = workflowData.scheduler;
+        cfgInput.value = workflowData.cfg;
+        shiftInput.value = workflowData.shift;
+        stepsInput.value = workflowData.steps;
+        widthInput.value = workflowData.width;
+        heightInput.value = workflowData.height;
     } else if (workflowData.checkpointName === 'colorizing') {
         switchTab('editor');
         editorSelect.value = 'colorizing';
@@ -633,6 +657,7 @@ export function lightboxCopySet(workflowData) {
     } else if (workflowData.checkpointName === 'upscaling') {
         switchTab('editor');
         editorSelect.value = 'upscaling';
+        upscaleMultiplier.value = workflowData.upscaleMultiplier;
     } else if (workflowData.checkpointName === 'outpainting') {
         switchTab('editor');
         editorSelect.value = 'outpainting';

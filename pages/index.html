@@ -43,6 +43,7 @@
                     <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev (Q8)</option>
                     <option value="hidream_i1_fast_fp8.safetensors">HiDream I1 Fast (fp8)</option>
                     <option value="VerusVision_1.0b_Transformer_fp8.safetensors">Verus Vision 1.0b Transformer (fp8)</option>
+                    <option value="lumina_2.safetensors">Lumina Image 2</option>
                     <!-- <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option> -->
                 </select>
                 <label for="loraSelect" id="loraLabel" hidden="true">LoRA</label>
@@ -61,6 +62,7 @@
                 <label id="loraStrengthLabel" for="loraStrengthInput" hidden="true">LoRA Strength</label>
                 <input type="number" id="loraStrengthInput" min="0" max="1" step="0.01" value="0.7" hidden="true" />
                 <button id="modelDefaults">Model Defaults</button>
+                <button id="modelPrompts" hidden="true">Default Prompts</button>
             </div>
             <div id="editorParameters" class="model-row" style="display:none;">
                 <label for="imageInput" id="imageLabel">Image</label>
@@ -76,6 +78,10 @@
                 </select>
                 <button id="editorDefaults">Editor Defaults</button>
                 <button id="editorPrompts">Default Prompts</button>
+            </div>
+            <div class="textarea-row" id="systemPromptBox" hidden="true">
+                <label for="systemPrompt" id="systemPromptLabel">System Prompt</label>
+                <textarea id="systemPrompt" placeholder="You are an assistant designed to generate superior images with the superior degree of image-text alignment based on textual prompts or user prompts."></textarea>
             </div>
             <div class="textarea-row" id="positivePromptBox">
                 <label for="positivePrompt" id="positivePromptLabel">Positive Prompt</label>
@@ -142,6 +148,8 @@
                 <input type="number" id="cfgInput" min="1" max="10" step="0.01" value="2" />
                 <label for="guidanceInput" id="guidanceLabel" hidden="true">Guidance</label>
                 <input type="number" id="guidanceInput" min="1" max="10" step="0.1" value="2" hidden="true" />
+                <label for="shiftInput" id="shiftLabel" hidden="true">Shift</label>
+                <input type="number" id="shiftInput" min="0" max="10" step="0.01" value="6" hidden="true" />
                 <label for="stepsInput" id="stepsLabel">Steps</label>
                 <input type="number" id="stepsInput" min="1" max="70" step="1" value="25" />
                 <label id="stepsRefineLabel" for="stepsRefineInput" hidden="true">Refiner Steps</label>
@@ -301,6 +309,12 @@
                     <a href="https://huggingface.co/SG161222/Verus_Vision_1.0b" target="_blank" class="help-button">Huggingface</a>
                     <a href="dl_workflows/verusvision.json" download class="help-button dl-workflow">Download workflow</a>
                 </li>
+                <li>
+                    <strong>Lumina Image 2</strong><br>
+                    <p id="Lumina2Desc">Weights used: bfp16; Parameters: 2.6B; Size: 9.9 GB; Made by: Alpha-VLLM; Shared on: January 2025;</p>
+                    <a href="https://huggingface.co/Alpha-VLLM/Lumina-Image-2.0" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/lumina2.json" download class="help-button dl-workflow">Download workflow</a>
+                </li>
             </ul>
         </section>
 
@@ -396,9 +410,11 @@
             <ul class="terms-list">
                 <li id="ppTerm"><strong>Positive prompt:</strong> What should the image be about</li>
                 <li id="npTerm"><strong>Negative prompt:</strong> What should not be in the image</li>
+                <li id="spTerm"><strong>System prompt:</strong> A higher prompt that defines the model's behavior and style</li>
                 <li id="saTerm"><strong>Sampler:</strong> The specific denoising algorithm used to generate the image, it defines how noise is removed at each step</li>
                 <li id="scTerm"><strong>Scheduler:</strong> The noise-variance schedule and step-size strategy that the sampler follows during diffusion</li>
                 <li id="cfTerm"><strong>CFG:</strong> Classifier Free Guidance, a value that controls how much the model should follow the prompt</li>
+                <li id="shTerm"><strong>Shift:</strong> A value that controls the shift in the Model Sampling Aura Flow for Lumina Image 2</li>
                 <li id="guTerm"><strong>Guidance:</strong> CFG in Flux and Flux-like models</li>
                 <li id="stTerm"><strong>Steps:</strong> Number of diffusion steps the model should take to generate the image</li>
                 <li id="rsTerm"><strong>Refiner Steps:</strong> Number of steps the refiner model should take to refine the image</li>

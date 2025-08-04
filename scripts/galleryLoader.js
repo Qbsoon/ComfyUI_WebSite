@@ -4,7 +4,7 @@ function findCheckpoint(workflowData) {
     if (!workflowData || typeof workflowData !== 'object') {
         return false;
     }
-    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'RealESRGAN_x2.pth', 'FreeUpscaling', 'flux1-fill-dev-Q8_0.gguf', 'flux1-kontext-dev-Q8_0.gguf']
+    const checkpoints = ['sd3.5_large_fp8_scaled.safetensors', 'sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'FLUX1/flux1-dev-Q8_0.gguf', 'PixArt-Sigma-XL-2-2K-MS.pth', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'control-lora-recolor-rank256.safetensors', 'RealESRGAN_x4plus.pth', 'RealESRGAN_x2.pth', 'FreeUpscaling', 'flux1-fill-dev-Q8_0.gguf', 'flux1-kontext-dev-Q8_0.gguf', 'lumina_2.safetensors'];
     try {
         const jsonString = JSON.stringify(workflowData);
         for (let i = 0; i < checkpoints.length; i++) {
@@ -164,6 +164,22 @@ function getComfyMetadata(workflowData, checkpointName) {
                 scheduler: workflowData["13"].inputs.scheduler,
                 cfg: workflowData["15"].inputs.cfg,
                 steps: workflowData["13"].inputs.steps,
+                width: workflowData["10"].inputs.width,
+                height: workflowData["10"].inputs.height
+            }
+            return metadataObject;
+        } else if (checkpointName === 'lumina_2.safetensors') {
+            const promptSP = workflowData["8"].inputs.text.split(' <Prompt Start> ', 2);
+            let metadataObject = {
+                checkpointName: checkpointName,
+                promptS: promptSP[0],
+                promptP: promptSP[1],
+                promptN: workflowData["9"].inputs.text,
+                sampler: workflowData["30"].inputs.sampler_name,
+                scheduler: workflowData["30"].inputs.scheduler,
+                cfg: workflowData["30"].inputs.cfg,
+                shift: workflowData["11"].inputs.shift,
+                steps: workflowData["30"].inputs.steps,
                 width: workflowData["10"].inputs.width,
                 height: workflowData["10"].inputs.height
             }
@@ -363,8 +379,8 @@ export async function galleryLoad(target, uid, current_page = null, limit_end = 
         filterControlsDiv.style.gridColumn = '1 / -1'
         const filterModelSelect = document.createElement('select');
         filterModelSelect.appendChild(new Option(i18next.t('filterAllModels'), 'all'));
-        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'colorizing', 'upscaling', 'outpainting'];
-        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)', 'Colorizing', 'Upscaling', 'Outpainting'];
+        const models = ['sd_xl_base_1.0.safetensors', 'sd_xl_turbo_1.0_fp16.safetensors', 'sd3.5_large_fp8_scaled.safetensors', 'flux1-dev-Q8_0.gguf', 'hidream_i1_fast_fp8.safetensors', 'VerusVision_1.0b_Transformer_fp8.safetensors', 'lumina_2.safetensors', 'colorizing', 'upscaling', 'outpainting'];
+        const modelNames = ['SDXL', 'SDXL Turbo', 'SD 3.5', 'FLUX1', 'HiDream I1 Fast', 'Verus Vision 1.0b Transformer (fp8)', 'Lumina Image 2', 'Colorizing', 'Upscaling', 'Outpainting'];
         models.forEach((model, index) => {
             const option = new Option(modelNames[index], model);
             filterModelSelect.appendChild(option);

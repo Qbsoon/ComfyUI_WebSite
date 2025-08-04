@@ -1,0 +1,87 @@
+{
+    "1": {
+        "inputs": {
+            "ckpt_name": "lumina_2.safetensors"
+        },
+        "class_type": "CheckpointLoaderSimple"
+    },
+    "8": {
+        "inputs": {
+            "clip": [
+                "1",
+                1
+            ],
+            "text": ""
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "9": {
+        "inputs": {
+            "clip": [
+                "1",
+                1
+            ],
+            "text": ""
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "10": {
+        "inputs": {
+            "batch_size": 1,
+            "height": 1024,
+            "width": 1024
+        },
+        "class_type": "EmptySD3LatentImage"
+    },
+    "11": {
+        "inputs": {
+            "model": [
+                "1",
+                0
+            ],
+            "shift": 6.00
+        },
+        "class_type": "ModelSamplingAuraFlow"
+    },
+    "30": {
+        "inputs": {
+            "cfg": 0,
+            "denoise": 1,
+            "latent_image": ["10", 0],
+            "model": ["11", 0],
+            "negative": ["9", 0],
+            "positive": ["8", 0],
+            "sampler_name": "",
+            "scheduler": "",
+            "seed": 0,
+            "steps": 0
+        },
+        "class_type": "KSampler"
+    },
+    "50": {
+        "inputs": {
+            "samples": ["30", 0],
+            "vae": ["1", 2]
+        },
+        "class_type": "VAEDecode"
+    },
+    "98": {
+        "inputs": {
+            "filename_prefix": "",
+            "images": [
+                "50",
+                0
+            ]
+        },
+        "class_type": "SaveImage"
+    },
+    "99": {
+        "inputs": {
+            "value": ""
+        },
+        "class_type": "PrimitiveString",
+        "_meta": {
+            "title": "PromptID"
+        }
+    }
+}
