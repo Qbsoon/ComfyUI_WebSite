@@ -294,7 +294,7 @@ async def login():
 
 	if request.method == 'POST':
 		form = await request.form
-		username = form.get('username')
+		username = form.get('username').lower()
 		password = form.get('password')
 		app.logger.info(f"Attempting login for user: {username}")
 
