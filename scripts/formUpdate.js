@@ -157,8 +157,11 @@ export function changeModel() {
             shiftLabel.hidden = false;
         }
     } else if (editorTab.classList.contains('active')) {
+        modelPrompts.hidden = true;
+        editorPrompts.hidden = true;
         positivePromptBox.hidden = true;
         negativePromptBox.hidden = true;
+        systemPromptBox.hidden = true;
         stepsInput.hidden = true;
         stepsLabel.hidden = true;
         stepsRefineInput.hidden = true;
@@ -196,6 +199,8 @@ export function changeModel() {
         bottomMaskLabel.hidden = true;
         upscaleMultiplier.hidden = true;
         upscaleMultiplierLabel.hidden = true;
+        shiftInput.hidden = true;
+        shiftLabel.hidden = true;
         if (editorSelect.value === 'colorizing') {
             editorPrompts.hidden = false;
             positivePromptBox.hidden = false;
