@@ -1149,7 +1149,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 		'sd_xl_base_1.0.safetensors',
 		'sd_xl_turbo_1.0_fp16.safetensors',
 		'FLUX1/flux1-dev-Q8_0.gguf',
-		'FLUX1/flux1-krea-dev_fp8_scaled.safetensors',
+		'flux1-krea-dev_fp8_scaled.safetensors',
 		'PixArt-Sigma-XL-2-2K-MS.pth',
 		'hidream_i1_fast_fp8.safetensors',
 		'VerusVision_1.0b_Transformer_fp8.safetensors',
