@@ -449,9 +449,20 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'lumina_2.safetensors') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Lumina Image 2`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Lumina Image 2 (bfp16)`;
                 prompts.innerHTML = `<strong>${i18next.t('systemPrompt')}:</strong> ${workflowData.promptS}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
+                prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS64')}:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS65')}:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS613')}:</strong> ${workflowData.shift}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'qwen-image-Q4_K_M.gguf') {
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Qwen Image (Q4_K_M)`;
+                prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS64')}:</strong> ${workflowData.scheduler}`;
@@ -639,6 +650,14 @@ export function lightboxCopySet(workflowData) {
     } else if (workflowData.checkpointName === 'lumina_2.safetensors') {
         negativePrompt.value = workflowData.promptN;
         systemPrompt.value = workflowData.promptS;
+        schedulerSelect.value = workflowData.scheduler;
+        cfgInput.value = workflowData.cfg;
+        shiftInput.value = workflowData.shift;
+        stepsInput.value = workflowData.steps;
+        widthInput.value = workflowData.width;
+        heightInput.value = workflowData.height;
+    } else if (workflowData.checkpointName === 'qwen-image-Q4_K_M.gguf') {
+        negativePrompt.value = workflowData.promptN;
         schedulerSelect.value = workflowData.scheduler;
         cfgInput.value = workflowData.cfg;
         shiftInput.value = workflowData.shift;

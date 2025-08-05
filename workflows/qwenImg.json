@@ -1,0 +1,98 @@
+{
+    "1": {
+        "inputs": {
+            "unet_name": "qwen-image-Q4_K_M.gguf"
+        },
+        "class_type": "UnetLoaderGGUF"
+    },
+    "2": {
+        "inputs": {
+            "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+            "type": "qwen_image",
+            "device": "default"
+        },
+        "class_type": "CLIPLoader"
+    },
+    "3": {
+        "inputs": {
+            "vae_name": "qwen_image_vae.safetensors"
+        },
+        "class_type": "VAELoader"
+    },
+    "8": {
+        "inputs": {
+            "text": "",
+            "clip": [
+                "2",
+                0
+            ]
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "9": {
+        "inputs": {
+            "text": "",
+            "clip": [
+                "2",
+                0
+            ]
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "10": {
+        "inputs": {
+            "width": 1328,
+            "height": 1328,
+            "batch_size": 1
+        },
+        "class_type": "EmptySD3LatentImage"
+    },
+    "11": {
+        "inputs": {
+            "model": [
+                "1",
+                0
+            ],
+            "shift": 3.1
+        },
+        "class_type": "ModelSamplingAuraFlow"
+    },
+    "30": {
+        "inputs": {
+            "cfg": 0,
+            "denoise": 1,
+            "latent_image": ["10", 0],
+            "model": ["11", 0],
+            "negative": ["9", 0],
+            "positive": ["8", 0],
+            "sampler_name": "",
+            "scheduler": "",
+            "seed": 0,
+            "steps": 0
+        },
+        "class_type": "KSampler"
+    },
+    "50": {
+        "inputs": {
+            "samples": ["30", 0],
+            "vae": ["3", 0]
+        },
+        "class_type": "VAEDecode"
+    },
+    "98": {
+        "inputs": {
+            "filename_prefix": "",
+            "images": ["50", 0]
+        },
+        "class_type": "SaveImage"
+    },
+    "99": {
+        "inputs": {
+            "value": ""
+        },
+        "class_type": "PrimitiveString",
+        "_meta": {
+            "title": "PromptID"
+        }
+    }
+}

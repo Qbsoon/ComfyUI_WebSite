@@ -180,6 +180,19 @@ export async function setWorkflow(uid) {
 			workflow["30"].inputs.steps = steps;
 			workflow["30"].inputs.seed = seed;
 			workflow["98"].inputs.filename_prefix = `${uid}/lumina2`;
+		} else if (model === 'qwen-image-Q4_K_M.gguf') {
+			workflow = await loadWorkflow('qwenImg.json')
+			workflow["8"].inputs.text = promptP;
+			workflow["9"].inputs.text = promptN;
+			workflow["10"].inputs.width = width;
+			workflow["10"].inputs.height = height;
+			workflow["11"].inputs.shift = shift;
+			workflow["30"].inputs.sampler_name = sampler;
+			workflow["30"].inputs.scheduler = scheduler;
+			workflow["30"].inputs.cfg = cfg;
+			workflow["30"].inputs.steps = steps;
+			workflow["30"].inputs.seed = seed;
+			workflow["98"].inputs.filename_prefix = `${uid}/qwenImg`;
 		}
 	} else if (document.getElementById('editorTab').classList.contains('active')) {
 		if (editor === 'colorizing') {

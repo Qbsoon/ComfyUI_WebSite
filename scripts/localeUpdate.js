@@ -55,6 +55,7 @@ const flux1desc = document.getElementById('Flux1Desc');
 const hdi1fdesc = document.getElementById('HDI1FDesc');
 const vv1bdesc = document.getElementById('VV1bDesc');
 const lumina2Desc = document.getElementById('Lumina2Desc');
+const qwenImgDesc = document.getElementById('qwenImgDesc');
 const fluxLoraModels = document.getElementById('fluxLoraModels');
 const sourceButton = document.getElementsByClassName('source-btn');
 const editorModels = document.getElementById('editorModels');
@@ -170,6 +171,7 @@ export function updateLocale() {
     hdi1fdesc.innerText = `${i18next.t('helpS2T1')}: fp8; ${i18next.t('helpS2T2')}: 17B; ${i18next.t('helpS2T3')}: 15.9 GB; ${i18next.t('helpS2T4')}: HiDream AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T55')};`
     vv1bdesc.innerText = `${i18next.t('helpS2T1')}: fp8; ${i18next.t('helpS2T2')}: 12B; ${i18next.t('helpS2T3')}: 11.1 GB; ${i18next.t('helpS2T4')}: SG161222; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T56')};`
     lumina2Desc.innerText = `${i18next.t('helpS2T1')}: bfp16; ${i18next.t('helpS2T2')}: 2.6B; ${i18next.t('helpS2T3')}: 9.9 GB; ${i18next.t('helpS2T4')}: Alpha-VLLM; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T57')};`
+    qwenImgDesc.innerText = `${i18next.t('helpS2T1')}: Q4_K_M; ${i18next.t('helpS2T2')}: 20B; ${i18next.t('helpS2T3')}: 12.13 GB; ${i18next.t('helpS2T4')}: Alibaba Cloud; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T58')};`
     fluxLoraModels.innerText = i18next.t('helpS3');
     for (let i = 0; i < sourceButton.length; i++) {
         sourceButton[i].innerText = i18next.t('helpS3T1');

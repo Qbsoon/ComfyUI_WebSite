@@ -91,7 +91,7 @@ export function validateInputs() {
         alert(i18next.t('validRatio'));
         throw new Error('Validation failed on ratioInput')
     }
-    if ((model === 'lumina_2.safetensors') && (isNaN(shift) || shift < 0.0 || shift > 10.0)) {
+    if ((model === 'lumina_2.safetensors' || model == 'qwen-image-Q4_K_M.gguf') && (isNaN(shift) || shift < 0.0 || shift > 10.0)) {
         alert(i18next.t('validShift'));
         throw new Error('Validation failed on shiftInput');
     } 

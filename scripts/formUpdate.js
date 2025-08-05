@@ -118,15 +118,13 @@ export function changeModel() {
         if (modelSelect.value === 'sd_xl_base_1.0.safetensors') {
             stepsRefineInput.hidden = false;
             stepsRefineLabel.hidden = false;
-        } 
-        if (modelSelect.value === 'sd_xl_turbo_1.0_fp16.safetensors') {
+        } else if (modelSelect.value === 'sd_xl_turbo_1.0_fp16.safetensors') {
             schedulerSelect.hidden = true;
             schedulerLabel.hidden = true;
             cfgInput.hidden = true;
             cfgLabel.hidden = true;
             stepsInput.max = 10;
-        } 
-        if (modelSelect.value === 'flux1-dev-Q8_0.gguf') {
+        } else if (modelSelect.value === 'flux1-dev-Q8_0.gguf') {
             negativePromptBox.hidden = true;
             cfgInput.hidden = true;
             cfgLabel.hidden = true;
@@ -136,8 +134,7 @@ export function changeModel() {
             loraLabel.hidden = false;
             loraStrengthInput.hidden = false;
             loraStrengthLabel.hidden = false;
-        } 
-        if (modelSelect.value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
+        } else if (modelSelect.value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
             ratioLabel.hidden = false;
             ratioInput.hidden = false;
             widthInput.hidden = true;
@@ -145,14 +142,15 @@ export function changeModel() {
             heightInput.hidden = true;
             heightLabel.hidden = true;
             ratioOutput.hidden = true;
-        }
-        if (modelSelect.value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
+        } else if (modelSelect.value === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
             negativePromptBox.hidden = true;
-        }
-        if (modelSelect.value === 'lumina_2.safetensors') {
+        } else if (modelSelect.value === 'lumina_2.safetensors') {
             modelPrompts.hidden = false;
             systemPromptBox.hidden = false;
             systemPrompt.placeholder = "You are an assistant designed to generate superior images with the superior degree of image-text alignment based on textual prompts or user prompts";
+            shiftInput.hidden = false;
+            shiftLabel.hidden = false;
+        } else if (modelSelect.value === 'qwen-image-Q4_K_M.gguf') {
             shiftInput.hidden = false;
             shiftLabel.hidden = false;
         }
@@ -358,6 +356,14 @@ export function restoreModelDefaults() {
             widthInput.value = 1024;
             heightInput.value = 1024;
             shiftInput.value = 6.0;
+        } else if (checkpointName === 'qwen-image-Q4_K_M.gguf') {
+            schedulerSelect.value = 'normal';
+            samplerSelect.value = 'euler_ancestral';
+            cfgInput.value = 2.5;
+            stepsInput.value = 20;
+            widthInput.value = 1328;
+            heightInput.value = 1328;
+            shiftInput.value = 3.1;
         }
     } else if (editorTab.classList.contains('active')) {
         if (editorCheckpointName === 'colorizing') {

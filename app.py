@@ -455,6 +455,8 @@ def model_filename(model):
 		return 'verusvision'
 	if model=='lumina_2.safetensors':
 		return 'lumina2'
+	if model=='qwen-image-Q4_K_M.gguf':
+		return 'qwenImg'
 	if model=='colorizing':
 		return 'colorizing'
 	if model=='upscaling':
@@ -1143,6 +1145,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 		'hidream_i1_fast_fp8.safetensors',
 		'VerusVision_1.0b_Transformer_fp8.safetensors',
 		'lumina_2.safetensors',
+		'qwen-image-Q4_K_M.gguf',
 		'control-lora-recolor-rank256.safetensors',
 		'RealESRGAN_x4plus.pth',
 		'RealESRGAN_x2.pth',
