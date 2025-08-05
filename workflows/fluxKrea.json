@@ -1,0 +1,92 @@
+{
+    "1": {
+        "inputs": {
+            "unet_name": "flux1-krea-dev_fp8_scaled.safetensors",
+            "weight_dtype": "default"
+        },
+        "class_type": "UNETLoader"
+    },
+    "2": {
+        "inputs": {
+            "clip_name1": "clip_l.safetensors",
+            "clip_name2": "t5xxl_fp16.safetensors",
+            "type": "flux",
+            "device": "default"
+        },
+        "class_type": "DualCLIPLoader"
+    },
+    "3": {
+        "inputs": {
+            "vae_name": "ae.safetensors"
+        },
+        "class_type": "VAELoader"
+    },
+    "8": {
+        "inputs": {
+            "clip": [
+                "2",
+                0
+            ],
+            "text": ""
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "10": {
+        "inputs": {
+            "width": 1024,
+            "height": 1024,
+            "batch_size": 1
+        },
+        "class_type": "EmptySD3LatentImage"
+    },
+    "11": {
+        "inputs": {
+            "conditioning": [
+                "8",
+                0
+            ]
+        },
+        "class_type": "ConditioningZeroOut"
+    },
+    "30": {
+        "inputs": {
+            "cfg": 0,
+            "denoise": 1,
+            "latent_image": ["10", 0],
+            "model": ["1", 0],
+            "negative": ["11", 0],
+            "positive": ["8", 0],
+            "sampler_name": "",
+            "scheduler": "",
+            "seed": 0,
+            "steps": 0
+        },
+        "class_type": "KSampler"
+    },
+    "50": {
+        "inputs": {
+            "samples": ["30", 0],
+            "vae": ["3", 0]
+        },
+        "class_type": "VAEDecode"
+    },
+    "98": {
+        "inputs": {
+            "filename_prefix": "",
+            "images": [
+                "50",
+                0
+            ]
+        },
+        "class_type": "SaveImage"
+    },
+    "99": {
+        "inputs": {
+            "value": ""
+        },
+        "class_type": "PrimitiveString",
+        "_meta": {
+            "title": "PromptID"
+        }
+    }
+}

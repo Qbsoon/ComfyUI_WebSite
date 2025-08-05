@@ -388,7 +388,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'sd3.5_large_fp8_scaled.safetensors') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Stable Diffusion 3.5 Large (fp8)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Stable Diffusion 3.5 Large`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
@@ -398,7 +398,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Stable Diffusion XL Turbo (fp16)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Stable Diffusion XL Turbo`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
@@ -406,7 +406,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'FLUX1/flux1-dev-Q8_0.gguf' || workflowData.checkpointName === 'flux1-kontext-dev-Q8_0.gguf') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> FLUX 1. Dev (Q8)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> FLUX 1. Dev`;
                 if (workflowData.lora == 'None') {
                     parameters.innerHTML += `<br><strong>LoRA:</strong> ${i18next.t('noLora')}`;
                 } else {
@@ -420,6 +420,15 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'flux1-krea-dev_fp8_scaled.safetensors') {
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> FLUX 1. Krea Dev`;
+                prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS64')}:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS65')}:</strong> ${workflowData.cfg}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
                 parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> PixArt Sigma XL 2K`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
@@ -430,7 +439,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('ratioInput')}:</strong> ${workflowData.ratio}`;
             } else if (workflowData.checkpointName === 'hidream_i1_fast_fp8.safetensors') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> HiDream I1 Fast (fp8)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> HiDream I1 Fast`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
@@ -440,7 +449,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'VerusVision_1.0b_Transformer_fp8.safetensors') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Verus Vision 1.0b Transformer (fp8)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Verus Vision 1.0b Transformer`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS64')}:</strong> ${workflowData.scheduler}`;
@@ -449,7 +458,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'lumina_2.safetensors') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Lumina Image 2 (bfp16)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Lumina Image 2`;
                 prompts.innerHTML = `<strong>${i18next.t('systemPrompt')}:</strong> ${workflowData.promptS}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
@@ -461,7 +470,7 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'qwen-image-Q4_K_M.gguf') {
-                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Qwen Image (Q4_K_M)`;
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Qwen Image`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
                 prompts.innerHTML += `<br><strong>${i18next.t('negativePrompt')}:</strong> ${workflowData.promptN}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
@@ -625,6 +634,13 @@ export function lightboxCopySet(workflowData) {
         loraStrengthInput.value = workflowData.loraStrength;
         schedulerSelect.value = workflowData.scheduler;
         guidanceInput.value = workflowData.guidance;
+        stepsInput.value = workflowData.steps;
+        widthInput.value = workflowData.width;
+        heightInput.value = workflowData.height;
+    } else if (workflowData.checkpointName === 'flux1-krea-dev_fp8_scaled.safetensors') {
+        schedulerSelect.value = workflowData.scheduler;
+        samplerSelect.value = workflowData.sampler;
+        cfgInput.value = workflowData.cfg;
         stepsInput.value = workflowData.steps;
         widthInput.value = workflowData.width;
         heightInput.value = workflowData.height;

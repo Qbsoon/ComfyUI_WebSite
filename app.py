@@ -449,6 +449,8 @@ def model_filename(model):
 		return 'sdxlturbo'
 	if model=='flux1-dev-Q8_0.gguf':
 		return 'flux'
+	if model=='flux1-krea-dev_fp8_scaled.safetensors':
+		return 'fluxKrea'
 	if model=='hidream_i1_fast_fp8.safetensors':
 		return 'hdi1f'
 	if model=='VerusVision_1.0b_Transformer_fp8.safetensors':
@@ -527,10 +529,12 @@ async def generate_iiif_manifest():
 
 	if filter_model:
 		model_prefix = model_filename(filter_model)
-		if model_prefix!="sdxl":
-			filtered_image_files = [f for f in image_files if f.startswith(model_prefix)]
-		else:
+		if model_prefix == "sdxl":
 			filtered_image_files = [f for f in image_files if (f.startswith('sdxl') and not f.startswith('sdxlturbo'))]
+		elif model_prefix == "flux":
+			filtered_image_files = [f for f in image_files if (f.startswith('flux') and not f.startswith('fluxKrea'))]
+		else:
+			filtered_image_files = [f for f in image_files if f.startswith(model_prefix)]
 		if len(filtered_image_files) != 0:
 			image_files = filtered_image_files.copy()
 		else:
@@ -983,8 +987,12 @@ async def generate_public_iiif_manifest():
 		if model_prefix:
 			if model_prefix!="sdxl":
 				filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
-			else:
+			if model_prefix == "sdxl":
 				filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('sdxl') and not f.get('original_filename').startswith('sdxlturbo'))]
+			elif model_prefix == "flux":
+				filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('flux') and not f.get('original_filename').startswith('fluxKrea'))]
+			else:
+				filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
 		if len(filtered_image_files) != 0:
 			public_images_data = filtered_image_files.copy()
 		else:
@@ -1141,6 +1149,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 		'sd_xl_base_1.0.safetensors',
 		'sd_xl_turbo_1.0_fp16.safetensors',
 		'FLUX1/flux1-dev-Q8_0.gguf',
+		'FLUX1/flux1-krea-dev_fp8_scaled.safetensors',
 		'PixArt-Sigma-XL-2-2K-MS.pth',
 		'hidream_i1_fast_fp8.safetensors',
 		'VerusVision_1.0b_Transformer_fp8.safetensors',

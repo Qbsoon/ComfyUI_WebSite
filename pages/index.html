@@ -37,14 +37,15 @@
             <div id="modelParameters" class="model-row">
                 <label for="modelSelect" id="modelSelectLabel">Model</label>
                 <select id="modelSelect">
-                    <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large (fp8)</option>
+                    <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large</option>
                     <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
-                    <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo (fp16)</option>
-                    <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev (Q8)</option>
-                    <option value="hidream_i1_fast_fp8.safetensors">HiDream I1 Fast (fp8)</option>
-                    <option value="VerusVision_1.0b_Transformer_fp8.safetensors">Verus Vision 1.0b Transformer (fp8)</option>
-                    <option value="lumina_2.safetensors">Lumina Image 2 (bfp16)</option>
-                    <option value="qwen-image-Q4_K_M.gguf">Qwen Image (Q4_K_M)</option>
+                    <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo</option>
+                    <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev</option>
+                    <option value="flux1-krea-dev_fp8_scaled.safetensors">FLUX 1. Krea Dev</option>
+                    <option value="hidream_i1_fast_fp8.safetensors">HiDream I1 Fast</option>
+                    <option value="VerusVision_1.0b_Transformer_fp8.safetensors">Verus Vision 1.0b Transformer</option>
+                    <option value="lumina_2.safetensors">Lumina Image 2</option>
+                    <option value="qwen-image-Q4_K_M.gguf">Qwen Image</option>
                     <!-- <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option> -->
                 </select>
                 <label for="loraSelect" id="loraLabel" hidden="true">LoRA</label>
@@ -299,6 +300,11 @@
                     <a href="dl_workflows/flux.json" download class="help-button dl-workflow">Download workflow</a>
                 </li>
                 <li>
+                    <strong>FLUX 1. Krea Dev</strong><br>
+                    <p id="FluxKreaDesc">Weights used: fp8; Parameters: 12B; Size: 11.1; Made by: Black Forest Labs; Shared on: August 2025;</p>
+                    <a href="https://huggingface.co/black-forest-labs/FLUX.1-Krea-dev" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/fluxKrea.json" download class="help-button dl-workflow">Download workflow</a>
+                <li>
                     <strong>HiDream I1 Fast</strong><br>
                     <p id="HDI1FDesc">Weights used: fp8; Parameters: 17B; Size: 15.9 GB; Made by: HiDream AI; Shared on: May 2025;</p>
                     <a href="https://huggingface.co/HiDream-ai/HiDream-I1-Fast" target="_blank" class="help-button">Huggingface</a>
@@ -318,7 +324,7 @@
                 </li>
                 <li>
                     <strong>Qwen Image</strong><br>
-                    <p id="QwenImgDesc">Weights used: Q4_K_M; Parameters: 20B; Size: 12.13 GB; Made by: Alibaba Cloud; Shared on: August 2025;</p>
+                    <p id="QwenImgDesc">Weights used: Q4_K_M; Parameters: 20B; Size: 12.1 GB; Made by: Alibaba Cloud; Shared on: August 2025;</p>
                     <a href="https://huggingface.co/Qwen/Qwen-Image" target="_blank" class="help-button">Huggingface</a>
                     <a href="dl_workflows/qwenImg.json" download class="help-button dl-workflow">Download workflow</a>
                 </li>

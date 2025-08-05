@@ -132,6 +132,17 @@ export async function setWorkflow(uid) {
 			} else if (lora === 'ume_classic_impressionist.safetensors') {
 				workflow["8"].inputs.text += ' impressionist';
 			}
+		} else if (model === 'flux1-krea-dev_fp8_scaled.safetensors') {
+			workflow = await loadWorkflow('fluxKrea.json')
+			workflow["8"].inputs.text = promptP;
+			workflow["10"].inputs.width = width;
+			workflow["10"].inputs.height = height;
+			workflow["30"].inputs.sampler_name = sampler;
+			workflow["30"].inputs.scheduler = scheduler;
+			workflow["30"].inputs.cfg = cfg;
+			workflow["30"].inputs.steps = steps;
+			workflow["30"].inputs.seed = seed;
+			workflow["98"].inputs.filename_prefix = `${uid}/fluxKrea`;
 		} else if (model === 'PixArt-Sigma-XL-2-2K-MS.pth') {
 			workflow = await loadWorkflow('pixart.json')
 			workflow["8"].inputs.text = promptP;

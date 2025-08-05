@@ -134,6 +134,8 @@ export function changeModel() {
             loraLabel.hidden = false;
             loraStrengthInput.hidden = false;
             loraStrengthLabel.hidden = false;
+        } else if (modelSelect.value === 'flux1-krea-dev_fp8_scaled.safetensors') {
+            negativePromptBox.hidden = true;
         } else if (modelSelect.value === 'PixArt-Sigma-XL-2-2K-MS.pth') {
             ratioLabel.hidden = false;
             ratioInput.hidden = false;
@@ -328,6 +330,13 @@ export function restoreModelDefaults() {
             heightInput.value = 1024;
             loraSelect.value = "none";
             loraStrengthInput.value = 0.7;
+        } else if (checkpointName === 'flux1-krea-dev_fp8_scaled.safetensors') {
+            schedulerSelect.value = "simple";
+            samplerSelect.value = "euler";
+            cfgInput.value = 1.0;
+            stepsInput.value = 20;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
         } else if (checkpointName === 'PixArt-Sigma-XL-2-2K-MS.pth') {
             schedulerSelect.value = "normal";
             samplerSelect.value = "euler_ancestral";
