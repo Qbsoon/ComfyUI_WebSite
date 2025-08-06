@@ -190,6 +190,9 @@ logging.getLogger('ldap3').setLevel(logging.DEBUG)
 app = Quart(__name__, template_folder='pages')
 cors(app)
 
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+
 # --- End of Quart Application Setup ---
 
 
