@@ -22,10 +22,11 @@ import requests
 import httpx
 import ssl
 from PIL import Image
+import atexit
 
 # --- Configuration for Queue Monitoring and Freeing ---
-MONITOR_SERVER_BASE_URL = "http://192.168.236.84:5174"
-MONITOR_SERVER_WS_URL = "ws://192.168.236.84:5174/ws"
+MONITOR_SERVER_BASE_URL = "http://192.168.238.18:5174"
+MONITOR_SERVER_WS_URL = "ws://192.168.238.18:5174/ws"
 MONITOR_CHECK_INTERVAL_SECONDS = 0.25
 MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
@@ -52,6 +53,21 @@ def _open_shared(name: str, size: int, initial: int):
 
 _queue_shm  = _open_shared("comfy_queue",  4, initial=-1)
 _prompt_shm = _open_shared("comfy_prompt", 4, initial=0)
+
+def _cleanup_shared():
+	for shm in (_queue_shm, _prompt_shm):
+		try:
+			shm.close()
+		except Exception:
+			pass
+		try:
+			shm.unlink()
+		except FileNotFoundError:
+			pass
+		except Exception:
+			pass
+
+atexit.register(_cleanup_shared)
 
 def get_queue_count() -> int:
 	with _queue_lock:
@@ -250,7 +266,7 @@ app.config['LDAP_PORT'] = 636
 app.config['LDAP_USE_SSL'] = True
 app.config['LDAP_BASE_DN'] = 'dc=kpi,dc=kul,dc=pl'
 
-app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
+app.config['SECRET_KEY'] = os.environ.get('QUART_SECRET_KEY')
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
@@ -736,7 +752,7 @@ async def handle_thumbnail(subpath):
 
 
 # --- Main gallery route ---
-@app.route('/gallery/<regex("([0-9]+(\/[^\/])*)?[^\/]$"):subpath>/')
+@app.route('/gallery/<regex("([0-9]+(/[^/])*)?[^/]$"):subpath>/')
 @login_required
 async def handle_gallery(subpath):
 	full_path = os.path.join("gallery", subpath)
@@ -1332,9 +1348,34 @@ async def proxy_to_comfy(path):
 	]
 	return Response(resp.content, status=resp.status_code, headers=response_headers)
 
-@app.websocket('/cui/ws')
+@app.websocket('/ws')
 @login_required
 async def proxy_ws():
+    qs  = websocket.scope["query_string"].decode()
+    uri = MONITOR_SERVER_WS_URL + (f"?{qs}" if qs else "")
+    extra = [("Cookie", websocket.headers["cookie"])] if "cookie" in websocket.headers else None
+
+    async with websockets.connect(uri) as backend_ws:
+        async def front_to_back():
+            try:
+                while True:
+                    msg = await websocket.receive()
+                    await backend_ws.send(msg)
+            except:
+                pass
+
+        async def back_to_front():
+            try:
+                async for msg in backend_ws:
+                    await websocket.send(msg)
+            except:
+                pass
+
+        await asyncio.gather(front_to_back(), back_to_front())
+
+@app.websocket('/cui/ws')
+@login_required
+async def proxy_cui_ws():
     qs  = websocket.scope["query_string"].decode()
     uri = MONITOR_SERVER_WS_URL + (f"?{qs}" if qs else "")
     extra = [("Cookie", websocket.headers["cookie"])] if "cookie" in websocket.headers else None
@@ -1402,7 +1443,7 @@ if __name__ == "__main__":
 	_ensure_monitor()
 	uvicorn.run(
 		"app:app",
-		host="192.168.236.84",
+		host="192.168.238.18",
 		port=5173,
 		workers=4,
 		log_level="info",
