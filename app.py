@@ -1437,6 +1437,12 @@ async def serve_file(directory, filename):
 
 	return await send_from_directory(directory_path, filename)
 
+# --- Blocking restricted areas ---
+@app.route("/data/<path:filename>")
+@app.route("/logs/<path:filename>")
+def restricted_area():
+	return 'Access restricted', 403
+
 
 # --- Main entry point for the application ---
 if __name__ == "__main__":
