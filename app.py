@@ -25,8 +25,8 @@ from PIL import Image
 import atexit
 
 # --- Configuration for Queue Monitoring and Freeing ---
-MONITOR_SERVER_BASE_URL = "http://192.168.238.18:5174"
-MONITOR_SERVER_WS_URL = "ws://192.168.238.18:5174/ws"
+MONITOR_SERVER_BASE_URL = os.environ.get('COMFY_URL')
+MONITOR_SERVER_WS_URL = os.environ.get('COMFY_WS')
 MONITOR_CHECK_INTERVAL_SECONDS = 0.25
 MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
@@ -261,10 +261,10 @@ app.url_map.converters['regex'] = RegexConverter
 
 
 # --- LDAP Configuration ---
-app.config['LDAP_HOST'] = 'kpi.kul.pl'
+app.config['LDAP_HOST'] = os.environ.get('LDAP_HOST')
 app.config['LDAP_PORT'] = 636
 app.config['LDAP_USE_SSL'] = True
-app.config['LDAP_BASE_DN'] = 'dc=kpi,dc=kul,dc=pl'
+app.config['LDAP_BASE_DN'] = os.environ.get('LDAP_BASE_DN')
 
 app.config['SECRET_KEY'] = os.environ.get('QUART_SECRET_KEY')
 
@@ -276,7 +276,7 @@ app.config['LDAP_TLS_CA_CERTS_FILE'] = ca_cert_path
 
 app.config['LDAP_TLS_REQUIRE_CERT'] = ssl.CERT_REQUIRED
 
-app.config['LDAP_USER_DN'] = 'ou=Users,dc=kpi,dc=kul,dc=pl'
+app.config['LDAP_USER_DN'] = os.environ.get('LDAP_USER_DN')
 app.config['LDAP_USER_RDN_ATTR'] = 'uid'
 app.config['LDAP_USER_LOGIN_ATTR'] = 'uid'
 app.config['LDAP_USER_FULLNAME_ATTR'] = os.environ.get('LDAP_USER_FULLNAME_ATTR', 'cn')
@@ -1443,7 +1443,7 @@ if __name__ == "__main__":
 	_ensure_monitor()
 	uvicorn.run(
 		"app:app",
-		host="192.168.238.18",
+		host=os.environ.get('MAIN_ADDR'),
 		port=5173,
 		workers=4,
 		log_level="info",
