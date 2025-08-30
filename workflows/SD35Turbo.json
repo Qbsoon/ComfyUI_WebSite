@@ -8,7 +8,7 @@
 	"2": {
 		"inputs": {
 			"clip_name1": "clip_g_hidream.safetensors",
-			"clip_name2": "clip_l.safetensors",
+			"clip_name2": "ViT-L-14-BEST-smooth-GmP-TE-only-HF-format.safetensors",
 			"clip_name3": "t5-v1_1-xxl-encoder-Q4_K_M.gguf"
 		},
 		"class_type": "TripleCLIPLoaderGGUF"
