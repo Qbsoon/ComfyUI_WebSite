@@ -46,7 +46,7 @@ export function validateInputs() {
         }
     }
 
-    if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
+    if (model === 'sd_xl_turbo_1.0_fp16.safetensors' || model === 'sd3.5_large_turbo-Q8_0.gguf') {
         stepsMaxLimit = 10;
     }
 

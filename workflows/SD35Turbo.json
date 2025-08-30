@@ -1,0 +1,115 @@
+{
+  	"1": {
+		"inputs": {
+	  		"unet_name": "sd3.5_large_turbo-Q8_0.gguf"
+		},
+		"class_type": "UnetLoaderGGUF"
+  	},
+	"2": {
+		"inputs": {
+			"clip_name1": "clip_g_hidream.safetensors",
+			"clip_name2": "clip_l.safetensors",
+			"clip_name3": "t5-v1_1-xxl-encoder-Q4_K_M.gguf"
+		},
+		"class_type": "TripleCLIPLoaderGGUF"
+	},
+	"3": {
+		"inputs": {
+			"vae_name": "sd35turbo_vae.safetensors"
+		},
+		"class_type": "VAELoader"
+	},
+	"8": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"2",
+				0
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"9": {
+		"inputs": {
+			"text": "",
+			"clip": [
+				"2",
+				0
+			]
+		},
+		"class_type": "CLIPTextEncode"
+	},
+	"10": {
+		"inputs": {
+			"width": 1024,
+			"height": 1024,
+			"batch_size": 1
+		},
+		"class_type": "EmptySD3LatentImage"
+	},
+	"11": {
+		"inputs": {
+			"conditioning": ["9", 0]
+		},
+		"class_type": "ConditioningZeroOut"
+	},
+	"30": {
+		"inputs": {
+			"seed": 144741714096936,
+			"steps": 4,
+			"cfg": 1,
+			"sampler_name": "dpmpp_2m",
+			"scheduler": "sgm_uniform",
+			"denoise": 1,
+			"model": [
+				"1",
+				0
+			],
+			"positive": [
+				"8",
+				0
+			],
+			"negative": [
+				"11",
+				0
+			],
+			"latent_image": [
+				"10",
+				0
+			]
+		},
+		"class_type": "KSampler"
+	},
+	"50": {
+		"inputs": {
+			"samples": [
+				"30",
+				0
+			],
+			"vae": [
+				"3",
+				0
+			]
+		},
+		"class_type": "VAEDecode"
+	},
+    "98": {
+        "inputs": {
+            "filename_prefix": "",
+            "images": [
+                "50",
+                0
+            ]
+        },
+        "class_type": "SaveImage"
+    },
+    "99": {
+        "inputs": {
+            "value": ""
+        },
+        "class_type": "PrimitiveString",
+        "_meta": {
+            "title": "PromptID"
+        }
+    }
+}

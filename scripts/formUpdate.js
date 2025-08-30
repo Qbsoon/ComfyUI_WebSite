@@ -115,7 +115,12 @@ export function changeModel() {
         shiftInput.hidden = true;
         shiftLabel.hidden = true;
 
-        if (modelSelect.value === 'sd_xl_base_1.0.safetensors') {
+        if (modelSelect.value === 'sd3.5_large_turbo-Q8_0.gguf') {
+            negativePromptBox.hidden = true;
+            cfgInput.hidden = true;
+            cfgLabel.hidden = true;
+            stepsInput.max = 10;
+        } else if (modelSelect.value === 'sd_xl_base_1.0.safetensors') {
             stepsRefineInput.hidden = false;
             stepsRefineLabel.hidden = false;
         } else if (modelSelect.value === 'sd_xl_turbo_1.0_fp16.safetensors') {
@@ -318,6 +323,12 @@ export function restoreModelDefaults() {
             samplerSelect.value = "euler";
             cfgInput.value = 4;
             stepsInput.value = 20;
+            widthInput.value = 1024;
+            heightInput.value = 1024;
+        } else if (checkpointName === 'sd3.5_large_turbo-Q8_0.gguf') {
+            schedulerSelect.value = "sgm_uniform";
+            samplerSelect.value = "dpmpp_2m";
+            stepsInput.value = 4;
             widthInput.value = 1024;
             heightInput.value = 1024;
         } else if (checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {

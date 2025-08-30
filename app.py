@@ -464,6 +464,8 @@ def model_filename(model):
 		return 'sdxl'
 	if model=='sd3.5_large_fp8_scaled.safetensors':
 		return 'sd35'
+	if model=='sd3.5_large_turbo-Q8_0.gguf':
+		return 'sd35turbo'
 	if model=='sd_xl_turbo_1.0_fp16.safetensors':
 		return 'sdxlturbo'
 	if model=='flux1-dev-Q8_0.gguf':
@@ -552,6 +554,8 @@ async def generate_iiif_manifest():
 			filtered_image_files = [f for f in image_files if (f.startswith('sdxl') and not f.startswith('sdxlturbo'))]
 		elif model_prefix == "flux":
 			filtered_image_files = [f for f in image_files if (f.startswith('flux') and not f.startswith('fluxKrea'))]
+		elif model_prefix == "sd35":
+			filtered_image_files = [f for f in image_files if (f.startswith('sd35') and not f.startswith('sd35turbo'))]
 		else:
 			filtered_image_files = [f for f in image_files if f.startswith(model_prefix)]
 		if len(filtered_image_files) != 0:
@@ -1004,12 +1008,12 @@ async def generate_public_iiif_manifest():
 	if filter_model:
 		model_prefix = model_filename(filter_model)
 		if model_prefix:
-			if model_prefix!="sdxl":
-				filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
 			if model_prefix == "sdxl":
 				filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('sdxl') and not f.get('original_filename').startswith('sdxlturbo'))]
 			elif model_prefix == "flux":
 				filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('flux') and not f.get('original_filename').startswith('fluxKrea'))]
+			elif model_prefix == "sd35":
+				filtered_image_files = [f for f in public_images_data if (f.get('original_filename').startswith('sd35') and not f.get('original_filename').startswith('sd35turbo'))]
 			else:
 				filtered_image_files = [f for f in public_images_data if f.get('original_filename').startswith(model_prefix)]
 		if len(filtered_image_files) != 0:
@@ -1165,6 +1169,7 @@ def py_find_checkpoint_in_workflow(raw_workflow_json_string):
 	
 	checkpoints = [
 		'sd3.5_large_fp8_scaled.safetensors',
+		'sd3.5_large_turbo-Q8_0.gguf',
 		'sd_xl_base_1.0.safetensors',
 		'sd_xl_turbo_1.0_fp16.safetensors',
 		'FLUX1/flux1-dev-Q8_0.gguf',

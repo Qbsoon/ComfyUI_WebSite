@@ -397,6 +397,14 @@ export function openLightbox(imageUrl, workflowData, imageOwnerUid = uid, isPubl
                 parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
                 parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
+            } else if (workflowData.checkpointName === 'sd3.5_large_turbo-Q8_0.gguf') {
+                parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Stable Diffusion 3.5 Large Turbo`;
+                prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS63')}:</strong> ${workflowData.sampler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS64')}:</strong> ${workflowData.scheduler}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('helpS67')}:</strong> ${workflowData.steps}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('widthInput')}:</strong> ${workflowData.width}`;
+                parameters.innerHTML += `<br><strong>${i18next.t('heightInput')}:</strong> ${workflowData.height}`;
             } else if (workflowData.checkpointName === 'sd_xl_turbo_1.0_fp16.safetensors') {
                 parameters.innerHTML += `<strong>${i18next.t('modelSelect')}:</strong> Stable Diffusion XL Turbo`;
                 prompts.innerHTML = `<strong>${i18next.t('positivePrompt')}:</strong> ${workflowData.promptP}`;
@@ -619,6 +627,11 @@ export function lightboxCopySet(workflowData) {
         negativePrompt.value = workflowData.promptN;
         schedulerSelect.value = workflowData.scheduler;
         cfgInput.value = workflowData.cfg;
+        stepsInput.value = workflowData.steps;
+        widthInput.value = workflowData.width;
+        heightInput.value = workflowData.height;
+    } else if (workflowData.checkpointName === 'sd3.5_large_turbo-Q8_0.gguf') {
+        schedulerSelect.value = workflowData.scheduler;
         stepsInput.value = workflowData.steps;
         widthInput.value = workflowData.width;
         heightInput.value = workflowData.height;

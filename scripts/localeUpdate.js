@@ -49,6 +49,7 @@ const serviceInfoP4 = document.getElementById('serviceInfoP4');
 const dlworkflow = document.getElementsByClassName('dl-workflow');
 const imageGenerationModels = document.getElementById('imageGenerationModels');
 const sd35desc = document.getElementById('SD35Desc');
+const sd35tdesc = document.getElementById('SD35TDesc');
 const sdxldesc = document.getElementById('SDXLDesc');
 const sdxltdesc = document.getElementById('SDXLTDesc');
 const flux1desc = document.getElementById('Flux1Desc');
@@ -166,6 +167,7 @@ export function updateLocale() {
     }
     imageGenerationModels.innerText = i18next.t('helpS2');
     sd35desc.innerText = `${i18next.t('helpS2T1')}: fp8; ${i18next.t('helpS2T2')}: 8.1B; ${i18next.t('helpS2T3')}: 13.9 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T51')}`;
+    sd35tdesc.innerText = `${i18next.t('helpS2T1')}: Q8 ${i18next.t('helpS2T2')}: 8.1B; ${i18next.t('helpS2T3')}: 8.8 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}; ${i18next.t('helpS2T51')}`;
     sdxldesc.innerText = `${i18next.t('helpS2T1')}: fp16; ${i18next.t('helpS2T2')}: 3.5B; ${i18next.t('helpS2T3')}: 6.5 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T52')}`;
     sdxltdesc.innerText = `${i18next.t('helpS2T1')}: fp16; ${i18next.t('helpS2T2')}: 3.5B; ${i18next.t('helpS2T3')}: 6.5 GB; ${i18next.t('helpS2T4')}: Stability AI; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T53')}`;
     flux1desc.innerText = `${i18next.t('helpS2T1')}: Q8; ${i18next.t('helpS2T2')}: 12B; ${i18next.t('helpS2T3')}: 11.8 GB; ${i18next.t('helpS2T4')}: Black Forest Labs; ${i18next.t('helpS2T5')}: ${i18next.t('helpS2T54')}`;

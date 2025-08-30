@@ -38,6 +38,7 @@
                 <label for="modelSelect" id="modelSelectLabel">Model</label>
                 <select id="modelSelect">
                     <option value="sd3.5_large_fp8_scaled.safetensors">Stable Diffusion 3.5 Large</option>
+                    <option value="sd3.5_large_turbo-Q8_0.gguf">Stable Diffusion 3.5 Large Turbo</option>
                     <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL</option>
                     <option value="sd_xl_turbo_1.0_fp16.safetensors">Stable Diffusion XL Turbo</option>
                     <option value="flux1-dev-Q8_0.gguf">FLUX 1. Dev</option>
@@ -46,7 +47,6 @@
                     <option value="VerusVision_1.0b_Transformer_fp8.safetensors">Verus Vision 1.0b Transformer</option>
                     <option value="lumina_2.safetensors">Lumina Image 2</option>
                     <option value="qwen-image-Q4_K_M.gguf">Qwen Image</option>
-                    <!-- <option value="PixArt-Sigma-XL-2-2K-MS.pth">PixArt Sigma XL 2K</option> -->
                 </select>
                 <label for="loraSelect" id="loraLabel" hidden="true">LoRA</label>
                 <select id="loraSelect" hidden="true">
@@ -280,6 +280,12 @@
                     <p id="SD35Desc">Weights used: fp8; Parameters: 8.1B; Size: 13.9 GB; Made by: Stability AI; Shared on: June 2024;</p>
                     <a href="https://huggingface.co/stabilityai/stable-diffusion-3.5-large" target="_blank" class="help-button">Huggingface</a>
                     <a href="dl_workflows/SD35.json" download class="help-button dl-workflow">Download workflow</a>
+                </li>
+                <li>
+                    <strong>Stable Diffusion 3.5 Large Turbo</strong><br>
+                    <p id="SD35TDesc">Weights used: Q8; Parameters: 8.1B; size: 8.8 GB; Made by: Stability AI; Shared on: June 2024;</p>
+                    <a href="https://huggingface.co/stabilityai/stable-diffusion-3.5-large-turbo" target="_blank" class="help-button">Huggingface</a>
+                    <a href="dl_workflows/SD35Turbo.json" download class="help-button dl-workflow">Download workflow</a>
                 </li>
                 <li>
                     <strong>Stable Diffusion XL</strong><br>

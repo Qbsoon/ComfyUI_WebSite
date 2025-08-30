@@ -85,6 +85,16 @@ export async function setWorkflow(uid) {
 			workflow["30"].inputs.scheduler = scheduler;
 			workflow["30"].inputs.seed = seed;
 			workflow["98"].inputs.filename_prefix = `${uid}/sd35`;
+		} else if (model === 'sd3.5_large_turbo-Q8_0.gguf') {
+			workflow = await loadWorkflow('SD35Turbo.json');
+			workflow["8"].inputs.text = promptP;
+			workflow["10"].inputs.width = width;
+			workflow["10"].inputs.height = height;
+			workflow["30"].inputs.sampler_name = sampler;
+			workflow["30"].inputs.steps = steps;
+			workflow["30"].inputs.scheduler = scheduler;
+			workflow["30"].inputs.seed = seed;
+			workflow["98"].inputs.filename_prefix = `${uid}/sd35turbo`;
     	} else if (model === 'sd_xl_turbo_1.0_fp16.safetensors') {
     	    workflow = await loadWorkflow('SDXLTurbo.json');
 			workflow["8"].inputs.text = promptP;
@@ -143,17 +153,6 @@ export async function setWorkflow(uid) {
 			workflow["30"].inputs.steps = steps;
 			workflow["30"].inputs.seed = seed;
 			workflow["98"].inputs.filename_prefix = `${uid}/fluxKrea`;
-		} else if (model === 'PixArt-Sigma-XL-2-2K-MS.pth') {
-			workflow = await loadWorkflow('pixart.json')
-			workflow["8"].inputs.text = promptP;
-			workflow["9"].inputs.text = promptN;
-			workflow["11"].inputs.ratio = ratio;
-			workflow["30"].inputs.steps = steps;
-			workflow["30"].inputs.cfg = cfg;
-			workflow["30"].inputs.sampler_name = sampler;
-			workflow["30"].inputs.scheduler = scheduler;
-			workflow["30"].inputs.seed = seed;
-			workflow["98"].inputs.filename_prefix = `${uid}/pixart`;
 		} else if (model === 'hidream_i1_fast_fp8.safetensors') {
 			workflow = await loadWorkflow('HDi1f.json')
 			workflow["8"].inputs.text = promptP;
