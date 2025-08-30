@@ -15,7 +15,7 @@
   	},
   	"3": {
 		"inputs": {
-	  		"vae_name": "diffusion_pytorch_model.safetensors"
+	  		"vae_name": "flux_vae.safetensors"
 		},
 		"class_type": "VAELoader"
   	},

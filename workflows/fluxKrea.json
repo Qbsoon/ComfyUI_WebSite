@@ -17,7 +17,7 @@
     },
     "3": {
         "inputs": {
-            "vae_name": "ae.safetensors"
+            "vae_name": "fluxkrea_vae.safetensors"
         },
         "class_type": "VAELoader"
     },
