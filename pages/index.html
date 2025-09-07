@@ -81,6 +81,12 @@
                 <button id="editorDefaults">Editor Defaults</button>
                 <button id="editorPrompts">Default Prompts</button>
             </div>
+            <div class="checkbox-row" id="promptOptions">
+                <input type="checkbox" id="TranslatePrompt" />
+                <label for="TranslatePrompt" id="TranslatePromptLabel">Translate prompt</label>
+                <input type="checkbox" id="RefinePrompt" />
+                <label for="RefinePrompt" id="RefinePromptLabel">Refine prompt</label>
+            </div>
             <div class="textarea-row" id="systemPromptBox" hidden="true">
                 <label for="systemPrompt" id="systemPromptLabel">System Prompt</label>
                 <textarea id="systemPrompt" placeholder="You are an assistant designed to generate superior images with the superior degree of image-text alignment based on textual prompts or user prompts."></textarea>

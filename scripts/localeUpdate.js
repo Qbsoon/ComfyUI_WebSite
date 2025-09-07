@@ -21,6 +21,8 @@ const editorSelectLabel = document.getElementById('editorSelectLabel');
 const editorSelect = document.getElementById('editorSelect');
 const editorDefaults = document.getElementById('editorDefaults');
 const editorPrompts = document.getElementById('editorPrompts');
+const translatePromptLabel = document.getElementById('TranslatePromptLabel');
+const refinePromptLabel = document.getElementById('RefinePromptLabel');
 const positivePromptLabel = document.getElementById('positivePromptLabel');
 const negativePromptLabel = document.getElementById('negativePromptLabel');
 const systemPromptLabel = document.getElementById('systemPromptLabel');
@@ -128,6 +130,8 @@ export function updateLocale() {
     editorSelect.options[2].innerText = i18next.t('outpainting');
     editorDefaults.innerText = i18next.t('defaultPrompts');
     editorPrompts.innerText = i18next.t('editorPrompts');
+    translatePromptLabel.innerText = i18next.t('translatePrompt');
+    refinePromptLabel.innerText = i18next.t('refinePrompt');
     systemPromptLabel.innerText = i18next.t('systemPrompt');
     positivePromptLabel.innerText = i18next.t('positivePrompt');
     negativePromptLabel.innerText = i18next.t('negativePrompt');

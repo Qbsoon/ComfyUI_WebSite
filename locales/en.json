@@ -24,6 +24,8 @@
 	"outpainting": "Outpainting",
 	"editorDefaults": "Editor Defaults",
 	"defaultPrompts": "Default Prompts",
+	"translatePrompt": "Translate prompt",
+	"refinePrompt": "Refine prompt",
 	"systemPrompt": "System Prompt",
 	"positivePrompt": "Positive Prompt",
 	"negativePrompt": "Negative Prompt",

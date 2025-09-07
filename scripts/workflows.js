@@ -49,6 +49,33 @@ export async function setWorkflow(uid) {
 	const featheringInput = parseInt(document.getElementById('featheringInput').value);
 	const upscaleMultiplier = parseFloat(document.getElementById('upscaleMultiplier').value);
 	const shift = parseFloat(document.getElementById('shiftInput').value);
+	const translatePrompt = document.getElementById('TranslatePrompt').checked;
+	const refinePrompt = document.getElementById('RefinePrompt').checked;
+
+	if (translatePrompt) {
+		try {
+			const translated_promptP = await fetch(`/llama_translate&prompt=${encodeURIComponent(promptP)}`);
+			const translated_prompN = await fetch(`/llama_translate&prompt=${encodeURIComponent(promptN)}`);
+			const translated_promptS = await fetch(`/llama_translate&prompt=${encodeURIComponent(promptS)}`);
+			promptP = await translated_promptP.text();
+			promptN = await translated_prompN.text();
+			promptS = await translated_promptS.text();
+		} catch (error) {
+			console.error('Error translating prompt:', error);
+		}
+	}
+	if (refinePrompt) {
+		try {
+			const refined_promptP = await fetch(`/llama_refine&prompt=${encodeURIComponent(promptP)}`);
+			const refined_prompN = await fetch(`/llama_refine&prompt=${encodeURIComponent(promptN)}`);
+			const refined_promptS = await fetch(`/llama_refine&prompt=${encodeURIComponent(promptS)}`);
+			promptP = await refined_promptP.text();
+			promptN = await refined_prompN.text();
+			promptS = await refined_promptS.text();
+		} catch (error) {
+			console.error('Error refining prompt:', error);
+		}
+	}
 
 	let workflow;
 

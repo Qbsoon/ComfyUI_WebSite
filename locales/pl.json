@@ -24,6 +24,8 @@
 	"outpainting": "Poszerzanie",
 	"editorDefaults": "Domyślne edytora",
 	"defaultPrompts": "Domyślne zapytania",
+	"translatePrompt": "Przetłumacz zapytanie",
+	"refinePrompt": "Popraw zapytanie",
 	"systemPrompt": "Nadrzędne zapytanie",
 	"positivePrompt": "Pozytywne zapytanie",
 	"negativePrompt": "Negatywne zapytanie",

@@ -14,6 +14,7 @@ const helpTab = document.getElementById('helpTab');
 
 const modelParameters = document.getElementById('modelParameters');
 const editorParameters = document.getElementById('editorParameters');
+const promptOptions = document.getElementById('promptOptions');
 
 const modelPrompts = document.getElementById('modelPrompts');
 const editorPrompts = document.getElementById('editorPrompts');
@@ -71,6 +72,7 @@ export function changeModel() {
         // Default behavior, for SD3.5 & HDi1f
         modelPrompts.hidden = true;
         editorPrompts.hidden = true;
+        promptOptions.hidden = false;
         positivePromptBox.hidden = false;
         negativePromptBox.hidden = false;
         systemPromptBox.hidden = true;
@@ -164,6 +166,7 @@ export function changeModel() {
     } else if (editorTab.classList.contains('active')) {
         modelPrompts.hidden = true;
         editorPrompts.hidden = true;
+        promptOptions.hidden = true;
         positivePromptBox.hidden = true;
         negativePromptBox.hidden = true;
         systemPromptBox.hidden = true;
@@ -208,6 +211,7 @@ export function changeModel() {
         shiftLabel.hidden = true;
         if (editorSelect.value === 'colorizing') {
             editorPrompts.hidden = false;
+            promptOptions.hidden = false;
             positivePromptBox.hidden = false;
             positivePrompt.placeholder = "vibrant, color portrait photo, (masterpiece), sharp, high quality, 8k, epic";
             negativePromptBox.hidden = false;
@@ -224,6 +228,7 @@ export function changeModel() {
             blendInput.hidden = false;
             blendLabel.hidden = false;
         } else if (editorSelect.value === 'outpainting') {
+            promptOptions.hidden = false;
             positivePromptBox.hidden = false;
             samplerSelect.hidden = false;
             samplerLabel.hidden = false;
