@@ -151,6 +151,8 @@
 	"filterLast": "Last",
 	"queuedGen": "Queued...",
 	"processingGen": "Processing...",
+	"translatingGen": "Translating prompt...",
+	"refiningGen": "Refining prompt...",
 	"cancelGen": "Cancel",
 	"cancelledGen": "Cancelled by user",
 	"imgAfterAlt": "After",

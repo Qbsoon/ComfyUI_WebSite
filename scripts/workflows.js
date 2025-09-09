@@ -1,3 +1,4 @@
+import { i18next } from './main.js';
 import { sanitizeInput, validateInputs} from './validateSanitize.js?cache-bust=1';
 
 async function loadWorkflow(file) {
@@ -57,9 +58,12 @@ export async function setWorkflow(uid) {
 	const shift = parseFloat(document.getElementById('shiftInput').value);
 	const translatePrompt = document.getElementById('TranslatePrompt').checked;
 	const refinePrompt = document.getElementById('RefinePrompt').checked;
+	
+	const progressName = document.getElementById('progressName');
 
 	if (translatePrompt) {
 		try {
+			progressName.textContent = i18next.t('translatingGen');
 			promptP = await fetchPrompt(`/api/llama_translate?prompt=${encodeURIComponent(promptP)}`);
 			promptN = await fetchPrompt(`/api/llama_translate?prompt=${encodeURIComponent(promptN)}`);
 			promptS = await fetchPrompt(`/api/llama_translate?prompt=${encodeURIComponent(promptS)}`);
@@ -69,6 +73,7 @@ export async function setWorkflow(uid) {
 	}
 	if (refinePrompt) {
 		try {
+			progressName.textContent = i18next.t('refiningGen');
 			promptP = await fetchPrompt(`/api/llama_refine?prompt=${encodeURIComponent(promptP)}`);
 			promptN = await fetchPrompt(`/api/llama_refine?prompt=${encodeURIComponent(promptN)}`);
 			promptS = await fetchPrompt(`/api/llama_refine?prompt=${encodeURIComponent(promptS)}`);

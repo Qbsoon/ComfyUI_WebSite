@@ -151,6 +151,8 @@
 	"filterLast": "Ostatnia",
 	"queuedGen": "W kolejce...",
 	"processingGen": "Przetwarzanie...",
+	"translatingGen": "Tłumaczenie zapytania...",
+	"refiningGen": "Poprawianie zapytania...",
 	"cancelGen": "Anuluj",
 	"cancelledGen": "Anulowane przez użytkownika",
 	"imgAfterAlt": "Po",
