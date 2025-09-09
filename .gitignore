@@ -2,3 +2,4 @@
 /data/public_manifest.json
 /logs
 __pycache__/
+llama/

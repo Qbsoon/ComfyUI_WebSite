@@ -22,10 +22,16 @@ function checkImageResolution(imagePath) {
     });
 }
 
+async function fetchPrompt(url) {
+	const res = await fetch(url);
+	const json = await res.json();
+	return await json.response;
+}
+
 export async function setWorkflow(uid) {
-	const promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
-	const promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
-	const promptS = sanitizeInput(document.getElementById('systemPrompt').value.trim());
+	let promptP = sanitizeInput(document.getElementById('positivePrompt').value.trim());
+	let promptN = sanitizeInput(document.getElementById('negativePrompt').value.trim());
+	let promptS = sanitizeInput(document.getElementById('systemPrompt').value.trim());
     const cfg = parseFloat(document.getElementById('cfgInput').value);
     const steps = parseInt(document.getElementById('stepsInput').value);
     const stepsRefine = parseInt(document.getElementById('stepsRefineInput').value);
@@ -54,24 +60,18 @@ export async function setWorkflow(uid) {
 
 	if (translatePrompt) {
 		try {
-			const translated_promptP = await fetch(`/llama_translate&prompt=${encodeURIComponent(promptP)}`);
-			const translated_prompN = await fetch(`/llama_translate&prompt=${encodeURIComponent(promptN)}`);
-			const translated_promptS = await fetch(`/llama_translate&prompt=${encodeURIComponent(promptS)}`);
-			promptP = await translated_promptP.text();
-			promptN = await translated_prompN.text();
-			promptS = await translated_promptS.text();
+			promptP = await fetchPrompt(`/api/llama_translate?prompt=${encodeURIComponent(promptP)}`);
+			promptN = await fetchPrompt(`/api/llama_translate?prompt=${encodeURIComponent(promptN)}`);
+			promptS = await fetchPrompt(`/api/llama_translate?prompt=${encodeURIComponent(promptS)}`);
 		} catch (error) {
 			console.error('Error translating prompt:', error);
 		}
 	}
 	if (refinePrompt) {
 		try {
-			const refined_promptP = await fetch(`/llama_refine&prompt=${encodeURIComponent(promptP)}`);
-			const refined_prompN = await fetch(`/llama_refine&prompt=${encodeURIComponent(promptN)}`);
-			const refined_promptS = await fetch(`/llama_refine&prompt=${encodeURIComponent(promptS)}`);
-			promptP = await refined_promptP.text();
-			promptN = await refined_prompN.text();
-			promptS = await refined_promptS.text();
+			promptP = await fetchPrompt(`/api/llama_refine?prompt=${encodeURIComponent(promptP)}`);
+			promptN = await fetchPrompt(`/api/llama_refine?prompt=${encodeURIComponent(promptN)}`);
+			promptS = await fetchPrompt(`/api/llama_refine?prompt=${encodeURIComponent(promptS)}`);
 		} catch (error) {
 			console.error('Error refining prompt:', error);
 		}

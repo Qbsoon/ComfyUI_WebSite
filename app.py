@@ -23,6 +23,7 @@ import httpx
 import ssl
 from PIL import Image
 import atexit
+import subprocess
 
 # --- Configuration for Queue Monitoring and Freeing ---
 MONITOR_SERVER_BASE_URL = os.environ.get('COMFY_URL')
@@ -1431,6 +1432,76 @@ def _ensure_monitor():
 
 _ensure_monitor()
 
+# --- Llama Backend ---
+def llama_start():
+	try:
+		process = subprocess.Popen([
+		    "llama/llama-server",
+		    "-m", "llama/models/Qwen3-1.7B-Q8_0.gguf",
+		    "-b", "512",
+		    "-t", "8",
+			"--n-gpu-layers", "0",
+			"--reasoning-budget", "0",
+			"--host", os.environ.get('MAIN_ADDR'),
+		    "--port", "5175"
+		], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, text=True, encoding="utf-8")
+		atexit.register(process.terminate)
+
+		app.logger.info("Llama server started successfully.")
+
+		def log_output(pipe):
+			for line in iter(pipe.readline, ''):
+				app.logger.debug("llama_cpp: " + line.rstrip())
+			pipe.close()
+
+		llama_thread = threading.Thread(target=log_output, args=(process.stdout,), daemon=True)
+		llama_thread.start()
+		app.logger.info("Llama server output logging thread started.")
+	except Exception as e:
+		app.logger.error(f"Failed to start Llama server: {e}", exc_info=True)
+
+@app.route('/api/llama_translate', methods=['POST', 'GET'], endpoint='llama_translate')
+@login_required
+def llama_translate():
+	try:
+		prompt = unquote_plus(request.args.get('prompt'))
+		if not prompt:
+			return jsonify({"success": True, "response": ""})
+		request_json = {
+			"messages": [
+				{"role": "system", "content": "You are a helpful translator that translates every input to English. Whole user input is the text for translation. You don't change the meaning, wording, or phrasing. You perform a direct translation. You only answer with the translation, nothing else. No additional comments."},
+				{"role": "user", "content": prompt}
+			],
+			"max_tokens": -1
+		}
+		response = requests.post(f'http://{os.environ.get('MAIN_ADDR')}:5175/v1/chat/completions', json=request_json).json()
+		reply = response['choices'][0]['message']['content'].split('</think>')[1]
+		return jsonify({"success": True, "response": reply})
+	except Exception as e:
+		app.logger.error(f"Llama translate error: {e}")
+		return jsonify({"success": False, "error": "Llama error"}), 500
+
+@app.route('/api/llama_refine', methods=['POST', 'GET'], endpoint='llama_refine')
+@login_required
+def llama_refine():
+	try:
+		prompt = unquote_plus(request.args.get('prompt'))
+		if not prompt:
+			return jsonify({"success": True, "response": ""})
+		request_json = {
+			"messages": [
+				{"role": "system", "content": "You are a helpful prompt engineer that refines user prompts for image generation for better understanding. Whole user input is the prompt to refine. You can refine prompt for better results. You can refine phrasing, wording, but never change meaning. You can extend the prompt with additional words for better results. The only content of your answer is the refined prompt, nothing else. No additional comments or labels."},
+				{"role": "user", "content": prompt}
+			],
+			"max_tokens": -1
+		}
+		response = requests.post(f'http://{os.environ.get('MAIN_ADDR')}:5175/v1/chat/completions', json=request_json).json()
+		reply = response['choices'][0]['message']['content'].split('</think>')[1]
+		return jsonify({"success": True, "response": reply})
+	except Exception as e:
+		app.logger.error(f"Llama refine error: {e}")
+		return jsonify({"success": False, "error": "Llama error"}), 500
+
 
 # --- General route to serve files in all other directories ---
 @app.route("/<path:directory>/<filename>")
@@ -1452,6 +1523,7 @@ def restricted_area():
 # --- Main entry point for the application ---
 if __name__ == "__main__":
 	_ensure_monitor()
+	llama_start()
 	uvicorn.run(
 		"app:app",
 		host=os.environ.get('MAIN_ADDR'),
