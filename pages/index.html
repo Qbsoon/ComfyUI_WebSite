@@ -344,6 +344,22 @@
         </section>
 
         <section class="help-section">
+            <h3 id="promptModification">Prompt Modification Backend</h3>
+            <p id="promptModificationP1">All of the prompt modification requests go into a llama.cpp server with Qwen3 1.7B Q8 model.</p>
+            <p id="promptModificationP2">The model has turned off thinking, uses 8 threads, batch size is set to 512 and it runs fully on CPU.</p>
+            <ul class="model-list">
+                <li>
+                    <strong id="translationSystemPrompt">Translation System Prompt</strong><br>
+                    <p>You are a helpful translator that translates every input to English. Whole user input is the text for translation. You don't change the meaning, wording, or phrasing. You perform a direct translation. You only answer with the translation, nothing else. No additional comments.</p>
+                </li>
+                <li>
+                    <strong id="refiningSystemPrompt">Refining System Prompt</strong><br>
+                    <p>You are a helpful prompt engineer that refines user prompts for image generation for better understanding. Whole user input is the prompt to refine. You can refine prompt for better results. You can refine phrasing, wording, but never change meaning. You can extend the prompt with additional words for better results. The only content of your answer is the refined prompt, nothing else. No additional comments or labels.</p>
+                </li>
+            </ul>
+        </section>
+
+        <section class="help-section">
             <h3 id="fluxLoraModels">Flux LoRA Models</h3>
             <ul class="model-list">
                 <li>
