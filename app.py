@@ -29,7 +29,7 @@ import subprocess
 MONITOR_SERVER_BASE_URL = os.environ.get('COMFY_URL')
 MONITOR_SERVER_WS_URL = os.environ.get('COMFY_WS')
 MONITOR_CHECK_INTERVAL_SECONDS = 0.25
-MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 15
+MONITOR_IDLE_DURATION_TO_FREE_SECONDS = 900
 MONITOR_FREE_PAYLOAD = {"unload_models": True, "free_memory": True}
 # --- End Configuration ---
 
@@ -1475,7 +1475,9 @@ def llama_translate():
 			"max_tokens": -1
 		}
 		response = requests.post(f'http://{os.environ.get('MAIN_ADDR')}:5175/v1/chat/completions', json=request_json).json()
-		reply = response['choices'][0]['message']['content'].split('</think>')[1]
+		reply = response['choices'][0]['message']['content']
+		if "</think>" in reply:
+			reply = reply.split('</think>')[1]
 		return jsonify({"success": True, "response": reply})
 	except Exception as e:
 		app.logger.error(f"Llama translate error: {e}")
@@ -1496,7 +1498,9 @@ def llama_refine():
 			"max_tokens": -1
 		}
 		response = requests.post(f'http://{os.environ.get('MAIN_ADDR')}:5175/v1/chat/completions', json=request_json).json()
-		reply = response['choices'][0]['message']['content'].split('</think>')[1]
+		reply = response['choices'][0]['message']['content']
+		if "</think>" in reply:
+			reply = reply.split('</think>')[1]
 		return jsonify({"success": True, "response": reply})
 	except Exception as e:
 		app.logger.error(f"Llama refine error: {e}")
