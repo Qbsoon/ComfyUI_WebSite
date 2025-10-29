@@ -277,7 +277,8 @@ app.config['LDAP_TLS_CA_CERTS_FILE'] = ca_cert_path
 
 app.config['LDAP_TLS_REQUIRE_CERT'] = ssl.CERT_REQUIRED
 
-app.config['LDAP_USER_DN'] = os.environ.get('LDAP_USER_DN')
+app.config['LDAP_USER_DNS'] = [dn.strip() for dn in os.environ.get('LDAP_USER_DN', '').split(';') if dn.strip()]
+
 app.config['LDAP_USER_RDN_ATTR'] = 'uid'
 app.config['LDAP_USER_LOGIN_ATTR'] = 'uid'
 app.config['LDAP_USER_FULLNAME_ATTR'] = os.environ.get('LDAP_USER_FULLNAME_ATTR', 'cn')
@@ -323,38 +324,58 @@ async def login():
 			return await render_template("auth.html", error="Missing username or password")
 
 		conn = None
+		bind_successful = False
+		user_dn_for_bind = None
+		base = None
+
 		try:
 			app.logger.debug("--- Manual LDAP Authentication ---")
 
-			user_dn = f"{app.config['LDAP_USER_LOGIN_ATTR']}={username},{app.config['LDAP_USER_DN']}"
-			app.logger.debug(f"Manual Auth: Constructed User DN: {user_dn}")
+			user_dns_to_try = app.config.get('LDAP_USER_DNS', [])
+			if not user_dns_to_try:
+				app.logger.error("No LDAP_USER_DN configured for user authentication.")
+				return await render_template("auth.html", error="Server configuration error.")
+			
+			for user_base_dn in user_dns_to_try:
+				user_dn = f"{app.config['LDAP_USER_LOGIN_ATTR']}={username},{user_base_dn}"
+				app.logger.debug(f"Manual Auth: Constructed User DN: {user_dn}")
 
-			tls_config = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1_2)
+				tls_config = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1_2)
 
-			server = ldap3.Server(
-				app.config['LDAP_HOST'],
-				port=app.config['LDAP_PORT'],
-				use_ssl=app.config['LDAP_USE_SSL'],
-				tls=tls_config
-			)
-			app.logger.debug(f"Manual Auth: Connecting to server: {server.host}:{server.port} SSL={server.ssl}")
+				server = ldap3.Server(
+					app.config['LDAP_HOST'],
+					port=app.config['LDAP_PORT'],
+					use_ssl=app.config['LDAP_USE_SSL'],
+					tls=tls_config
+				)
+				app.logger.debug(f"Manual Auth: Connecting to server: {server.host}:{server.port} SSL={server.ssl}")
 
-			conn = ldap3.Connection(
-				server,
-				user=user_dn,
-				password=password,
-				authentication=ldap3.SIMPLE,
-				auto_bind=False
-			)
-			app.logger.debug("Manual Auth: Connection object created with auto_bind=False. Attempting bind...")
+				try:
+					conn = ldap3.Connection(
+						server,
+						user=user_dn,
+						password=password,
+						authentication=ldap3.SIMPLE,
+						auto_bind=True
+					)
+					if conn.bound:
+						bind_successful = True
+						user_dn_for_bind = user_dn
+						base = user_base_dn
+						app.logger.info(f"Manual Auth: Bind SUCCESSFUL for DN: {user_dn}")
+						break
+					else:
+						app.logger.warning(f"Manual Auth: Initial bind FAILED for DN: {user_dn}. Result: {conn.result}")
+				
+				except ldap3.core.exceptions.LDAPBindError as e:
+					app.logger.warning(f"Manual Auth: LDAPBindError for DN: {user_dn}: {e}")
+					continue
+				finally:
+					if conn and conn.bound and not bind_successful:
+						conn.unbind()
 
-			bind_successful = conn.bind()
-			app.logger.debug(f"Manual Auth: Explicit bind result: {bind_successful}")
-
-			if bind_successful:
-				app.logger.info(f"Manual Auth: Bind SUCCESSFUL for DN: {user_dn}")
-
-				search_base = app.config['LDAP_USER_DN']
+			if bind_successful and conn:
+				search_base = base
 				search_filter = f"({app.config['LDAP_USER_LOGIN_ATTR']}={username})"
 				attributes_to_get = [app.config['LDAP_USER_FULLNAME_ATTR'], app.config['LDAP_USER_LOGIN_ATTR']]
 				app.logger.debug(f"Manual Auth: Searching for user attributes. Base='{search_base}', Filter='{search_filter}', Attrs={attributes_to_get}")
@@ -400,7 +421,7 @@ async def login():
 					return await render_template("auth.html", error="Login failed: Could not retrieve user data.")
 
 			else:
-				app.logger.warning(f"Manual Auth: Bind FAILED for DN: {user_dn}. Result: {conn.result}")
+				app.logger.warning(f"Manual Auth: Bind FAILED for user '{username}' against all configured DNs.")
 				if conn.result and conn.result.get('result') == 49:
 					return await render_template("auth.html", error="Invalid username or password")
 				else:
